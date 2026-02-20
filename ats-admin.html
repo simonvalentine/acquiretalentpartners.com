@@ -1,0 +1,866 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ATS — Acquire Talent Partners</title>
+<style>
+:root {
+  --primary: #0f2b46;
+  --accent: #2563eb;
+  --accent-light: #3b82f6;
+  --accent-bg: #eff6ff;
+  --bg: #f1f5f9;
+  --bg-white: #ffffff;
+  --bg-dark: #0f172a;
+  --text: #1e293b;
+  --text-light: #64748b;
+  --text-xs: #94a3b8;
+  --border: #e2e8f0;
+  --radius: 10px;
+  --shadow: 0 1px 3px rgba(0,0,0,.06), 0 1px 2px rgba(0,0,0,.04);
+  --shadow-lg: 0 4px 16px rgba(0,0,0,.08);
+  /* Status colours */
+  --new: #6366f1;    --new-bg: #eef2ff;
+  --review: #f59e0b; --review-bg: #fffbeb;
+  --interview: #8b5cf6; --interview-bg: #f5f3ff;
+  --offer: #2563eb;  --offer-bg: #eff6ff;
+  --hired: #10b981;  --hired-bg: #ecfdf5;
+  --rejected: #ef4444; --rejected-bg: #fef2f2;
+  --withdrawn: #64748b; --withdrawn-bg: #f8fafc;
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+body { font-family: -apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif; color:var(--text); background:var(--bg); display:flex; min-height:100vh; }
+
+/* ── Sidebar ── */
+.sidebar {
+  width:240px; background:var(--bg-dark); color:#fff; padding:0; flex-shrink:0;
+  display:flex; flex-direction:column; position:fixed; top:0; bottom:0; z-index:100;
+}
+.sidebar-logo { padding:24px 20px 20px; border-bottom:1px solid rgba(255,255,255,.08); }
+.sidebar-logo a { color:#fff; text-decoration:none; font-size:1.15rem; font-weight:800; letter-spacing:-.3px; }
+.sidebar-logo a span { color:var(--accent-light); }
+.sidebar-logo p { font-size:.72rem; color:#64748b; margin-top:2px; text-transform:uppercase; letter-spacing:1.5px; }
+.sidebar-nav { flex:1; padding:16px 12px; overflow-y:auto; }
+.sidebar-nav a {
+  display:flex; align-items:center; gap:10px; padding:10px 12px; border-radius:8px;
+  color:#94a3b8; text-decoration:none; font-size:.88rem; font-weight:500;
+  transition:all .15s; margin-bottom:2px;
+}
+.sidebar-nav a:hover { background:rgba(255,255,255,.06); color:#e2e8f0; }
+.sidebar-nav a.active { background:rgba(37,99,235,.15); color:#60a5fa; }
+.sidebar-nav a .icon { width:20px; text-align:center; font-size:.95rem; }
+.sidebar-nav .section-label {
+  font-size:.68rem; color:#475569; text-transform:uppercase; letter-spacing:1.5px;
+  padding:16px 12px 6px; font-weight:700;
+}
+.sidebar-user {
+  padding:16px 16px; border-top:1px solid rgba(255,255,255,.08);
+  display:flex; align-items:center; gap:10px;
+}
+.sidebar-user .avatar {
+  width:36px; height:36px; border-radius:50%; background:linear-gradient(135deg,var(--accent),#7c3aed);
+  display:flex; align-items:center; justify-content:center; font-weight:700; font-size:.82rem;
+}
+.sidebar-user .user-info { flex:1; }
+.sidebar-user .user-info strong { display:block; font-size:.85rem; color:#e2e8f0; }
+.sidebar-user .user-info span { font-size:.72rem; color:#64748b; }
+
+/* ── Main Content ── */
+.main { margin-left:240px; flex:1; min-height:100vh; }
+
+/* Top bar */
+.topbar {
+  background:var(--bg-white); border-bottom:1px solid var(--border);
+  padding:16px 32px; display:flex; align-items:center; justify-content:space-between;
+  position:sticky; top:0; z-index:50;
+}
+.topbar h1 { font-size:1.2rem; font-weight:700; }
+.topbar-actions { display:flex; gap:12px; align-items:center; }
+.topbar-search {
+  padding:9px 14px 9px 36px; border:1px solid var(--border); border-radius:8px;
+  font-size:.88rem; width:280px; outline:none; transition:border-color .2s;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='%2394a3b8' viewBox='0 0 16 16'%3E%3Cpath d='M11.742 10.344a6.5 6.5 0 10-1.397 1.398h-.001l3.85 3.85a1 1 0 001.415-1.414l-3.85-3.85zm-5.242.156a5 5 0 110-10 5 5 0 010 10z'/%3E%3C/svg%3E") no-repeat 12px center var(--bg-white);
+}
+.topbar-search:focus { border-color:var(--accent); }
+
+/* ── Content Area ── */
+.content { padding:28px 32px; }
+
+/* Stats Row */
+.stats-row { display:grid; grid-template-columns:repeat(6,1fr); gap:16px; margin-bottom:28px; }
+.stat-card {
+  background:var(--bg-white); border:1px solid var(--border); border-radius:var(--radius);
+  padding:20px; transition:all .2s; cursor:pointer;
+}
+.stat-card:hover { box-shadow:var(--shadow-lg); transform:translateY(-1px); }
+.stat-card.active-filter { border-color:var(--accent); box-shadow:0 0 0 2px rgba(37,99,235,.15); }
+.stat-card .stat-label { font-size:.75rem; color:var(--text-light); text-transform:uppercase; letter-spacing:.8px; font-weight:600; }
+.stat-card .stat-value { font-size:1.8rem; font-weight:800; margin-top:4px; }
+.stat-card .stat-change { font-size:.75rem; margin-top:4px; }
+.stat-card .stat-change.up { color:#10b981; }
+.stat-card .stat-change.down { color:#ef4444; }
+
+/* ── Pipeline / Kanban Board ── */
+.view-toggle { display:flex; gap:4px; margin-bottom:20px; }
+.view-btn {
+  padding:8px 16px; border-radius:6px; border:1px solid var(--border);
+  background:var(--bg-white); font-size:.82rem; font-weight:500; cursor:pointer;
+  color:var(--text-light); transition:all .15s;
+}
+.view-btn.active { background:var(--accent); color:#fff; border-color:var(--accent); }
+
+/* Filters bar */
+.filters-bar {
+  display:flex; gap:10px; margin-bottom:20px; flex-wrap:wrap; align-items:center;
+}
+.filter-chip {
+  padding:7px 14px; border-radius:20px; border:1px solid var(--border);
+  background:var(--bg-white); font-size:.8rem; font-weight:500; cursor:pointer;
+  color:var(--text-light); transition:all .15s;
+}
+.filter-chip:hover { border-color:var(--accent); color:var(--accent); }
+.filter-chip.active { background:var(--accent); color:#fff; border-color:var(--accent); }
+.filter-select {
+  padding:7px 12px; border:1px solid var(--border); border-radius:8px;
+  font-size:.82rem; background:var(--bg-white); outline:none; cursor:pointer;
+}
+
+/* ── Candidate Table ── */
+.table-wrapper {
+  background:var(--bg-white); border:1px solid var(--border); border-radius:var(--radius);
+  overflow:hidden;
+}
+table { width:100%; border-collapse:collapse; }
+thead { background:var(--bg); }
+th {
+  padding:12px 16px; text-align:left; font-size:.75rem; font-weight:700;
+  color:var(--text-light); text-transform:uppercase; letter-spacing:.5px;
+  border-bottom:1px solid var(--border); cursor:pointer; user-select:none;
+  white-space:nowrap;
+}
+th:hover { color:var(--text); }
+th .sort-icon { margin-left:4px; font-size:.7rem; }
+td { padding:14px 16px; border-bottom:1px solid var(--border); font-size:.88rem; vertical-align:middle; }
+tr:last-child td { border-bottom:none; }
+tr:hover { background:#f8faff; }
+tr { cursor:pointer; transition:background .1s; }
+
+.candidate-name { font-weight:600; color:var(--primary); }
+.candidate-email { font-size:.78rem; color:var(--text-light); }
+.candidate-job { font-size:.85rem; }
+.candidate-loc { font-size:.82rem; color:var(--text-light); }
+
+/* Status Badge */
+.status-badge {
+  display:inline-flex; align-items:center; gap:5px; padding:4px 10px;
+  border-radius:20px; font-size:.75rem; font-weight:600;
+}
+.status-new { background:var(--new-bg); color:var(--new); }
+.status-reviewing { background:var(--review-bg); color:var(--review); }
+.status-interview { background:var(--interview-bg); color:var(--interview); }
+.status-offer { background:var(--offer-bg); color:var(--offer); }
+.status-hired { background:var(--hired-bg); color:var(--hired); }
+.status-rejected { background:var(--rejected-bg); color:var(--rejected); }
+.status-withdrawn { background:var(--withdrawn-bg); color:var(--withdrawn); }
+.status-dot { width:7px; height:7px; border-radius:50%; }
+.dot-new { background:var(--new); }
+.dot-reviewing { background:var(--review); }
+.dot-interview { background:var(--interview); }
+.dot-offer { background:var(--offer); }
+.dot-hired { background:var(--hired); }
+.dot-rejected { background:var(--rejected); }
+.dot-withdrawn { background:var(--withdrawn); }
+
+/* Rating stars */
+.rating { display:flex; gap:2px; }
+.star { color:#e2e8f0; font-size:.9rem; cursor:pointer; transition:color .15s; }
+.star.filled { color:#f59e0b; }
+.star:hover { color:#fbbf24; }
+
+/* Pagination */
+.pagination {
+  display:flex; align-items:center; justify-content:space-between; padding:14px 16px;
+  border-top:1px solid var(--border); font-size:.82rem; color:var(--text-light);
+}
+.page-btns { display:flex; gap:4px; }
+.page-btn {
+  padding:6px 12px; border:1px solid var(--border); border-radius:6px;
+  background:var(--bg-white); font-size:.82rem; cursor:pointer; transition:all .15s;
+}
+.page-btn:hover { border-color:var(--accent); color:var(--accent); }
+.page-btn.active { background:var(--accent); color:#fff; border-color:var(--accent); }
+.page-btn:disabled { opacity:.4; cursor:not-allowed; }
+
+/* ── Candidate Detail Drawer ── */
+.drawer-overlay {
+  display:none; position:fixed; inset:0; z-index:200;
+  background:rgba(15,23,42,.4); backdrop-filter:blur(4px);
+}
+.drawer-overlay.open { display:block; }
+.drawer {
+  position:fixed; top:0; right:-600px; bottom:0; width:600px; max-width:90vw;
+  background:var(--bg-white); z-index:201; transition:right .3s ease;
+  display:flex; flex-direction:column; box-shadow:-8px 0 32px rgba(0,0,0,.1);
+}
+.drawer.open { right:0; }
+.drawer-header {
+  padding:24px 28px 20px; border-bottom:1px solid var(--border);
+  display:flex; justify-content:space-between; align-items:flex-start;
+}
+.drawer-close {
+  background:none; border:none; font-size:1.4rem; cursor:pointer; color:var(--text-light);
+  padding:4px 8px; border-radius:6px; transition:background .15s;
+}
+.drawer-close:hover { background:var(--bg); color:var(--text); }
+.drawer-body { flex:1; overflow-y:auto; padding:24px 28px; }
+.drawer-footer { padding:16px 28px; border-top:1px solid var(--border); display:flex; gap:10px; justify-content:flex-end; }
+
+/* Drawer sections */
+.d-section { margin-bottom:28px; }
+.d-section-title { font-size:.78rem; font-weight:700; color:var(--text-light); text-transform:uppercase; letter-spacing:1px; margin-bottom:12px; }
+.d-grid { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+.d-field label { font-size:.72rem; color:var(--text-xs); display:block; margin-bottom:2px; }
+.d-field p { font-size:.88rem; font-weight:500; }
+.d-field a { color:var(--accent); text-decoration:none; font-size:.88rem; }
+.d-field a:hover { text-decoration:underline; }
+
+/* Status dropdown */
+.status-select {
+  padding:8px 12px; border:1px solid var(--border); border-radius:8px;
+  font-size:.85rem; font-weight:600; outline:none; cursor:pointer;
+  width:100%; transition:border-color .2s;
+}
+.status-select:focus { border-color:var(--accent); }
+
+/* Notes */
+.notes-list { display:flex; flex-direction:column; gap:12px; }
+.note-item {
+  background:var(--bg); border-radius:8px; padding:14px; border:1px solid var(--border);
+}
+.note-item .note-meta { font-size:.75rem; color:var(--text-xs); margin-bottom:6px; display:flex; justify-content:space-between; }
+.note-item .note-text { font-size:.88rem; line-height:1.6; }
+.note-input-area { display:flex; gap:8px; margin-top:12px; }
+.note-input {
+  flex:1; padding:10px 14px; border:1px solid var(--border); border-radius:8px;
+  font-size:.88rem; font-family:inherit; outline:none; resize:none; min-height:40px;
+}
+.note-input:focus { border-color:var(--accent); }
+.note-send {
+  padding:10px 16px; background:var(--accent); color:#fff; border:none;
+  border-radius:8px; font-weight:600; font-size:.82rem; cursor:pointer;
+  transition:background .15s; white-space:nowrap;
+}
+.note-send:hover { background:var(--accent-light); }
+
+/* Timeline */
+.timeline { position:relative; padding-left:20px; }
+.timeline::before { content:''; position:absolute; left:6px; top:4px; bottom:4px; width:2px; background:var(--border); }
+.timeline-item { position:relative; padding-bottom:16px; padding-left:16px; }
+.timeline-item::before {
+  content:''; position:absolute; left:-17px; top:5px;
+  width:10px; height:10px; border-radius:50%; border:2px solid var(--border); background:var(--bg-white);
+}
+.timeline-item.active::before { border-color:var(--accent); background:var(--accent); }
+.timeline-item .tl-text { font-size:.85rem; }
+.timeline-item .tl-date { font-size:.72rem; color:var(--text-xs); margin-top:2px; }
+
+/* Buttons */
+.btn { display:inline-flex; align-items:center; gap:6px; padding:9px 18px; border-radius:8px; font-weight:600; font-size:.85rem; cursor:pointer; transition:all .15s; border:none; text-decoration:none; }
+.btn-primary { background:var(--accent); color:#fff; }
+.btn-primary:hover { background:var(--accent-light); }
+.btn-secondary { background:var(--bg); color:var(--text); border:1px solid var(--border); }
+.btn-secondary:hover { background:#e2e8f0; }
+.btn-danger { background:#fef2f2; color:#ef4444; border:1px solid #fecaca; }
+.btn-danger:hover { background:#fee2e2; }
+.btn-success { background:#ecfdf5; color:#10b981; border:1px solid #a7f3d0; }
+.btn-success:hover { background:#d1fae5; }
+.btn-sm { padding:6px 12px; font-size:.78rem; }
+
+/* ── Kanban Board ── */
+.kanban-board { display:flex; gap:16px; overflow-x:auto; padding-bottom:16px; }
+.kanban-column {
+  min-width:260px; max-width:280px; flex-shrink:0;
+  background:var(--bg); border-radius:var(--radius); border:1px solid var(--border);
+}
+.kanban-header {
+  padding:14px 16px; border-bottom:1px solid var(--border);
+  display:flex; align-items:center; justify-content:space-between;
+}
+.kanban-header h3 { font-size:.82rem; font-weight:700; display:flex; align-items:center; gap:6px; }
+.kanban-count {
+  font-size:.72rem; background:var(--border); color:var(--text-light);
+  padding:2px 8px; border-radius:10px; font-weight:600;
+}
+.kanban-body { padding:8px; max-height:calc(100vh - 340px); overflow-y:auto; }
+.kanban-card {
+  background:var(--bg-white); border:1px solid var(--border); border-radius:8px;
+  padding:14px; margin-bottom:8px; cursor:pointer; transition:all .15s;
+}
+.kanban-card:hover { box-shadow:var(--shadow); border-color:var(--accent); }
+.kanban-card .kc-name { font-weight:600; font-size:.88rem; margin-bottom:2px; }
+.kanban-card .kc-role { font-size:.78rem; color:var(--text-light); margin-bottom:8px; line-height:1.4; }
+.kanban-card .kc-meta { display:flex; gap:8px; font-size:.72rem; color:var(--text-xs); flex-wrap:wrap; }
+.kanban-card .kc-rating { margin-top:6px; }
+
+/* Empty state */
+.empty-state { text-align:center; padding:48px 24px; }
+.empty-state .empty-icon { font-size:2.5rem; margin-bottom:12px; }
+.empty-state p { color:var(--text-light); font-size:.92rem; }
+
+/* Responsive */
+@media (max-width:1200px) { .stats-row { grid-template-columns:repeat(3,1fr); } }
+@media (max-width:768px) {
+  .sidebar { display:none; }
+  .main { margin-left:0; }
+  .stats-row { grid-template-columns:repeat(2,1fr); }
+  .drawer { width:100%; max-width:100%; }
+  .topbar-search { width:180px; }
+}
+</style>
+</head>
+<body>
+
+<!-- ═══════════ SIDEBAR ═══════════ -->
+<aside class="sidebar">
+  <div class="sidebar-logo">
+    <a href="#">Acquire<span>TP</span></a>
+    <p>Talent Platform</p>
+  </div>
+  <nav class="sidebar-nav">
+    <div class="section-label">Recruitment</div>
+    <a href="#" class="active" onclick="setView('dashboard')"><span class="icon">&#9776;</span> Dashboard</a>
+    <a href="#" onclick="setView('pipeline')"><span class="icon">&#9654;</span> Pipeline</a>
+    <a href="#" onclick="setView('candidates')"><span class="icon">&#128100;</span> All Candidates</a>
+    <div class="section-label">Manage</div>
+    <a href="#"><span class="icon">&#128188;</span> Jobs</a>
+    <a href="#"><span class="icon">&#128197;</span> Interviews</a>
+    <a href="#"><span class="icon">&#128200;</span> Reports</a>
+    <div class="section-label">Settings</div>
+    <a href="#"><span class="icon">&#9881;</span> Configuration</a>
+    <a href="#"><span class="icon">&#128101;</span> Team</a>
+  </nav>
+  <div class="sidebar-user">
+    <div class="avatar">SV</div>
+    <div class="user-info">
+      <strong>Simon Valentine</strong>
+      <span>Hiring Manager</span>
+    </div>
+  </div>
+</aside>
+
+<!-- ═══════════ MAIN ═══════════ -->
+<div class="main">
+  <!-- Top Bar -->
+  <div class="topbar">
+    <h1 id="pageTitle">Dashboard</h1>
+    <div class="topbar-actions">
+      <input type="text" class="topbar-search" placeholder="Search candidates..." id="globalSearch" onkeyup="handleGlobalSearch()">
+      <a href="acquire-talent-partners.html" target="_blank" class="btn btn-secondary btn-sm">&#127760; View Careers Site</a>
+    </div>
+  </div>
+
+  <!-- Content -->
+  <div class="content" id="mainContent">
+    <!-- Populated by JS -->
+  </div>
+</div>
+
+<!-- ═══════════ CANDIDATE DRAWER ═══════════ -->
+<div class="drawer-overlay" id="drawerOverlay" onclick="closeDrawer()"></div>
+<div class="drawer" id="candidateDrawer">
+  <div class="drawer-header">
+    <div>
+      <h2 id="drawerName" style="font-size:1.2rem;font-weight:800;color:var(--primary)"></h2>
+      <p id="drawerRole" style="font-size:.88rem;color:var(--text-light);margin-top:2px"></p>
+    </div>
+    <button class="drawer-close" onclick="closeDrawer()">&times;</button>
+  </div>
+  <div class="drawer-body" id="drawerBody"></div>
+  <div class="drawer-footer" id="drawerFooter"></div>
+</div>
+
+<script>
+// ═══════════ DATA ═══════════
+const statuses = ['new','reviewing','interview','offer','hired','rejected','withdrawn'];
+const statusLabels = { new:'New', reviewing:'Reviewing', interview:'Interview', offer:'Offer', hired:'Hired', rejected:'Rejected', withdrawn:'Withdrawn' };
+
+// Generate demo candidates
+const jobTitles = [
+  "Senior Software Engineer — Cloud Platform", "Staff Machine Learning Engineer", "Frontend Engineer — Design Systems",
+  "DevOps Engineer", "Backend Engineer — Payments", "Product Manager — Enterprise Platform",
+  "Senior UX Designer", "Enterprise Account Executive", "Management Consultant — Digital Transformation",
+  "Talent Acquisition Partner — Technology", "Financial Analyst — FP&A", "Data Engineer",
+  "Cybersecurity Analyst", "Legal Counsel — Commercial Contracts", "Renewable Energy Project Engineer",
+  "AI Research Scientist", "Senior Strategy Consultant", "HR Business Partner — APAC",
+  "Digital Marketing Manager", "Site Reliability Engineer", "Solutions Architect — Pre-Sales",
+  "Clinical Systems Analyst", "ESG Reporting Analyst", "Platform Engineer — Kubernetes",
+  "Content Strategist", "UX Researcher", "Business Development Manager — APAC",
+  "Software Engineering Intern — Summer 2026", "Sales Development Representative", "Head of Diversity, Equity & Inclusion"
+];
+
+const locations = ["London, UK","New York, US","Singapore","Frankfurt, DE","Tokyo, JP","Dubai, UAE","Sydney, AU","Toronto, CA","Bangalore, IN","São Paulo, BR","Remote"];
+const sources = ["Careers Site","LinkedIn","Indeed","Referral","Glassdoor","Agency","University"];
+const departments = ["Engineering","Product","Sales","Consulting","Finance","HR","Marketing","Operations","Legal","Healthcare","Energy","Security"];
+
+const firstNames = ["James","Emma","Liam","Olivia","Noah","Ava","Ethan","Sophia","Mason","Isabella","Lucas","Mia","Alexander","Charlotte","Benjamin","Amelia","Daniel","Harper","Matthew","Evelyn","Aiden","Luna","Henry","Camila","Sebastian","Aria","Jack","Scarlett","Owen","Madison","Samuel","Layla","Ryan","Chloe","Nathan","Penelope","Leo","Riley","Raj","Priya","Wei","Yuki","Ahmed","Fatima","Carlos","Maria","Ivan","Katya","Kwame","Chioma","Hiroshi","Sakura","Omar","Leila","Matteo","Giulia","Lars","Freya","Diego","Valentina"];
+const lastNames = ["Smith","Johnson","Williams","Brown","Jones","Garcia","Miller","Davis","Rodriguez","Martinez","Chen","Wang","Kim","Patel","Nakamura","Singh","Ali","Okafor","Müller","Johansson","Rossi","Dubois","Santos","Petrov","Nguyen","O'Brien","Andersen","Yamamoto","Chowdhury","Van den Berg","Kowalski","Fernandez","Bianchi","Larsson","Sato","Krishnamurthy","Al-Hassan","Nwosu","Weber","Berg","Costa","Tanaka","Gupta","Reeves","Harrison","Campbell","Thompson","Mitchell","Turner","Wright"];
+
+function randomDate(start, end) {
+  return new Date(start.getTime() + Math.random() * (end.getTime() - start.getTime()));
+}
+function formatDate(d) {
+  const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  return d.getDate() + ' ' + months[d.getMonth()] + ' ' + d.getFullYear();
+}
+function formatDateTime(d) {
+  return formatDate(d) + ', ' + d.getHours().toString().padStart(2,'0') + ':' + d.getMinutes().toString().padStart(2,'0');
+}
+function randomItem(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
+function randomRating() { return Math.floor(Math.random() * 5) + 1; }
+
+// Check for data from careers site
+let storedApps = [];
+try { storedApps = JSON.parse(localStorage.getItem('atp_applications') || '[]'); } catch(e){}
+
+const candidates = [];
+// Add stored applications first
+storedApps.forEach((app, i) => {
+  candidates.push({
+    id: 'APP-' + (1000 + i),
+    firstName: app.firstName || 'Unknown',
+    lastName: app.lastName || 'Applicant',
+    email: app.email || '',
+    phone: app.phone || '',
+    location: app.location || '',
+    job: app.job || 'General Application',
+    department: app.department || 'General',
+    source: 'Careers Site',
+    status: 'new',
+    rating: 0,
+    appliedDate: new Date(app.appliedDate || Date.now()),
+    linkedin: app.linkedin || '',
+    salary: app.salary || '',
+    notice: app.notice || '',
+    experience: app.experience || '',
+    visa: app.visa || '',
+    motivation: app.motivation || '',
+    notes: app.notes || [],
+    timeline: [{ action: 'Applied via Careers Site', date: new Date(app.appliedDate || Date.now()) }]
+  });
+});
+
+// Generate 85 demo candidates
+for (let i = 0; i < 85; i++) {
+  const first = randomItem(firstNames);
+  const last = randomItem(lastNames);
+  const applied = randomDate(new Date('2026-01-05'), new Date('2026-02-20'));
+  const status = randomItem(['new','new','new','reviewing','reviewing','interview','interview','offer','hired','rejected','withdrawn']);
+  const rating = status === 'new' ? (Math.random() > .5 ? 0 : randomRating()) : randomRating();
+  const job = randomItem(jobTitles);
+  const dept = randomItem(departments);
+  const notes = [];
+  if (status !== 'new') {
+    notes.push({ text: 'CV reviewed. ' + (rating >= 4 ? 'Strong background, relevant experience.' : rating >= 3 ? 'Decent profile, some gaps in experience.' : 'Below average fit for the role.'), author: 'Simon Valentine', date: new Date(applied.getTime() + 86400000 * (1 + Math.floor(Math.random() * 3))) });
+  }
+  if (['interview','offer','hired'].includes(status)) {
+    notes.push({ text: randomItem(['Good technical depth in the interview. Communicates well.', 'Panel was impressed. Culture fit is strong.', 'Solid answers but needs to sharpen on system design.', 'Excellent presentation. Team unanimous on progressing.', 'Strong problem-solving. Would complement the existing team well.']), author: randomItem(['Simon Valentine','Sarah Chen','Tom Barrett']), date: new Date(applied.getTime() + 86400000 * (4 + Math.floor(Math.random() * 5))) });
+  }
+  if (status === 'offer' || status === 'hired') {
+    notes.push({ text: status === 'hired' ? 'Offer accepted. Start date confirmed.' : 'Offer sent. Awaiting response.', author: 'Simon Valentine', date: new Date(applied.getTime() + 86400000 * (10 + Math.floor(Math.random() * 5))) });
+  }
+  if (status === 'rejected') {
+    notes.push({ text: randomItem(['Did not meet minimum requirements for the role.','Decided to go with a stronger candidate.','Culture fit concerns raised by panel.','Withdrew after receiving another offer — marked as rejected.']), author: 'Simon Valentine', date: new Date(applied.getTime() + 86400000 * (3 + Math.floor(Math.random() * 5))) });
+  }
+
+  const timeline = [{ action: 'Applied via ' + randomItem(sources), date: applied }];
+  if (status !== 'new') timeline.push({ action: 'Moved to Reviewing', date: new Date(applied.getTime() + 86400000 * 2) });
+  if (['interview','offer','hired'].includes(status)) timeline.push({ action: 'Interview scheduled', date: new Date(applied.getTime() + 86400000 * 5) });
+  if (['offer','hired'].includes(status)) timeline.push({ action: 'Offer extended', date: new Date(applied.getTime() + 86400000 * 12) });
+  if (status === 'hired') timeline.push({ action: 'Offer accepted', date: new Date(applied.getTime() + 86400000 * 15) });
+  if (status === 'rejected') timeline.push({ action: 'Application rejected', date: new Date(applied.getTime() + 86400000 * 7) });
+
+  candidates.push({
+    id: 'ATP-' + (2000 + i),
+    firstName: first,
+    lastName: last,
+    email: first.toLowerCase() + '.' + last.toLowerCase() + '@email.com',
+    phone: '+' + (Math.floor(Math.random() * 80) + 1) + ' ' + Math.floor(1000000000 + Math.random() * 9000000000),
+    location: randomItem(locations),
+    job: job,
+    department: dept,
+    source: randomItem(sources),
+    status: status,
+    rating: rating,
+    appliedDate: applied,
+    linkedin: Math.random() > .3 ? 'linkedin.com/in/' + first.toLowerCase() + last.toLowerCase() : '',
+    salary: randomItem(['','£80K–100K','$120K–150K','€90K–110K','SGD 100K–130K','AED 300K+','Negotiable']),
+    notice: randomItem(['Immediately','1 week','2 weeks','1 month','2 months','3 months']),
+    experience: randomItem(['< 1 year','1–2 years','3–5 years','6–10 years','10–15 years','15+ years']),
+    visa: randomItem(['Yes — right to work','Yes — with sponsorship','Requires sponsorship']),
+    motivation: '',
+    notes: notes,
+    timeline: timeline
+  });
+}
+
+// ═══════════ STATE ═══════════
+let currentView = 'dashboard';
+let statusFilter = '';
+let deptFilter = '';
+let sortField = 'appliedDate';
+let sortDir = -1;
+let currentPage = 1;
+const pageSize = 20;
+
+// ═══════════ VIEWS ═══════════
+function setView(view) {
+  currentView = view;
+  document.querySelectorAll('.sidebar-nav a').forEach(a => a.classList.remove('active'));
+  const labels = { dashboard:'Dashboard', pipeline:'Pipeline', candidates:'All Candidates' };
+  event.target.closest('a').classList.add('active');
+  document.getElementById('pageTitle').textContent = labels[view] || 'Dashboard';
+  statusFilter = '';
+  currentPage = 1;
+  render();
+}
+
+function render() {
+  const el = document.getElementById('mainContent');
+  if (currentView === 'dashboard') el.innerHTML = renderDashboard();
+  else if (currentView === 'pipeline') el.innerHTML = renderPipeline();
+  else if (currentView === 'candidates') el.innerHTML = renderCandidateList();
+  bindEvents();
+}
+
+// ═══════════ DASHBOARD ═══════════
+function renderDashboard() {
+  const counts = {};
+  statuses.forEach(s => counts[s] = candidates.filter(c => c.status === s).length);
+  const total = candidates.length;
+  const thisWeek = candidates.filter(c => (Date.now() - c.appliedDate.getTime()) < 7 * 86400000).length;
+
+  return `
+    <div class="stats-row">
+      <div class="stat-card ${statusFilter===''?'active-filter':''}" onclick="filterByStatus('')">
+        <div class="stat-label">Total Candidates</div>
+        <div class="stat-value">${total}</div>
+        <div class="stat-change up">+${thisWeek} this week</div>
+      </div>
+      <div class="stat-card ${statusFilter==='new'?'active-filter':''}" onclick="filterByStatus('new')">
+        <div class="stat-label">New Applications</div>
+        <div class="stat-value" style="color:var(--new)">${counts.new}</div>
+        <div class="stat-change">Awaiting review</div>
+      </div>
+      <div class="stat-card ${statusFilter==='reviewing'?'active-filter':''}" onclick="filterByStatus('reviewing')">
+        <div class="stat-label">In Review</div>
+        <div class="stat-value" style="color:var(--review)">${counts.reviewing}</div>
+        <div class="stat-change">Being assessed</div>
+      </div>
+      <div class="stat-card ${statusFilter==='interview'?'active-filter':''}" onclick="filterByStatus('interview')">
+        <div class="stat-label">Interview Stage</div>
+        <div class="stat-value" style="color:var(--interview)">${counts.interview}</div>
+        <div class="stat-change">In progress</div>
+      </div>
+      <div class="stat-card ${statusFilter==='offer'?'active-filter':''}" onclick="filterByStatus('offer')">
+        <div class="stat-label">Offer Stage</div>
+        <div class="stat-value" style="color:var(--offer)">${counts.offer}</div>
+        <div class="stat-change">Pending acceptance</div>
+      </div>
+      <div class="stat-card ${statusFilter==='hired'?'active-filter':''}" onclick="filterByStatus('hired')">
+        <div class="stat-label">Hired</div>
+        <div class="stat-value" style="color:var(--hired)">${counts.hired}</div>
+        <div class="stat-change up">Offers accepted</div>
+      </div>
+    </div>
+    <div style="display:flex;gap:12px;margin-bottom:20px;align-items:center;">
+      <h2 style="font-size:1.1rem;font-weight:700;flex:1">${statusFilter ? statusLabels[statusFilter] + ' Candidates' : 'Recent Candidates'}</h2>
+      ${statusFilter ? '<button class="btn btn-secondary btn-sm" onclick="filterByStatus(\'\')">Clear Filter</button>' : ''}
+    </div>
+    ${renderTable(getFilteredCandidates())}
+  `;
+}
+
+// ═══════════ PIPELINE (Kanban) ═══════════
+function renderPipeline() {
+  const columns = ['new','reviewing','interview','offer','hired'];
+  const colColors = { new:'var(--new)', reviewing:'var(--review)', interview:'var(--interview)', offer:'var(--offer)', hired:'var(--hired)' };
+
+  let html = '<div class="kanban-board">';
+  columns.forEach(col => {
+    const cards = candidates.filter(c => c.status === col).sort((a,b) => b.appliedDate - a.appliedDate);
+    html += `
+      <div class="kanban-column">
+        <div class="kanban-header">
+          <h3><span class="status-dot" style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${colColors[col]}"></span> ${statusLabels[col]}</h3>
+          <span class="kanban-count">${cards.length}</span>
+        </div>
+        <div class="kanban-body">`;
+    if (cards.length === 0) {
+      html += '<div style="text-align:center;padding:20px;color:var(--text-xs);font-size:.82rem">No candidates</div>';
+    }
+    cards.slice(0, 20).forEach(c => {
+      const stars = renderStarsHTML(c.rating);
+      html += `
+        <div class="kanban-card" onclick="openDrawer('${c.id}')">
+          <div class="kc-name">${c.firstName} ${c.lastName}</div>
+          <div class="kc-role">${c.job}</div>
+          <div class="kc-meta">
+            <span>&#128205; ${c.location}</span>
+            <span>&#128197; ${formatDate(c.appliedDate)}</span>
+          </div>
+          ${c.rating > 0 ? '<div class="kc-rating">' + stars + '</div>' : ''}
+        </div>`;
+    });
+    if (cards.length > 20) html += `<div style="text-align:center;padding:8px;font-size:.78rem;color:var(--text-xs)">+${cards.length - 20} more</div>`;
+    html += '</div></div>';
+  });
+  html += '</div>';
+  return html;
+}
+
+// ═══════════ CANDIDATE LIST ═══════════
+function renderCandidateList() {
+  return `
+    <div class="filters-bar">
+      <select class="filter-select" id="listStatusFilter" onchange="statusFilter=this.value;currentPage=1;render()">
+        <option value="">All Statuses</option>
+        ${statuses.map(s => `<option value="${s}" ${statusFilter===s?'selected':''}>${statusLabels[s]}</option>`).join('')}
+      </select>
+      <select class="filter-select" id="listDeptFilter" onchange="deptFilter=this.value;currentPage=1;render()">
+        <option value="">All Departments</option>
+        ${departments.map(d => `<option value="${d}" ${deptFilter===d?'selected':''}>${d}</option>`).join('')}
+      </select>
+      <span style="flex:1"></span>
+      <span style="font-size:.82rem;color:var(--text-light)">${getFilteredCandidates().length} candidates</span>
+    </div>
+    ${renderTable(getFilteredCandidates())}
+  `;
+}
+
+// ═══════════ TABLE ═══════════
+function getFilteredCandidates() {
+  const search = (document.getElementById('globalSearch')?.value || '').toLowerCase();
+  return candidates.filter(c => {
+    const matchStatus = !statusFilter || c.status === statusFilter;
+    const matchDept = !deptFilter || c.department === deptFilter;
+    const matchSearch = !search ||
+      (c.firstName + ' ' + c.lastName).toLowerCase().includes(search) ||
+      c.email.toLowerCase().includes(search) ||
+      c.job.toLowerCase().includes(search) ||
+      c.id.toLowerCase().includes(search);
+    return matchStatus && matchDept && matchSearch;
+  }).sort((a, b) => {
+    let va = a[sortField], vb = b[sortField];
+    if (sortField === 'name') { va = a.firstName + a.lastName; vb = b.firstName + b.lastName; }
+    if (sortField === 'appliedDate') return sortDir * (vb.getTime() - va.getTime());
+    if (typeof va === 'string') return sortDir * va.localeCompare(vb);
+    return sortDir * (va - vb);
+  });
+}
+
+function renderTable(data) {
+  const start = (currentPage - 1) * pageSize;
+  const pageData = data.slice(start, start + pageSize);
+  const totalPages = Math.ceil(data.length / pageSize);
+
+  if (data.length === 0) {
+    return '<div class="empty-state"><div class="empty-icon">&#128269;</div><p>No candidates match your filters.</p></div>';
+  }
+
+  let html = '<div class="table-wrapper"><table><thead><tr>';
+  html += `<th onclick="toggleSort('name')">Candidate ${sortIcon('name')}</th>`;
+  html += `<th onclick="toggleSort('job')">Role ${sortIcon('job')}</th>`;
+  html += `<th onclick="toggleSort('status')">Status ${sortIcon('status')}</th>`;
+  html += `<th onclick="toggleSort('rating')">Rating ${sortIcon('rating')}</th>`;
+  html += `<th onclick="toggleSort('source')">Source ${sortIcon('source')}</th>`;
+  html += `<th onclick="toggleSort('appliedDate')">Applied ${sortIcon('appliedDate')}</th>`;
+  html += '</tr></thead><tbody>';
+  pageData.forEach(c => {
+    html += `<tr onclick="openDrawer('${c.id}')">
+      <td><div class="candidate-name">${c.firstName} ${c.lastName}</div><div class="candidate-email">${c.email}</div></td>
+      <td><div class="candidate-job">${c.job}</div><div class="candidate-loc">&#128205; ${c.location}</div></td>
+      <td><span class="status-badge status-${c.status}"><span class="status-dot dot-${c.status}"></span>${statusLabels[c.status]}</span></td>
+      <td>${renderStarsHTML(c.rating)}</td>
+      <td style="font-size:.82rem;color:var(--text-light)">${c.source}</td>
+      <td style="font-size:.82rem;color:var(--text-light);white-space:nowrap">${formatDate(c.appliedDate)}</td>
+    </tr>`;
+  });
+  html += '</tbody></table>';
+
+  // Pagination
+  if (totalPages > 1) {
+    html += `<div class="pagination">
+      <span>Showing ${start+1}–${Math.min(start+pageSize, data.length)} of ${data.length}</span>
+      <div class="page-btns">
+        <button class="page-btn" onclick="changePage(${currentPage-1})" ${currentPage===1?'disabled':''}>&laquo; Prev</button>`;
+    for (let p = 1; p <= totalPages; p++) {
+      if (totalPages <= 7 || p <= 2 || p >= totalPages - 1 || Math.abs(p - currentPage) <= 1) {
+        html += `<button class="page-btn ${p===currentPage?'active':''}" onclick="changePage(${p})">${p}</button>`;
+      } else if (p === 3 && currentPage > 4) {
+        html += '<span style="padding:0 4px;color:var(--text-xs)">...</span>';
+      } else if (p === totalPages - 2 && currentPage < totalPages - 3) {
+        html += '<span style="padding:0 4px;color:var(--text-xs)">...</span>';
+      }
+    }
+    html += `<button class="page-btn" onclick="changePage(${currentPage+1})" ${currentPage===totalPages?'disabled':''}>Next &raquo;</button>
+      </div></div>`;
+  }
+  html += '</div>';
+  return html;
+}
+
+function toggleSort(field) { if (sortField === field) sortDir *= -1; else { sortField = field; sortDir = field === 'appliedDate' ? -1 : 1; } render(); }
+function sortIcon(field) { return sortField === field ? '<span class="sort-icon">' + (sortDir === 1 ? '&#9650;' : '&#9660;') + '</span>' : ''; }
+function changePage(p) { currentPage = p; render(); window.scrollTo({top:0}); }
+function filterByStatus(s) { statusFilter = s; currentPage = 1; render(); }
+function handleGlobalSearch() { currentPage = 1; render(); }
+
+function renderStarsHTML(rating) {
+  let s = '';
+  for (let i = 1; i <= 5; i++) s += `<span class="star ${i <= rating ? 'filled' : ''}">&#9733;</span>`;
+  return '<div class="rating" style="display:inline-flex;gap:1px">' + s + '</div>';
+}
+
+// ═══════════ CANDIDATE DRAWER ═══════════
+function openDrawer(id) {
+  const c = candidates.find(x => x.id === id);
+  if (!c) return;
+
+  document.getElementById('drawerName').textContent = c.firstName + ' ' + c.lastName;
+  document.getElementById('drawerRole').textContent = c.job;
+
+  let body = '';
+
+  // Status & Rating
+  body += `<div class="d-section">
+    <div class="d-section-title">Status & Rating</div>
+    <div class="d-grid">
+      <div class="d-field">
+        <label>Current Status</label>
+        <select class="status-select" onchange="updateStatus('${c.id}', this.value)">
+          ${statuses.map(s => `<option value="${s}" ${c.status===s?'selected':''}>${statusLabels[s]}</option>`).join('')}
+        </select>
+      </div>
+      <div class="d-field">
+        <label>Rating</label>
+        <div class="rating" id="drawerRating" style="font-size:1.3rem; margin-top:4px;">
+          ${[1,2,3,4,5].map(i => `<span class="star ${i <= c.rating ? 'filled' : ''}" onclick="updateRating('${c.id}', ${i})" style="cursor:pointer">&#9733;</span>`).join('')}
+        </div>
+      </div>
+    </div>
+  </div>`;
+
+  // Contact Info
+  body += `<div class="d-section">
+    <div class="d-section-title">Contact Information</div>
+    <div class="d-grid">
+      <div class="d-field"><label>Email</label><a href="mailto:${c.email}">${c.email}</a></div>
+      <div class="d-field"><label>Phone</label><p>${c.phone}</p></div>
+      <div class="d-field"><label>Location</label><p>${c.location}</p></div>
+      <div class="d-field"><label>LinkedIn</label>${c.linkedin ? `<a href="https://${c.linkedin}" target="_blank">${c.linkedin}</a>` : '<p style="color:var(--text-xs)">Not provided</p>'}</div>
+    </div>
+  </div>`;
+
+  // Application Details
+  body += `<div class="d-section">
+    <div class="d-section-title">Application Details</div>
+    <div class="d-grid">
+      <div class="d-field"><label>Reference</label><p style="font-family:monospace;color:var(--accent)">${c.id}</p></div>
+      <div class="d-field"><label>Applied</label><p>${formatDate(c.appliedDate)}</p></div>
+      <div class="d-field"><label>Source</label><p>${c.source}</p></div>
+      <div class="d-field"><label>Department</label><p>${c.department}</p></div>
+      <div class="d-field"><label>Notice Period</label><p>${c.notice || 'Not specified'}</p></div>
+      <div class="d-field"><label>Experience</label><p>${c.experience || 'Not specified'}</p></div>
+      <div class="d-field"><label>Salary Expectation</label><p>${c.salary || 'Not specified'}</p></div>
+      <div class="d-field"><label>Right to Work</label><p>${c.visa || 'Not specified'}</p></div>
+    </div>
+    ${c.motivation ? `<div style="margin-top:12px"><label style="font-size:.72rem;color:var(--text-xs);display:block;margin-bottom:4px">Motivation</label><p style="font-size:.88rem;line-height:1.7;background:var(--bg);padding:12px;border-radius:8px;border:1px solid var(--border)">${c.motivation}</p></div>` : ''}
+  </div>`;
+
+  // Activity Timeline
+  body += `<div class="d-section">
+    <div class="d-section-title">Activity Timeline</div>
+    <div class="timeline">
+      ${c.timeline.sort((a,b) => b.date - a.date).map((t, i) => `
+        <div class="timeline-item ${i === 0 ? 'active' : ''}">
+          <div class="tl-text">${t.action}</div>
+          <div class="tl-date">${formatDateTime(t.date)}</div>
+        </div>
+      `).join('')}
+    </div>
+  </div>`;
+
+  // Notes
+  body += `<div class="d-section">
+    <div class="d-section-title">Notes</div>
+    <div class="notes-list" id="notesList">
+      ${c.notes.length === 0 ? '<p style="font-size:.85rem;color:var(--text-xs)">No notes yet. Add your first note below.</p>' : ''}
+      ${c.notes.sort((a,b) => b.date - a.date).map(n => `
+        <div class="note-item">
+          <div class="note-meta"><span>${n.author}</span><span>${formatDateTime(n.date)}</span></div>
+          <div class="note-text">${n.text}</div>
+        </div>
+      `).join('')}
+    </div>
+    <div class="note-input-area">
+      <textarea class="note-input" id="noteInput" placeholder="Add a note about this candidate..." rows="2"></textarea>
+      <button class="note-send" onclick="addNote('${c.id}')">Add Note</button>
+    </div>
+  </div>`;
+
+  document.getElementById('drawerBody').innerHTML = body;
+
+  // Footer actions
+  let footer = `<button class="btn btn-secondary" onclick="closeDrawer()">Close</button>`;
+  if (c.status === 'new') footer += `<button class="btn btn-primary" onclick="updateStatus('${c.id}','reviewing');openDrawer('${c.id}')">Start Review</button>`;
+  if (c.status === 'reviewing') footer += `<button class="btn btn-primary" onclick="updateStatus('${c.id}','interview');openDrawer('${c.id}')">Schedule Interview</button>`;
+  if (c.status === 'interview') footer += `<button class="btn btn-success" onclick="updateStatus('${c.id}','offer');openDrawer('${c.id}')">Extend Offer</button>`;
+  if (c.status !== 'rejected' && c.status !== 'hired' && c.status !== 'withdrawn') footer += `<button class="btn btn-danger" onclick="updateStatus('${c.id}','rejected');openDrawer('${c.id}')">Reject</button>`;
+  document.getElementById('drawerFooter').innerHTML = footer;
+
+  document.getElementById('drawerOverlay').classList.add('open');
+  document.getElementById('candidateDrawer').classList.add('open');
+}
+
+function closeDrawer() {
+  document.getElementById('drawerOverlay').classList.remove('open');
+  document.getElementById('candidateDrawer').classList.remove('open');
+}
+
+function updateStatus(id, newStatus) {
+  const c = candidates.find(x => x.id === id);
+  if (!c) return;
+  const oldStatus = c.status;
+  c.status = newStatus;
+  c.timeline.push({ action: `Status changed from ${statusLabels[oldStatus]} to ${statusLabels[newStatus]}`, date: new Date() });
+  render();
+}
+
+function updateRating(id, rating) {
+  const c = candidates.find(x => x.id === id);
+  if (!c) return;
+  c.rating = rating;
+  openDrawer(id);
+  render();
+}
+
+function addNote(id) {
+  const c = candidates.find(x => x.id === id);
+  const input = document.getElementById('noteInput');
+  if (!c || !input.value.trim()) return;
+  c.notes.push({ text: input.value.trim(), author: 'Simon Valentine', date: new Date() });
+  c.timeline.push({ action: 'Note added', date: new Date() });
+  openDrawer(id);
+}
+
+function bindEvents() {}
+
+// Close drawer on escape
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeDrawer(); });
+
+// ═══════════ INIT ═══════════
+render();
+</script>
+</body>
+</html>

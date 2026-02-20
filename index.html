@@ -1,0 +1,1693 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Acquire Talent Partners — Connecting the World Through Innovation</title>
+<style>
+  :root {
+    --primary: #0f2b46;
+    --accent: #2563eb;
+    --accent-light: #3b82f6;
+    --bg: #ffffff;
+    --bg-alt: #f8fafc;
+    --bg-dark: #0f172a;
+    --text: #1e293b;
+    --text-light: #64748b;
+    --text-white: #f1f5f9;
+    --border: #e2e8f0;
+    --success: #10b981;
+    --radius: 12px;
+    --shadow: 0 1px 3px rgba(0,0,0,.08), 0 4px 12px rgba(0,0,0,.04);
+    --shadow-lg: 0 4px 24px rgba(0,0,0,.1);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    color: var(--text);
+    line-height: 1.6;
+    background: var(--bg);
+  }
+
+  /* ── Navigation ── */
+  nav {
+    position: fixed; top: 0; width: 100%; z-index: 1000;
+    background: rgba(255,255,255,.92);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border);
+    transition: box-shadow .3s;
+  }
+  nav.scrolled { box-shadow: var(--shadow); }
+  .nav-inner {
+    max-width: 1200px; margin: 0 auto;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0 24px; height: 68px;
+  }
+  .logo {
+    font-size: 1.35rem; font-weight: 800; color: var(--primary);
+    text-decoration: none; letter-spacing: -.5px;
+  }
+  .logo span { color: var(--accent); }
+  .nav-links { display: flex; gap: 32px; list-style: none; }
+  .nav-links a {
+    text-decoration: none; color: var(--text-light); font-size: .9rem;
+    font-weight: 500; transition: color .2s; position: relative;
+  }
+  .nav-links a:hover, .nav-links a.active { color: var(--accent); }
+  .nav-cta {
+    background: var(--accent); color: #fff !important; padding: 9px 22px;
+    border-radius: 8px; font-weight: 600; transition: background .2s;
+  }
+  .nav-cta:hover { background: var(--accent-light); }
+  .menu-toggle { display: none; background: none; border: none; cursor: pointer; padding: 8px; }
+  .menu-toggle svg { width: 24px; height: 24px; stroke: var(--text); }
+
+  /* ── Hero ── */
+  .hero {
+    padding: 160px 24px 100px;
+    background: linear-gradient(135deg, #0f2b46 0%, #1a3a5c 40%, #2563eb 100%);
+    color: #fff; text-align: center; position: relative; overflow: hidden;
+  }
+  .hero::before {
+    content: ''; position: absolute; top: -50%; right: -20%;
+    width: 600px; height: 600px; border-radius: 50%;
+    background: rgba(255,255,255,.03);
+  }
+  .hero::after {
+    content: ''; position: absolute; bottom: -30%; left: -10%;
+    width: 500px; height: 500px; border-radius: 50%;
+    background: rgba(255,255,255,.02);
+  }
+  .hero-content { position: relative; z-index: 1; max-width: 800px; margin: 0 auto; }
+  .hero h1 { font-size: 3.2rem; font-weight: 800; line-height: 1.15; margin-bottom: 20px; letter-spacing: -.5px; }
+  .hero p { font-size: 1.2rem; opacity: .85; max-width: 600px; margin: 0 auto 36px; line-height: 1.7; }
+  .hero-stats {
+    display: flex; justify-content: center; gap: 48px; margin-top: 56px;
+    flex-wrap: wrap;
+  }
+  .hero-stat h3 { font-size: 2.4rem; font-weight: 800; }
+  .hero-stat p { font-size: .85rem; opacity: .7; text-transform: uppercase; letter-spacing: 1px; }
+
+  /* ── Buttons ── */
+  .btn {
+    display: inline-block; padding: 14px 32px; border-radius: 8px;
+    font-weight: 600; font-size: .95rem; text-decoration: none;
+    transition: all .2s; cursor: pointer; border: none;
+  }
+  .btn-primary { background: #fff; color: var(--primary); }
+  .btn-primary:hover { background: #f0f4ff; transform: translateY(-1px); }
+  .btn-secondary { background: transparent; color: #fff; border: 2px solid rgba(255,255,255,.3); margin-left: 12px; }
+  .btn-secondary:hover { border-color: #fff; }
+  .btn-blue { background: var(--accent); color: #fff; }
+  .btn-blue:hover { background: var(--accent-light); transform: translateY(-1px); }
+  .btn-outline { background: transparent; color: var(--accent); border: 2px solid var(--accent); }
+  .btn-outline:hover { background: var(--accent); color: #fff; }
+
+  /* ── Sections ── */
+  section { padding: 96px 24px; }
+  .container { max-width: 1200px; margin: 0 auto; }
+  .section-label {
+    text-transform: uppercase; font-size: .78rem; font-weight: 700;
+    letter-spacing: 2px; color: var(--accent); margin-bottom: 12px;
+  }
+  .section-title { font-size: 2.2rem; font-weight: 800; line-height: 1.2; margin-bottom: 16px; }
+  .section-subtitle { font-size: 1.05rem; color: var(--text-light); max-width: 600px; line-height: 1.7; }
+  .text-center { text-align: center; }
+  .mx-auto { margin-left: auto; margin-right: auto; }
+
+  /* ── About ── */
+  .about-grid {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 64px;
+    align-items: center; margin-top: 48px;
+  }
+  .about-image {
+    background: linear-gradient(135deg, #e0e7ff, #c7d2fe);
+    border-radius: var(--radius); height: 400px; display: flex;
+    align-items: center; justify-content: center; position: relative; overflow: hidden;
+  }
+  .about-image-inner {
+    width: 80%; height: 80%; background: linear-gradient(135deg, var(--accent), #7c3aed);
+    border-radius: var(--radius); display: flex; align-items: center;
+    justify-content: center; color: #fff; font-size: 3rem; font-weight: 800;
+    letter-spacing: -1px;
+  }
+  .about-text p { color: var(--text-light); margin-bottom: 20px; line-height: 1.8; }
+  .about-facts { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 28px; }
+  .about-fact {
+    padding: 16px; background: var(--bg-alt); border-radius: 8px;
+    border: 1px solid var(--border);
+  }
+  .about-fact strong { display: block; font-size: 1.5rem; color: var(--primary); }
+  .about-fact span { font-size: .82rem; color: var(--text-light); }
+
+  /* ── Services / What We Do ── */
+  .services-grid {
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 28px; margin-top: 48px;
+  }
+  .service-card {
+    background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius);
+    padding: 36px 28px; transition: all .3s;
+  }
+  .service-card:hover { box-shadow: var(--shadow-lg); transform: translateY(-4px); border-color: transparent; }
+  .service-icon {
+    width: 52px; height: 52px; border-radius: 12px; display: flex;
+    align-items: center; justify-content: center; margin-bottom: 20px;
+    font-size: 1.4rem;
+  }
+  .service-card h3 { font-size: 1.15rem; font-weight: 700; margin-bottom: 10px; }
+  .service-card p { font-size: .9rem; color: var(--text-light); line-height: 1.7; }
+
+  /* ── Global Presence ── */
+  .global-section { background: var(--bg-dark); color: var(--text-white); }
+  .global-section .section-label { color: #60a5fa; }
+  .global-section .section-subtitle { color: #94a3b8; }
+  .locations-grid {
+    display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px; margin-top: 48px;
+  }
+  .location-card {
+    background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.08);
+    border-radius: var(--radius); padding: 28px; text-align: center;
+    transition: all .3s;
+  }
+  .location-card:hover { background: rgba(255,255,255,.08); transform: translateY(-2px); }
+  .location-card .flag { font-size: 2rem; margin-bottom: 12px; }
+  .location-card h4 { font-size: 1rem; font-weight: 600; margin-bottom: 4px; }
+  .location-card p { font-size: .82rem; color: #94a3b8; }
+
+  /* ── Leadership ── */
+  .leadership-grid {
+    display: grid; grid-template-columns: repeat(4, 1fr); gap: 28px; margin-top: 48px;
+  }
+  .leader-card { text-align: center; }
+  .leader-avatar {
+    width: 120px; height: 120px; border-radius: 50%; margin: 0 auto 16px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 2rem; font-weight: 700; color: #fff;
+  }
+  .leader-card h4 { font-size: 1.05rem; font-weight: 700; }
+  .leader-card p { font-size: .85rem; color: var(--text-light); }
+
+  /* ── News ── */
+  .news-grid {
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 28px; margin-top: 48px;
+  }
+  .news-card {
+    border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden;
+    transition: all .3s;
+  }
+  .news-card:hover { box-shadow: var(--shadow-lg); transform: translateY(-3px); }
+  .news-img {
+    height: 180px; display: flex; align-items: center; justify-content: center;
+    font-weight: 700; color: #fff; font-size: .9rem;
+  }
+  .news-body { padding: 24px; }
+  .news-date { font-size: .78rem; color: var(--text-light); margin-bottom: 8px; }
+  .news-card h4 { font-size: 1.05rem; font-weight: 700; margin-bottom: 8px; line-height: 1.4; }
+  .news-card p { font-size: .88rem; color: var(--text-light); line-height: 1.6; }
+
+  /* ── Careers Section ── */
+  .careers-hero {
+    padding: 160px 24px 80px;
+    background: linear-gradient(135deg, #1e3a5f 0%, #2563eb 100%);
+    color: #fff; text-align: center;
+  }
+  .careers-hero h1 { font-size: 2.8rem; font-weight: 800; margin-bottom: 16px; }
+  .careers-hero p { font-size: 1.1rem; opacity: .85; max-width: 560px; margin: 0 auto; }
+
+  /* Search & Filters */
+  .search-section { background: var(--bg-alt); padding: 32px 24px; border-bottom: 1px solid var(--border); }
+  .search-bar {
+    max-width: 1000px; margin: 0 auto;
+    display: flex; gap: 12px; flex-wrap: wrap;
+  }
+  .search-input {
+    flex: 2; min-width: 200px; padding: 14px 20px;
+    border: 1px solid var(--border); border-radius: 8px;
+    font-size: .95rem; background: #fff; outline: none;
+    transition: border-color .2s;
+  }
+  .search-input:focus { border-color: var(--accent); }
+  .filter-select {
+    flex: 1; min-width: 150px; padding: 14px 16px;
+    border: 1px solid var(--border); border-radius: 8px;
+    font-size: .95rem; background: #fff; outline: none;
+    appearance: none; cursor: pointer;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%2364748b' viewBox='0 0 16 16'%3E%3Cpath d='M8 11L3 6h10z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat; background-position: right 16px center;
+  }
+  .search-btn {
+    padding: 14px 28px; background: var(--accent); color: #fff;
+    border: none; border-radius: 8px; font-weight: 600;
+    font-size: .95rem; cursor: pointer; transition: background .2s;
+  }
+  .search-btn:hover { background: var(--accent-light); }
+
+  /* Job Listings */
+  .jobs-section { padding: 48px 24px 96px; }
+  .jobs-header {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-bottom: 28px; flex-wrap: wrap; gap: 12px;
+  }
+  .jobs-count { font-size: .95rem; color: var(--text-light); }
+  .jobs-count strong { color: var(--text); }
+  .jobs-grid { display: flex; flex-direction: column; gap: 16px; max-width: 1000px; margin: 0 auto; }
+  .job-card {
+    background: #fff; border: 1px solid var(--border); border-radius: var(--radius);
+    padding: 28px 32px; display: flex; justify-content: space-between;
+    align-items: center; transition: all .3s; gap: 20px;
+  }
+  .job-card:hover { box-shadow: var(--shadow-lg); border-color: var(--accent); transform: translateY(-2px); }
+  .job-info { flex: 1; }
+  .job-info h3 { font-size: 1.1rem; font-weight: 700; margin-bottom: 6px; color: var(--primary); }
+  .job-meta { display: flex; gap: 16px; flex-wrap: wrap; }
+  .job-meta span {
+    font-size: .82rem; color: var(--text-light); display: flex;
+    align-items: center; gap: 4px;
+  }
+  .job-tags { display: flex; gap: 8px; margin-top: 10px; flex-wrap: wrap; }
+  .job-tag {
+    font-size: .75rem; padding: 4px 10px; border-radius: 20px;
+    background: #eff6ff; color: var(--accent); font-weight: 500;
+  }
+  .job-tag.urgent { background: #fef2f2; color: #dc2626; }
+  .job-tag.remote { background: #f0fdf4; color: #16a34a; }
+  .job-apply {
+    padding: 10px 24px; background: var(--accent); color: #fff;
+    border: none; border-radius: 8px; font-weight: 600; font-size: .88rem;
+    cursor: pointer; transition: all .2s; white-space: nowrap;
+  }
+  .job-apply:hover { background: var(--accent-light); transform: translateY(-1px); }
+
+  /* Categories */
+  .dept-filter {
+    display: flex; gap: 8px; flex-wrap: wrap;
+    max-width: 1000px; margin: 0 auto 32px; padding: 0 24px;
+  }
+  .dept-btn {
+    padding: 8px 18px; border-radius: 20px; border: 1px solid var(--border);
+    background: #fff; font-size: .82rem; font-weight: 500; cursor: pointer;
+    transition: all .2s; color: var(--text-light);
+  }
+  .dept-btn:hover, .dept-btn.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+
+  /* Perks */
+  .perks-section { background: var(--bg-alt); }
+  .perks-grid {
+    display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px; margin-top: 48px;
+  }
+  .perk-card {
+    background: #fff; border: 1px solid var(--border); border-radius: var(--radius);
+    padding: 32px 24px; text-align: center; transition: all .3s;
+  }
+  .perk-card:hover { box-shadow: var(--shadow); transform: translateY(-2px); }
+  .perk-icon { font-size: 2rem; margin-bottom: 16px; }
+  .perk-card h4 { font-size: 1rem; font-weight: 700; margin-bottom: 8px; }
+  .perk-card p { font-size: .85rem; color: var(--text-light); line-height: 1.6; }
+
+  /* Testimonials */
+  .testimonials-grid {
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 28px; margin-top: 48px;
+  }
+  .testimonial-card {
+    background: #fff; border: 1px solid var(--border); border-radius: var(--radius);
+    padding: 32px; position: relative;
+  }
+  .testimonial-card::before {
+    content: '\201C'; font-size: 4rem; color: var(--accent); opacity: .2;
+    position: absolute; top: 12px; left: 20px; line-height: 1;
+  }
+  .testimonial-card p { font-size: .92rem; color: var(--text-light); line-height: 1.7; margin-bottom: 20px; padding-top: 12px; }
+  .testimonial-author { display: flex; align-items: center; gap: 12px; }
+  .testimonial-avatar {
+    width: 44px; height: 44px; border-radius: 50%; display: flex;
+    align-items: center; justify-content: center; color: #fff;
+    font-weight: 700; font-size: .85rem;
+  }
+  .testimonial-name { font-weight: 600; font-size: .9rem; }
+  .testimonial-role { font-size: .8rem; color: var(--text-light); }
+
+  /* CTA */
+  .cta-section {
+    background: linear-gradient(135deg, var(--primary), var(--accent));
+    color: #fff; text-align: center; padding: 80px 24px;
+  }
+  .cta-section h2 { font-size: 2.2rem; font-weight: 800; margin-bottom: 16px; }
+  .cta-section p { font-size: 1.05rem; opacity: .85; max-width: 500px; margin: 0 auto 32px; }
+
+  /* Footer */
+  footer {
+    background: var(--bg-dark); color: var(--text-white); padding: 64px 24px 32px;
+  }
+  .footer-grid {
+    max-width: 1200px; margin: 0 auto;
+    display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 48px;
+  }
+  .footer-brand p { color: #94a3b8; font-size: .88rem; margin-top: 12px; line-height: 1.7; }
+  .footer-col h4 { font-size: .88rem; font-weight: 700; margin-bottom: 16px; text-transform: uppercase; letter-spacing: 1px; }
+  .footer-col ul { list-style: none; }
+  .footer-col li { margin-bottom: 10px; }
+  .footer-col a { color: #94a3b8; text-decoration: none; font-size: .88rem; transition: color .2s; }
+  .footer-col a:hover { color: #fff; }
+  .footer-bottom {
+    max-width: 1200px; margin: 40px auto 0;
+    padding-top: 24px; border-top: 1px solid rgba(255,255,255,.08);
+    display: flex; justify-content: space-between; align-items: center;
+    font-size: .82rem; color: #64748b; flex-wrap: wrap; gap: 12px;
+  }
+
+  /* Page navigation */
+  .page-indicator { display: none; }
+  #home-page, #careers-page { display: none; }
+  #home-page.active, #careers-page.active { display: block; }
+
+  /* ── Modal / Overlay ── */
+  .modal-overlay {
+    display: none; position: fixed; inset: 0; z-index: 2000;
+    background: rgba(15,23,42,.55); backdrop-filter: blur(6px);
+    align-items: center; justify-content: center; padding: 24px;
+  }
+  .modal-overlay.open { display: flex; }
+  .modal {
+    background: #fff; border-radius: 16px; width: 100%; max-width: 720px;
+    max-height: 90vh; overflow-y: auto; box-shadow: 0 24px 64px rgba(0,0,0,.2);
+    animation: modalIn .25s ease;
+  }
+  @keyframes modalIn { from { opacity:0; transform: translateY(20px) scale(.97); } to { opacity:1; transform: none; } }
+  .modal-header {
+    padding: 28px 32px 20px; border-bottom: 1px solid var(--border);
+    display: flex; justify-content: space-between; align-items: flex-start;
+  }
+  .modal-header h2 { font-size: 1.3rem; font-weight: 800; color: var(--primary); line-height: 1.3; }
+  .modal-header p { font-size: .88rem; color: var(--text-light); margin-top: 4px; }
+  .modal-close {
+    background: none; border: none; font-size: 1.5rem; cursor: pointer;
+    color: var(--text-light); padding: 4px 8px; border-radius: 6px;
+    transition: background .2s; line-height: 1; flex-shrink: 0;
+  }
+  .modal-close:hover { background: var(--bg-alt); color: var(--text); }
+  .modal-body { padding: 28px 32px; }
+  .modal-footer {
+    padding: 20px 32px 28px; border-top: 1px solid var(--border);
+    display: flex; justify-content: flex-end; gap: 12px;
+  }
+
+  /* Job Detail inside modal */
+  .job-detail-meta {
+    display: flex; gap: 16px; flex-wrap: wrap; margin: 12px 0 20px;
+  }
+  .job-detail-meta span {
+    font-size: .82rem; color: var(--text-light); display: flex; align-items: center; gap: 4px;
+    background: var(--bg-alt); padding: 6px 12px; border-radius: 6px;
+  }
+  .job-description { margin-bottom: 24px; }
+  .job-description h4 { font-size: .95rem; font-weight: 700; margin-bottom: 8px; color: var(--primary); }
+  .job-description p, .job-description li {
+    font-size: .88rem; color: var(--text-light); line-height: 1.7;
+  }
+  .job-description ul { padding-left: 20px; margin: 8px 0 16px; }
+  .job-description li { margin-bottom: 4px; }
+
+  /* Form Styles */
+  .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .form-group { display: flex; flex-direction: column; }
+  .form-group.full { grid-column: 1 / -1; }
+  .form-group label {
+    font-size: .82rem; font-weight: 600; color: var(--text);
+    margin-bottom: 6px;
+  }
+  .form-group label .req { color: #dc2626; }
+  .form-group input,
+  .form-group select,
+  .form-group textarea {
+    padding: 12px 14px; border: 1px solid var(--border); border-radius: 8px;
+    font-size: .9rem; font-family: inherit; background: #fff;
+    transition: border-color .2s, box-shadow .2s; outline: none;
+  }
+  .form-group input:focus,
+  .form-group select:focus,
+  .form-group textarea:focus {
+    border-color: var(--accent); box-shadow: 0 0 0 3px rgba(37,99,235,.1);
+  }
+  .form-group textarea { resize: vertical; min-height: 100px; }
+  .form-group .error-msg {
+    font-size: .78rem; color: #dc2626; margin-top: 4px; display: none;
+  }
+  .form-group.has-error input,
+  .form-group.has-error select,
+  .form-group.has-error textarea { border-color: #dc2626; }
+  .form-group.has-error .error-msg { display: block; }
+
+  /* File Upload */
+  .file-upload {
+    border: 2px dashed var(--border); border-radius: 8px; padding: 24px;
+    text-align: center; cursor: pointer; transition: all .2s; position: relative;
+  }
+  .file-upload:hover { border-color: var(--accent); background: #f8faff; }
+  .file-upload input[type="file"] {
+    position: absolute; inset: 0; opacity: 0; cursor: pointer;
+    width: 100%; height: 100%;
+  }
+  .file-upload .upload-icon { font-size: 1.5rem; margin-bottom: 8px; }
+  .file-upload .upload-text { font-size: .88rem; color: var(--text-light); }
+  .file-upload .upload-text strong { color: var(--accent); }
+  .file-upload .file-name {
+    font-size: .85rem; color: var(--success); font-weight: 600;
+    margin-top: 8px; display: none;
+  }
+
+  /* Progress Steps */
+  .form-steps {
+    display: flex; justify-content: center; gap: 0; margin-bottom: 28px;
+  }
+  .form-step {
+    display: flex; align-items: center; gap: 8px; font-size: .82rem;
+    color: var(--text-light); font-weight: 500;
+  }
+  .form-step .step-num {
+    width: 28px; height: 28px; border-radius: 50%; display: flex;
+    align-items: center; justify-content: center; font-weight: 700;
+    font-size: .78rem; border: 2px solid var(--border); background: #fff;
+    transition: all .3s;
+  }
+  .form-step.active .step-num { background: var(--accent); color: #fff; border-color: var(--accent); }
+  .form-step.done .step-num { background: var(--success); color: #fff; border-color: var(--success); }
+  .step-line { width: 40px; height: 2px; background: var(--border); margin: 0 8px; }
+  .step-line.active { background: var(--accent); }
+
+  /* Checkbox */
+  .checkbox-group { display: flex; align-items: flex-start; gap: 10px; margin-top: 8px; }
+  .checkbox-group input[type="checkbox"] {
+    width: 18px; height: 18px; margin-top: 2px; accent-color: var(--accent); cursor: pointer;
+  }
+  .checkbox-group label { font-size: .85rem; color: var(--text-light); line-height: 1.5; cursor: pointer; }
+
+  /* Success State */
+  .success-state { text-align: center; padding: 40px 20px; }
+  .success-icon {
+    width: 72px; height: 72px; border-radius: 50%; background: #ecfdf5;
+    display: flex; align-items: center; justify-content: center;
+    margin: 0 auto 20px; font-size: 2rem;
+  }
+  .success-state h2 { font-size: 1.4rem; font-weight: 800; color: var(--primary); margin-bottom: 8px; }
+  .success-state p { font-size: .95rem; color: var(--text-light); line-height: 1.7; max-width: 400px; margin: 0 auto; }
+  .success-state .ref-code {
+    display: inline-block; margin-top: 16px; padding: 8px 16px;
+    background: var(--bg-alt); border-radius: 8px; font-family: monospace;
+    font-size: .9rem; font-weight: 600; color: var(--accent);
+    border: 1px solid var(--border);
+  }
+
+  /* ── Responsive ── */
+  @media (max-width: 1024px) {
+    .services-grid, .locations-grid, .perks-grid { grid-template-columns: repeat(2, 1fr); }
+    .leadership-grid { grid-template-columns: repeat(2, 1fr); }
+    .footer-grid { grid-template-columns: 1fr 1fr; }
+  }
+  @media (max-width: 768px) {
+    .nav-links { display: none; }
+    .menu-toggle { display: block; }
+    .nav-links.open {
+      display: flex; flex-direction: column; position: absolute;
+      top: 68px; left: 0; right: 0; background: #fff;
+      padding: 20px 24px; border-bottom: 1px solid var(--border);
+      box-shadow: var(--shadow);
+    }
+    .hero h1 { font-size: 2.2rem; }
+    .hero-stats { gap: 24px; }
+    .about-grid { grid-template-columns: 1fr; gap: 32px; }
+    .services-grid, .news-grid, .testimonials-grid { grid-template-columns: 1fr; }
+    .locations-grid, .perks-grid { grid-template-columns: 1fr; }
+    .leadership-grid { grid-template-columns: repeat(2, 1fr); }
+    .job-card { flex-direction: column; align-items: flex-start; }
+    .footer-grid { grid-template-columns: 1fr; }
+    .footer-bottom { flex-direction: column; text-align: center; }
+    .search-bar { flex-direction: column; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ═══════════ NAVIGATION ═══════════ -->
+<nav id="navbar">
+  <div class="nav-inner">
+    <a href="#" class="logo" onclick="showPage('home')">Acquire<span>TP</span></a>
+    <ul class="nav-links" id="navLinks">
+      <li><a href="#about" onclick="showPage('home')">About</a></li>
+      <li><a href="#services" onclick="showPage('home')">What We Do</a></li>
+      <li><a href="#global" onclick="showPage('home')">Global Reach</a></li>
+      <li><a href="#news" onclick="showPage('home')">Newsroom</a></li>
+      <li><a href="#" onclick="showPage('careers')" class="nav-cta">Careers</a></li>
+    </ul>
+    <button class="menu-toggle" onclick="document.getElementById('navLinks').classList.toggle('open')">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round">
+        <line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/>
+      </svg>
+    </button>
+  </div>
+</nav>
+
+<!-- ═══════════════════════════════════ -->
+<!--           HOME PAGE                -->
+<!-- ═══════════════════════════════════ -->
+<div id="home-page" class="active">
+
+  <!-- Hero -->
+  <section class="hero">
+    <div class="hero-content">
+      <h1>Connecting the World Through Innovation</h1>
+      <p>Acquire Talent Partners delivers transformative technology solutions, sustainable infrastructure, and strategic consulting to enterprises across six continents.</p>
+      <div>
+        <a href="#about" class="btn btn-primary">Discover More</a>
+        <a href="#" onclick="showPage('careers')" class="btn btn-secondary">Join Our Team</a>
+      </div>
+      <div class="hero-stats">
+        <div class="hero-stat"><h3>102,000+</h3><p>Employees</p></div>
+        <div class="hero-stat"><h3>48</h3><p>Countries</p></div>
+        <div class="hero-stat"><h3>$38.2B</h3><p>Revenue (2025)</p></div>
+        <div class="hero-stat"><h3>Fortune 50</h3><p>Ranked</p></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- About -->
+  <section id="about">
+    <div class="container">
+      <div class="about-grid">
+        <div class="about-image">
+          <div class="about-image-inner">ATP</div>
+        </div>
+        <div class="about-text">
+          <p class="section-label">About Acquire Talent Partners</p>
+          <h2 class="section-title">Building What's Next Since 1987</h2>
+          <p>Founded in Singapore and now headquartered in London, Acquire Talent Partners has grown from a regional systems integrator into one of the world's leading technology and infrastructure companies. We partner with governments, enterprises, and communities to solve complex challenges through innovation.</p>
+          <p>Our 102,000-strong team combines deep local expertise with global capability, delivering solutions that create lasting value for our clients and the communities where we operate.</p>
+          <div class="about-facts">
+            <div class="about-fact"><strong>1987</strong><span>Year founded</span></div>
+            <div class="about-fact"><strong>48</strong><span>Countries of operation</span></div>
+            <div class="about-fact"><strong>12,000+</strong><span>Enterprise clients</span></div>
+            <div class="about-fact"><strong>AA-</strong><span>Credit rating (S&P)</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Services -->
+  <section id="services" style="background:var(--bg-alt)">
+    <div class="container text-center">
+      <p class="section-label">What We Do</p>
+      <h2 class="section-title">Six Divisions. One Mission.</h2>
+      <p class="section-subtitle mx-auto">Our integrated business model brings together expertise from across industries to deliver end-to-end solutions for a complex world.</p>
+      <div class="services-grid">
+        <div class="service-card">
+          <div class="service-icon" style="background:#eff6ff;color:#2563eb;">&#9729;</div>
+          <h3>Cloud & Digital Infrastructure</h3>
+          <p>Enterprise cloud migration, data centre operations, and edge computing across 120+ global facilities. Trusted by 6 of the world's top 10 banks.</p>
+        </div>
+        <div class="service-card">
+          <div class="service-icon" style="background:#f0fdf4;color:#16a34a;">&#9881;</div>
+          <h3>Advanced Manufacturing</h3>
+          <p>Smart factory design, industrial IoT, and precision manufacturing for aerospace, automotive, and semiconductor clients worldwide.</p>
+        </div>
+        <div class="service-card">
+          <div class="service-icon" style="background:#fdf4ff;color:#a855f7;">&#9883;</div>
+          <h3>Energy & Sustainability</h3>
+          <p>Renewable energy systems, carbon management platforms, and green infrastructure for governments and enterprises committed to net zero.</p>
+        </div>
+        <div class="service-card">
+          <div class="service-icon" style="background:#fef3c7;color:#d97706;">&#9733;</div>
+          <h3>Strategic Consulting</h3>
+          <p>Digital transformation strategy, M&A advisory, and operational excellence for C-suite leaders navigating rapid change.</p>
+        </div>
+        <div class="service-card">
+          <div class="service-icon" style="background:#fce7f3;color:#ec4899;">&#9829;</div>
+          <h3>Healthcare Technology</h3>
+          <p>Electronic health records, telemedicine platforms, and AI-driven diagnostics serving 400+ hospitals across 22 countries.</p>
+        </div>
+        <div class="service-card">
+          <div class="service-icon" style="background:#ecfdf5;color:#059669;">&#9878;</div>
+          <h3>Defence & Security</h3>
+          <p>Cybersecurity operations, secure communications, and defence systems integration. Clearances held in 14 allied nations.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Global Presence -->
+  <section id="global" class="global-section">
+    <div class="container text-center">
+      <p class="section-label">Global Reach</p>
+      <h2 class="section-title" style="color:#fff">Offices in 48 Countries</h2>
+      <p class="section-subtitle mx-auto">From established financial centres to emerging markets, our teams deliver local expertise backed by global capability.</p>
+      <div class="locations-grid">
+        <div class="location-card"><div class="flag">&#127468;&#127463;</div><h4>London</h4><p>Global HQ &bull; 8,200 employees</p></div>
+        <div class="location-card"><div class="flag">&#127482;&#127480;</div><h4>New York</h4><p>Americas HQ &bull; 6,100 employees</p></div>
+        <div class="location-card"><div class="flag">&#127480;&#127468;</div><h4>Singapore</h4><p>APAC HQ &bull; 5,800 employees</p></div>
+        <div class="location-card"><div class="flag">&#127465;&#127466;</div><h4>Frankfurt</h4><p>EMEA Hub &bull; 4,200 employees</p></div>
+        <div class="location-card"><div class="flag">&#127471;&#127477;</div><h4>Tokyo</h4><p>Japan Operations &bull; 3,900 employees</p></div>
+        <div class="location-card"><div class="flag">&#127462;&#127466;</div><h4>Dubai</h4><p>Middle East Hub &bull; 3,100 employees</p></div>
+        <div class="location-card"><div class="flag">&#127463;&#127479;</div><h4>São Paulo</h4><p>LATAM Hub &bull; 2,800 employees</p></div>
+        <div class="location-card"><div class="flag">&#127462;&#127482;</div><h4>Sydney</h4><p>Oceania Hub &bull; 2,400 employees</p></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Leadership -->
+  <section id="leadership">
+    <div class="container text-center">
+      <p class="section-label">Leadership</p>
+      <h2 class="section-title">Executive Committee</h2>
+      <p class="section-subtitle mx-auto">Our leadership team brings decades of global experience across technology, finance, and operations.</p>
+      <div class="leadership-grid">
+        <div class="leader-card">
+          <div class="leader-avatar" style="background:linear-gradient(135deg,#0f2b46,#2563eb)">MK</div>
+          <h4>Dr. Maya Krishnamurthy</h4>
+          <p>Chief Executive Officer</p>
+        </div>
+        <div class="leader-card">
+          <div class="leader-avatar" style="background:linear-gradient(135deg,#7c3aed,#a855f7)">JW</div>
+          <h4>James Whitfield</h4>
+          <p>Chief Financial Officer</p>
+        </div>
+        <div class="leader-card">
+          <div class="leader-avatar" style="background:linear-gradient(135deg,#059669,#10b981)">LC</div>
+          <h4>Dr. Lin Chen</h4>
+          <p>Chief Technology Officer</p>
+        </div>
+        <div class="leader-card">
+          <div class="leader-avatar" style="background:linear-gradient(135deg,#d97706,#f59e0b)">AO</div>
+          <h4>Amara Okonkwo</h4>
+          <p>Chief People Officer</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Newsroom -->
+  <section id="news" style="background:var(--bg-alt)">
+    <div class="container text-center">
+      <p class="section-label">Newsroom</p>
+      <h2 class="section-title">Latest Updates</h2>
+      <div class="news-grid">
+        <div class="news-card">
+          <div class="news-img" style="background:linear-gradient(135deg,#2563eb,#7c3aed)">Sustainability</div>
+          <div class="news-body">
+            <p class="news-date">12 February 2026</p>
+            <h4>Acquire Talent Partners Achieves Carbon Neutral Operations Across All EMEA Offices</h4>
+            <p>Marking a major milestone in our 2030 sustainability roadmap, all 14 EMEA offices now operate at net-zero carbon emissions.</p>
+          </div>
+        </div>
+        <div class="news-card">
+          <div class="news-img" style="background:linear-gradient(135deg,#059669,#10b981)">Innovation</div>
+          <div class="news-body">
+            <p class="news-date">5 February 2026</p>
+            <h4>$2.1B Investment in Next-Generation AI Research Campus in Singapore</h4>
+            <p>The new 50-acre campus will house 3,000 researchers and engineers focused on responsible AI development and deployment.</p>
+          </div>
+        </div>
+        <div class="news-card">
+          <div class="news-img" style="background:linear-gradient(135deg,#d97706,#f59e0b)">Partnership</div>
+          <div class="news-body">
+            <p class="news-date">28 January 2026</p>
+            <h4>Strategic Partnership with European Space Agency for Satellite Data Platform</h4>
+            <p>A five-year agreement to build and operate a next-generation Earth observation data processing platform.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</div>
+
+<!-- ═══════════════════════════════════ -->
+<!--          CAREERS PAGE              -->
+<!-- ═══════════════════════════════════ -->
+<div id="careers-page">
+
+  <!-- Careers Hero -->
+  <section class="careers-hero">
+    <div class="hero-content">
+      <h1>Build Your Career at Acquire Talent Partners</h1>
+      <p>Join 102,000 people across 48 countries shaping the future of technology, energy, and infrastructure.</p>
+      <div style="margin-top:28px">
+        <a href="#open-roles" class="btn btn-primary">View Open Roles</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Why Acquire Talent Partners -->
+  <section class="perks-section">
+    <div class="container text-center">
+      <p class="section-label">Why Acquire Talent Partners</p>
+      <h2 class="section-title">A Workplace That Works for You</h2>
+      <p class="section-subtitle mx-auto">We invest in our people because when you grow, we all grow. Here's what makes Acquire Talent Partners different.</p>
+      <div class="perks-grid">
+        <div class="perk-card">
+          <div class="perk-icon">&#127891;</div>
+          <h4>Learning & Development</h4>
+          <p>$5,000 annual learning budget, internal academy with 2,000+ courses, and sponsored degree programmes.</p>
+        </div>
+        <div class="perk-card">
+          <div class="perk-icon">&#127758;</div>
+          <h4>Global Mobility</h4>
+          <p>Internal transfer programme across 48 countries. 12% of our workforce relocated internationally last year.</p>
+        </div>
+        <div class="perk-card">
+          <div class="perk-icon">&#9878;</div>
+          <h4>Health & Wellbeing</h4>
+          <p>Premium medical, dental and vision cover. Mental health support, gym memberships, and 4 wellness days per year.</p>
+        </div>
+        <div class="perk-card">
+          <div class="perk-icon">&#127968;</div>
+          <h4>Flexible Working</h4>
+          <p>Hybrid model with 3 days of your choice. Core hours only — start and finish when it suits you best.</p>
+        </div>
+        <div class="perk-card">
+          <div class="perk-icon">&#128176;</div>
+          <h4>Competitive Compensation</h4>
+          <p>Benchmarked to top quartile. Annual bonus, equity participation, and transparent pay bands at every level.</p>
+        </div>
+        <div class="perk-card">
+          <div class="perk-icon">&#128104;&#8205;&#128105;&#8205;&#128103;</div>
+          <h4>Family Support</h4>
+          <p>26 weeks paid parental leave (all parents). Fertility support, childcare subsidies, and eldercare resources.</p>
+        </div>
+        <div class="perk-card">
+          <div class="perk-icon">&#127793;</div>
+          <h4>Sustainability Impact</h4>
+          <p>5 paid volunteer days per year. Company-matched charitable giving up to $2,000. Green commuting incentives.</p>
+        </div>
+        <div class="perk-card">
+          <div class="perk-icon">&#128640;</div>
+          <h4>Innovation Time</h4>
+          <p>10% time for passion projects. Annual hackathon with $100K prize pool. Patent bonus programme.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Employee Testimonials -->
+  <section>
+    <div class="container text-center">
+      <p class="section-label">Life at Acquire Talent Partners</p>
+      <h2 class="section-title">Hear From Our People</h2>
+      <div class="testimonials-grid">
+        <div class="testimonial-card">
+          <p>I joined as a graduate and within 5 years I'd led projects in 3 countries. The global mobility programme here is genuinely transformative for your career.</p>
+          <div class="testimonial-author">
+            <div class="testimonial-avatar" style="background:linear-gradient(135deg,#2563eb,#7c3aed)">RP</div>
+            <div><div class="testimonial-name">Raj Patel</div><div class="testimonial-role">Senior Cloud Architect, London</div></div>
+          </div>
+        </div>
+        <div class="testimonial-card">
+          <p>The learning budget and sponsored masters programme allowed me to pivot from marketing into data science. Acquire Talent Partners invests in your growth, not just your output.</p>
+          <div class="testimonial-author">
+            <div class="testimonial-avatar" style="background:linear-gradient(135deg,#059669,#10b981)">SM</div>
+            <div><div class="testimonial-name">Sarah Mitchell</div><div class="testimonial-role">Data Science Lead, New York</div></div>
+          </div>
+        </div>
+        <div class="testimonial-card">
+          <p>As a working parent, the flexible hours and 26-week parental leave made all the difference. I never felt I had to choose between career progression and family.</p>
+          <div class="testimonial-author">
+            <div class="testimonial-avatar" style="background:linear-gradient(135deg,#d97706,#f59e0b)">TN</div>
+            <div><div class="testimonial-name">Takeshi Nakamura</div><div class="testimonial-role">Product Manager, Tokyo</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Open Roles -->
+  <section id="open-roles" style="background:var(--bg-alt); padding-bottom: 0;">
+    <div class="container text-center">
+      <p class="section-label">Open Positions</p>
+      <h2 class="section-title">Find Your Next Role</h2>
+      <p class="section-subtitle mx-auto" style="margin-bottom:32px">We're hiring across every division and region. Use the filters below to find the right opportunity for you.</p>
+    </div>
+  </section>
+
+  <!-- Search -->
+  <div class="search-section" style="background:var(--bg-alt); border-bottom: none; padding-top: 0;">
+    <div class="search-bar">
+      <input type="text" class="search-input" placeholder="Search by job title or keyword..." id="jobSearch" onkeyup="filterJobs()">
+      <select class="filter-select" id="deptFilter" onchange="filterJobs()">
+        <option value="">All Departments</option>
+        <option value="engineering">Engineering</option>
+        <option value="product">Product & Design</option>
+        <option value="sales">Sales & Business Dev</option>
+        <option value="consulting">Consulting</option>
+        <option value="finance">Finance</option>
+        <option value="hr">Human Resources</option>
+        <option value="marketing">Marketing</option>
+        <option value="operations">Operations</option>
+        <option value="legal">Legal & Compliance</option>
+        <option value="healthcare">Healthcare Tech</option>
+        <option value="energy">Energy & Sustainability</option>
+        <option value="security">Defence & Security</option>
+      </select>
+      <select class="filter-select" id="locFilter" onchange="filterJobs()">
+        <option value="">All Locations</option>
+        <option value="london">London, UK</option>
+        <option value="new-york">New York, US</option>
+        <option value="singapore">Singapore</option>
+        <option value="frankfurt">Frankfurt, DE</option>
+        <option value="tokyo">Tokyo, JP</option>
+        <option value="dubai">Dubai, UAE</option>
+        <option value="sao-paulo">São Paulo, BR</option>
+        <option value="sydney">Sydney, AU</option>
+        <option value="toronto">Toronto, CA</option>
+        <option value="bangalore">Bangalore, IN</option>
+        <option value="remote">Remote</option>
+      </select>
+      <select class="filter-select" id="typeFilter" onchange="filterJobs()">
+        <option value="">All Types</option>
+        <option value="full-time">Full-Time</option>
+        <option value="contract">Contract</option>
+        <option value="internship">Internship</option>
+      </select>
+    </div>
+  </div>
+
+  <!-- Job Listings -->
+  <div class="jobs-section">
+    <div style="max-width:1000px;margin:0 auto;">
+      <div class="jobs-header">
+        <p class="jobs-count">Showing <strong id="jobCount">36</strong> open positions</p>
+      </div>
+    </div>
+    <div class="jobs-grid" id="jobsGrid">
+      <!-- Jobs populated by JS -->
+    </div>
+    <div style="text-align:center; margin-top:40px;">
+      <button class="btn btn-outline" onclick="loadMoreJobs()" id="loadMoreBtn">Load More Positions</button>
+    </div>
+  </div>
+
+  <!-- CTA -->
+  <section class="cta-section">
+    <h2>Don't See the Right Role?</h2>
+    <p>Join our talent network and we'll notify you when a position matching your skills opens up.</p>
+    <a href="#" class="btn btn-primary">Join Talent Network</a>
+  </section>
+
+</div>
+
+<!-- ═══════════ FOOTER ═══════════ -->
+<footer>
+  <div class="footer-grid">
+    <div class="footer-brand">
+      <a href="#" class="logo" style="color:#fff" onclick="showPage('home')">Acquire<span>TP</span></a>
+      <p>Connecting the world through innovation. Building sustainable solutions for the challenges of tomorrow.</p>
+      <p style="margin-top:8px;font-size:.8rem;">London &bull; New York &bull; Singapore &bull; Frankfurt &bull; Tokyo &bull; Dubai</p>
+    </div>
+    <div class="footer-col">
+      <h4>Company</h4>
+      <ul>
+        <li><a href="#about" onclick="showPage('home')">About Us</a></li>
+        <li><a href="#leadership" onclick="showPage('home')">Leadership</a></li>
+        <li><a href="#news" onclick="showPage('home')">Newsroom</a></li>
+        <li><a href="#">Investor Relations</a></li>
+        <li><a href="#">Sustainability</a></li>
+      </ul>
+    </div>
+    <div class="footer-col">
+      <h4>Services</h4>
+      <ul>
+        <li><a href="#">Cloud & Digital</a></li>
+        <li><a href="#">Manufacturing</a></li>
+        <li><a href="#">Energy</a></li>
+        <li><a href="#">Consulting</a></li>
+        <li><a href="#">Healthcare</a></li>
+      </ul>
+    </div>
+    <div class="footer-col">
+      <h4>Careers</h4>
+      <ul>
+        <li><a href="#" onclick="showPage('careers')">Open Positions</a></li>
+        <li><a href="#">Graduate Programme</a></li>
+        <li><a href="#">Internships</a></li>
+        <li><a href="#">Life at Acquire Talent Partners</a></li>
+        <li><a href="#">Diversity & Inclusion</a></li>
+      </ul>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <span>&copy; 2026 Acquire Talent Partners Ltd. All rights reserved.</span>
+    <span>Privacy Policy &bull; Terms of Service &bull; Cookie Settings &bull; Modern Slavery Statement</span>
+  </div>
+</footer>
+
+<!-- ═══════════ JOB DETAIL MODAL ═══════════ -->
+<div class="modal-overlay" id="jobDetailModal">
+  <div class="modal">
+    <div class="modal-header">
+      <div>
+        <h2 id="modalJobTitle"></h2>
+        <p id="modalJobDept"></p>
+      </div>
+      <button class="modal-close" onclick="closeModal('jobDetailModal')">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div class="job-detail-meta" id="modalJobMeta"></div>
+      <div class="job-description" id="modalJobDesc"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('jobDetailModal')">Close</button>
+      <button class="btn btn-blue" onclick="closeModal('jobDetailModal'); openApplyModal()">Apply for This Role</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════ APPLICATION FORM MODAL ═══════════ -->
+<div class="modal-overlay" id="applyModal">
+  <div class="modal">
+    <div class="modal-header">
+      <div>
+        <h2>Apply: <span id="applyJobTitle"></span></h2>
+        <p id="applyJobMeta"></p>
+      </div>
+      <button class="modal-close" onclick="closeModal('applyModal')">&times;</button>
+    </div>
+    <div class="modal-body">
+      <!-- Progress Steps -->
+      <div class="form-steps">
+        <div class="form-step active" id="fs1"><span class="step-num">1</span> Your Details</div>
+        <div class="step-line" id="sl1"></div>
+        <div class="form-step" id="fs2"><span class="step-num">2</span> Experience</div>
+        <div class="step-line" id="sl2"></div>
+        <div class="form-step" id="fs3"><span class="step-num">3</span> Review</div>
+      </div>
+
+      <!-- Step 1: Personal Details -->
+      <div id="step1">
+        <div class="form-grid">
+          <div class="form-group">
+            <label>First Name <span class="req">*</span></label>
+            <input type="text" id="appFirstName" placeholder="e.g. Simon">
+            <span class="error-msg">First name is required</span>
+          </div>
+          <div class="form-group">
+            <label>Last Name <span class="req">*</span></label>
+            <input type="text" id="appLastName" placeholder="e.g. Valentine">
+            <span class="error-msg">Last name is required</span>
+          </div>
+          <div class="form-group">
+            <label>Email Address <span class="req">*</span></label>
+            <input type="email" id="appEmail" placeholder="you@email.com">
+            <span class="error-msg">Please enter a valid email</span>
+          </div>
+          <div class="form-group">
+            <label>Phone Number <span class="req">*</span></label>
+            <input type="tel" id="appPhone" placeholder="+44 7700 900000">
+            <span class="error-msg">Phone number is required</span>
+          </div>
+          <div class="form-group">
+            <label>Current Location <span class="req">*</span></label>
+            <input type="text" id="appLocation" placeholder="e.g. London, UK">
+            <span class="error-msg">Location is required</span>
+          </div>
+          <div class="form-group">
+            <label>LinkedIn Profile</label>
+            <input type="url" id="appLinkedIn" placeholder="https://linkedin.com/in/yourprofile">
+          </div>
+          <div class="form-group">
+            <label>Notice Period <span class="req">*</span></label>
+            <select id="appNotice">
+              <option value="">Select notice period...</option>
+              <option>Immediately available</option>
+              <option>1 week</option>
+              <option>2 weeks</option>
+              <option>1 month</option>
+              <option>2 months</option>
+              <option>3 months</option>
+              <option>3+ months</option>
+            </select>
+            <span class="error-msg">Please select a notice period</span>
+          </div>
+          <div class="form-group">
+            <label>Salary Expectation</label>
+            <input type="text" id="appSalary" placeholder="e.g. £100,000">
+          </div>
+          <div class="form-group full">
+            <label>How did you hear about this role?</label>
+            <select id="appSource">
+              <option value="">Select...</option>
+              <option>Acquire Talent Partners Careers Site</option>
+              <option>LinkedIn</option>
+              <option>Indeed</option>
+              <option>Glassdoor</option>
+              <option>Employee Referral</option>
+              <option>Recruitment Agency</option>
+              <option>University / Campus Event</option>
+              <option>Other</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- Step 2: Experience & Documents -->
+      <div id="step2" style="display:none">
+        <div class="form-grid">
+          <div class="form-group full">
+            <label>Upload CV / Resume <span class="req">*</span></label>
+            <div class="file-upload" id="cvUploadZone">
+              <div class="upload-icon">&#128196;</div>
+              <div class="upload-text">Drag & drop or <strong>click to browse</strong></div>
+              <div class="upload-text" style="font-size:.78rem;margin-top:4px;">PDF, DOCX, or DOC (max 5MB)</div>
+              <div class="file-name" id="cvFileName"></div>
+              <input type="file" accept=".pdf,.doc,.docx" id="cvFile" onchange="handleFileUpload(this, 'cvFileName')">
+            </div>
+            <span class="error-msg" id="cvError" style="display:none">Please upload your CV</span>
+          </div>
+          <div class="form-group full">
+            <label>Cover Letter (optional)</label>
+            <div class="file-upload" id="clUploadZone">
+              <div class="upload-icon">&#128221;</div>
+              <div class="upload-text">Drag & drop or <strong>click to browse</strong></div>
+              <div class="upload-text" style="font-size:.78rem;margin-top:4px;">PDF, DOCX, or DOC (max 5MB)</div>
+              <div class="file-name" id="clFileName"></div>
+              <input type="file" accept=".pdf,.doc,.docx" id="clFile" onchange="handleFileUpload(this, 'clFileName')">
+            </div>
+          </div>
+          <div class="form-group full">
+            <label>Years of Relevant Experience <span class="req">*</span></label>
+            <select id="appExperience">
+              <option value="">Select...</option>
+              <option>Less than 1 year</option>
+              <option>1 – 2 years</option>
+              <option>3 – 5 years</option>
+              <option>6 – 10 years</option>
+              <option>10 – 15 years</option>
+              <option>15+ years</option>
+            </select>
+            <span class="error-msg">Please select your experience level</span>
+          </div>
+          <div class="form-group full">
+            <label>Right to Work <span class="req">*</span></label>
+            <select id="appVisa">
+              <option value="">Select...</option>
+              <option>Yes — I have the right to work in this location</option>
+              <option>Yes — with visa sponsorship</option>
+              <option>No — I require sponsorship</option>
+            </select>
+            <span class="error-msg">Please confirm your work authorisation status</span>
+          </div>
+          <div class="form-group full">
+            <label>Why are you interested in this role?</label>
+            <textarea id="appMotivation" placeholder="Tell us what excites you about this opportunity and what you'd bring to the team..." rows="4"></textarea>
+          </div>
+          <div class="form-group full">
+            <div class="checkbox-group">
+              <input type="checkbox" id="appGDPR">
+              <label for="appGDPR">I consent to Acquire Talent Partners processing my personal data for the purpose of this application, in accordance with the <a href="#" style="color:var(--accent)">Privacy Policy</a>. <span class="req">*</span></label>
+            </div>
+            <span class="error-msg" id="gdprError" style="display:none">You must consent to data processing to submit your application</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Step 3: Review -->
+      <div id="step3" style="display:none">
+        <div id="reviewContent"></div>
+      </div>
+
+      <!-- Success -->
+      <div id="stepSuccess" style="display:none">
+        <div class="success-state">
+          <div class="success-icon">&#10003;</div>
+          <h2>Application Submitted</h2>
+          <p>Thank you for your interest in joining Acquire Talent Partners. Our talent acquisition team will review your application and be in touch within 5 working days.</p>
+          <div class="ref-code" id="appRef"></div>
+          <p style="margin-top:16px;font-size:.85rem;">Please save this reference number for your records.</p>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer" id="applyFooter">
+      <button class="btn btn-outline" id="applyBackBtn" onclick="applyBack()" style="display:none">Back</button>
+      <button class="btn btn-blue" id="applyNextBtn" onclick="applyNext()">Continue</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── Page Navigation ──
+function showPage(page) {
+  document.getElementById('home-page').classList.remove('active');
+  document.getElementById('careers-page').classList.remove('active');
+  document.getElementById(page + '-page').classList.add('active');
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+  document.getElementById('navLinks').classList.remove('open');
+}
+
+// ── Navbar scroll effect ──
+window.addEventListener('scroll', () => {
+  document.getElementById('navbar').classList.toggle('scrolled', window.scrollY > 20);
+});
+
+// ── Job Data ──
+const allJobs = [
+  { title: "Senior Software Engineer — Cloud Platform", dept: "engineering", loc: "london", locLabel: "London, UK", type: "full-time", tags: ["Go", "Kubernetes", "AWS"], salary: "£95K – £130K", urgent: false, remote: false },
+  { title: "Staff Machine Learning Engineer", dept: "engineering", loc: "new-york", locLabel: "New York, US", type: "full-time", tags: ["Python", "PyTorch", "MLOps"], salary: "$180K – $240K", urgent: true, remote: false },
+  { title: "Frontend Engineer — Design Systems", dept: "engineering", loc: "singapore", locLabel: "Singapore", type: "full-time", tags: ["React", "TypeScript", "Figma"], salary: "SGD 90K – 130K", urgent: false, remote: false },
+  { title: "DevOps Engineer", dept: "engineering", loc: "frankfurt", locLabel: "Frankfurt, DE", type: "full-time", tags: ["Terraform", "CI/CD", "Azure"], salary: "€75K – €100K", urgent: false, remote: false },
+  { title: "Mobile Developer (iOS)", dept: "engineering", loc: "tokyo", locLabel: "Tokyo, JP", type: "full-time", tags: ["Swift", "SwiftUI", "Xcode"], salary: "¥10M – ¥14M", urgent: false, remote: false },
+  { title: "Backend Engineer — Payments", dept: "engineering", loc: "london", locLabel: "London, UK", type: "full-time", tags: ["Java", "Microservices", "Kafka"], salary: "£85K – £120K", urgent: true, remote: false },
+  { title: "Data Engineer", dept: "engineering", loc: "bangalore", locLabel: "Bangalore, IN", type: "full-time", tags: ["Spark", "Airflow", "dbt"], salary: "₹25L – ₹40L", urgent: false, remote: false },
+  { title: "Site Reliability Engineer", dept: "engineering", loc: "remote", locLabel: "Remote (Global)", type: "full-time", tags: ["Linux", "Prometheus", "On-call"], salary: "$140K – $190K", urgent: false, remote: true },
+  { title: "Security Engineer — Application Security", dept: "security", loc: "london", locLabel: "London, UK", type: "full-time", tags: ["OWASP", "Pen Testing", "SAST"], salary: "£90K – £125K", urgent: false, remote: false },
+  { title: "Cybersecurity Analyst", dept: "security", loc: "dubai", locLabel: "Dubai, UAE", type: "full-time", tags: ["SIEM", "Incident Response", "Clearance"], salary: "AED 280K – 380K", urgent: true, remote: false },
+  { title: "Product Manager — Enterprise Platform", dept: "product", loc: "new-york", locLabel: "New York, US", type: "full-time", tags: ["B2B SaaS", "Roadmapping", "Analytics"], salary: "$160K – $210K", urgent: false, remote: false },
+  { title: "Senior UX Designer", dept: "product", loc: "london", locLabel: "London, UK", type: "full-time", tags: ["Figma", "Research", "Design Systems"], salary: "£80K – £105K", urgent: false, remote: false },
+  { title: "UX Researcher", dept: "product", loc: "singapore", locLabel: "Singapore", type: "full-time", tags: ["User Testing", "Surveys", "Analytics"], salary: "SGD 75K – 105K", urgent: false, remote: false },
+  { title: "Product Designer — Mobile", dept: "product", loc: "remote", locLabel: "Remote (EMEA)", type: "full-time", tags: ["Mobile UX", "Prototyping", "Figma"], salary: "€65K – €90K", urgent: false, remote: true },
+  { title: "Enterprise Account Executive", dept: "sales", loc: "new-york", locLabel: "New York, US", type: "full-time", tags: ["SaaS Sales", "Enterprise", "$1M+ Deals"], salary: "$140K + OTE $280K", urgent: true, remote: false },
+  { title: "Business Development Manager — APAC", dept: "sales", loc: "singapore", locLabel: "Singapore", type: "full-time", tags: ["Partnerships", "APAC Markets", "Strategy"], salary: "SGD 120K – 160K", urgent: false, remote: false },
+  { title: "Sales Development Representative", dept: "sales", loc: "london", locLabel: "London, UK", type: "full-time", tags: ["Outbound", "Salesforce", "SaaS"], salary: "£35K + OTE £55K", urgent: false, remote: false },
+  { title: "Solutions Architect — Pre-Sales", dept: "sales", loc: "frankfurt", locLabel: "Frankfurt, DE", type: "full-time", tags: ["Cloud", "Technical Sales", "Demos"], salary: "€95K – €130K", urgent: false, remote: false },
+  { title: "Management Consultant — Digital Transformation", dept: "consulting", loc: "london", locLabel: "London, UK", type: "full-time", tags: ["Strategy", "Digital", "Client-Facing"], salary: "£75K – £110K", urgent: false, remote: false },
+  { title: "Senior Strategy Consultant", dept: "consulting", loc: "dubai", locLabel: "Dubai, UAE", type: "full-time", tags: ["M&A", "Due Diligence", "GCC Markets"], salary: "AED 350K – 480K", urgent: false, remote: false },
+  { title: "Principal Consultant — Change Management", dept: "consulting", loc: "sydney", locLabel: "Sydney, AU", type: "full-time", tags: ["Org Design", "Stakeholder Mgmt"], salary: "AUD 160K – 210K", urgent: false, remote: false },
+  { title: "Financial Analyst — FP&A", dept: "finance", loc: "london", locLabel: "London, UK", type: "full-time", tags: ["Modelling", "SAP", "Reporting"], salary: "£55K – £75K", urgent: false, remote: false },
+  { title: "Senior Tax Manager — International", dept: "finance", loc: "new-york", locLabel: "New York, US", type: "full-time", tags: ["Transfer Pricing", "BEPS", "CPA"], salary: "$130K – $170K", urgent: false, remote: false },
+  { title: "Internal Audit Manager", dept: "finance", loc: "singapore", locLabel: "Singapore", type: "full-time", tags: ["SOX", "Risk", "Big 4 Preferred"], salary: "SGD 100K – 140K", urgent: false, remote: false },
+  { title: "Talent Acquisition Partner — Technology", dept: "hr", loc: "london", locLabel: "London, UK", type: "full-time", tags: ["Tech Recruitment", "Sourcing", "ATS"], salary: "£55K – £75K", urgent: true, remote: false },
+  { title: "HR Business Partner — APAC", dept: "hr", loc: "singapore", locLabel: "Singapore", type: "full-time", tags: ["HRBP", "Employee Relations", "Regional"], salary: "SGD 95K – 130K", urgent: false, remote: false },
+  { title: "Learning & Development Manager", dept: "hr", loc: "remote", locLabel: "Remote (EMEA)", type: "full-time", tags: ["L&D Strategy", "LMS", "Coaching"], salary: "£65K – £85K", urgent: false, remote: true },
+  { title: "Global Employer Brand Lead", dept: "marketing", loc: "london", locLabel: "London, UK", type: "full-time", tags: ["Employer Brand", "EVP", "Creative"], salary: "£70K – £95K", urgent: false, remote: false },
+  { title: "Digital Marketing Manager", dept: "marketing", loc: "new-york", locLabel: "New York, US", type: "full-time", tags: ["SEO", "Paid Media", "Analytics"], salary: "$90K – $120K", urgent: false, remote: false },
+  { title: "Content Strategist", dept: "marketing", loc: "remote", locLabel: "Remote (Global)", type: "contract", tags: ["Copywriting", "Content Strategy", "B2B"], salary: "$70/hr", urgent: false, remote: true },
+  { title: "Supply Chain Operations Manager", dept: "operations", loc: "sao-paulo", locLabel: "São Paulo, BR", type: "full-time", tags: ["Logistics", "SAP SCM", "LATAM"], salary: "BRL 220K – 300K", urgent: false, remote: false },
+  { title: "Facilities Director — EMEA", dept: "operations", loc: "london", locLabel: "London, UK", type: "full-time", tags: ["FM", "Sustainability", "Multi-Site"], salary: "£90K – £120K", urgent: false, remote: false },
+  { title: "Legal Counsel — Commercial Contracts", dept: "legal", loc: "london", locLabel: "London, UK", type: "full-time", tags: ["Commercial Law", "SaaS Contracts", "GDPR"], salary: "£85K – £115K", urgent: false, remote: false },
+  { title: "Compliance Officer — Financial Services", dept: "legal", loc: "frankfurt", locLabel: "Frankfurt, DE", type: "full-time", tags: ["MiFID II", "AML", "Regulatory"], salary: "€80K – €110K", urgent: false, remote: false },
+  { title: "Clinical Systems Analyst", dept: "healthcare", loc: "toronto", locLabel: "Toronto, CA", type: "full-time", tags: ["HL7 FHIR", "EHR", "Healthcare IT"], salary: "CAD 85K – 115K", urgent: false, remote: false },
+  { title: "Renewable Energy Project Engineer", dept: "energy", loc: "dubai", locLabel: "Dubai, UAE", type: "full-time", tags: ["Solar", "Wind", "Project Mgmt"], salary: "AED 240K – 340K", urgent: false, remote: false },
+  { title: "Software Engineering Intern — Summer 2026", dept: "engineering", loc: "london", locLabel: "London, UK", type: "internship", tags: ["12 Weeks", "Mentorship", "Paid"], salary: "£30K pro-rata", urgent: false, remote: false },
+  { title: "Consulting Analyst Intern — Summer 2026", dept: "consulting", loc: "new-york", locLabel: "New York, US", type: "internship", tags: ["10 Weeks", "Strategy", "Paid"], salary: "$40/hr", urgent: false, remote: false },
+  { title: "Data Science Intern", dept: "engineering", loc: "singapore", locLabel: "Singapore", type: "internship", tags: ["Python", "ML", "12 Weeks"], salary: "SGD 3,500/mo", urgent: false, remote: false },
+  { title: "Contract Technical Writer", dept: "product", loc: "remote", locLabel: "Remote (Global)", type: "contract", tags: ["API Docs", "Technical Writing"], salary: "$65/hr", urgent: false, remote: true },
+  { title: "Contract SAP FICO Consultant", dept: "consulting", loc: "frankfurt", locLabel: "Frankfurt, DE", type: "contract", tags: ["SAP S/4HANA", "FICO", "6 Months"], salary: "€700/day", urgent: true, remote: false },
+  { title: "Platform Engineer — Kubernetes", dept: "engineering", loc: "remote", locLabel: "Remote (Americas)", type: "full-time", tags: ["K8s", "Helm", "GitOps"], salary: "$150K – $200K", urgent: false, remote: true },
+  { title: "AI Research Scientist", dept: "engineering", loc: "singapore", locLabel: "Singapore", type: "full-time", tags: ["LLMs", "NLP", "PhD Preferred"], salary: "SGD 140K – 200K", urgent: true, remote: false },
+  { title: "Vice President — Client Partnerships", dept: "sales", loc: "new-york", locLabel: "New York, US", type: "full-time", tags: ["C-Suite Access", "Revenue Growth"], salary: "$200K + Equity", urgent: false, remote: false },
+  { title: "ESG Reporting Analyst", dept: "energy", loc: "london", locLabel: "London, UK", type: "full-time", tags: ["CSRD", "GRI", "Sustainability"], salary: "£50K – £70K", urgent: false, remote: false },
+  { title: "Head of Diversity, Equity & Inclusion", dept: "hr", loc: "london", locLabel: "London, UK", type: "full-time", tags: ["DEI Strategy", "Executive-Level"], salary: "£110K – £140K", urgent: false, remote: false },
+];
+
+let visibleCount = 15;
+let currentJob = null;
+let applyStep = 1;
+
+// ── Job descriptions (auto-generated per role) ──
+const jobDescriptions = {};
+allJobs.forEach(job => {
+  const deptDescriptions = {
+    engineering: {
+      about: "Our Engineering division builds and operates the platforms, systems, and infrastructure that power Acquire Talent Partners' global operations. You'll work alongside world-class engineers solving problems at scale.",
+      responsibilities: [
+        "Design, develop, and maintain high-performance systems and services",
+        "Collaborate cross-functionally with product, design, and data teams",
+        "Participate in code reviews, architecture discussions, and technical planning",
+        "Contribute to engineering best practices, documentation, and mentorship",
+        "Drive reliability, scalability, and observability across systems"
+      ],
+      requirements: [
+        "Strong foundation in computer science fundamentals and software engineering",
+        "Experience with modern development practices (CI/CD, testing, version control)",
+        "Ability to work independently and as part of a distributed team",
+        "Excellent communication skills for technical and non-technical audiences"
+      ]
+    },
+    product: {
+      about: "Our Product & Design team shapes the experiences that millions of users and enterprise clients interact with daily. We believe in user-centred design backed by data and delivered iteratively.",
+      responsibilities: [
+        "Define and drive product strategy aligned with business objectives",
+        "Conduct user research, usability testing, and data analysis",
+        "Create wireframes, prototypes, and high-fidelity design deliverables",
+        "Work closely with engineering and stakeholders through the full product lifecycle",
+        "Measure outcomes and iterate based on quantitative and qualitative feedback"
+      ],
+      requirements: [
+        "Proven track record of delivering user-centred products or designs",
+        "Strong portfolio demonstrating design thinking and problem-solving",
+        "Proficiency in modern design and prototyping tools",
+        "Data-informed decision making and analytical skills"
+      ]
+    },
+    sales: {
+      about: "Our Sales & Business Development team drives revenue growth by building deep, strategic relationships with the world's leading enterprises. We're trusted advisors, not just sellers.",
+      responsibilities: [
+        "Identify, qualify, and close new business opportunities",
+        "Build and manage a robust pipeline across target accounts",
+        "Collaborate with solutions architects and delivery teams to craft proposals",
+        "Negotiate contracts and drive deals to close",
+        "Represent Acquire Talent Partners at industry events and executive forums"
+      ],
+      requirements: [
+        "Proven track record in enterprise or B2B sales",
+        "Excellent relationship-building and negotiation skills",
+        "Ability to navigate complex, multi-stakeholder sales cycles",
+        "Strong commercial acumen and strategic thinking"
+      ]
+    },
+    consulting: {
+      about: "Our Consulting practice advises C-suite leaders on their most critical challenges — from digital transformation and M&A to operational excellence and organisational change.",
+      responsibilities: [
+        "Lead client engagements from scoping through to delivery and impact measurement",
+        "Develop data-driven strategies and actionable recommendations",
+        "Facilitate workshops and present findings to senior stakeholders",
+        "Mentor junior consultants and contribute to practice development",
+        "Build long-term trusted advisor relationships with clients"
+      ],
+      requirements: [
+        "Consulting or advisory experience at a top-tier firm or equivalent",
+        "Excellent analytical, communication, and presentation skills",
+        "Ability to manage ambiguity and deliver under pressure",
+        "Strong client-facing skills and executive presence"
+      ]
+    },
+    finance: {
+      about: "Our Finance team provides the strategic financial leadership and operational rigour that underpins a $38B global business. We're business partners, not just number-crunchers.",
+      responsibilities: [
+        "Deliver accurate and timely financial analysis, reporting, and forecasting",
+        "Partner with business leaders to drive commercial and strategic decisions",
+        "Ensure compliance with regulatory requirements and internal controls",
+        "Identify risks, opportunities, and process improvements",
+        "Support M&A activity, integration, and special projects as needed"
+      ],
+      requirements: [
+        "Qualified accountant (ACA, ACCA, CPA, CIMA) or equivalent experience",
+        "Strong financial modelling and analytical skills",
+        "Experience with ERP systems (SAP, Oracle, or similar)",
+        "Excellent attention to detail and ability to communicate financial insights"
+      ]
+    },
+    hr: {
+      about: "Our People team shapes the employee experience for 102,000 colleagues worldwide. We attract, develop, and retain exceptional talent through innovative and human-centred programmes.",
+      responsibilities: [
+        "Partner with business leaders to deliver people strategy and organisational effectiveness",
+        "Drive talent acquisition, development, and retention initiatives",
+        "Advise on employee relations, performance management, and engagement",
+        "Lead programmes in diversity, equity, inclusion, and wellbeing",
+        "Use people analytics to inform strategic decisions and measure impact"
+      ],
+      requirements: [
+        "Proven HR generalist or specialist experience in a complex, global organisation",
+        "Strong knowledge of employment law and best practice",
+        "Excellent interpersonal, coaching, and influencing skills",
+        "Data-literate with experience using HRIS and people analytics tools"
+      ]
+    },
+    marketing: {
+      about: "Our Marketing team builds brand awareness, drives demand, and tells the Acquire Talent Partners story across channels and markets worldwide.",
+      responsibilities: [
+        "Develop and execute marketing strategies across digital and traditional channels",
+        "Create compelling content, campaigns, and brand narratives",
+        "Analyse campaign performance and optimise based on data insights",
+        "Collaborate with sales, product, and communications teams",
+        "Manage budgets, vendor relationships, and external agencies"
+      ],
+      requirements: [
+        "Strong marketing experience in B2B or enterprise environments",
+        "Proficiency in digital marketing platforms and analytics tools",
+        "Creative thinker with excellent written and verbal communication",
+        "Ability to manage multiple projects and stakeholders simultaneously"
+      ]
+    },
+    operations: {
+      about: "Our Operations team ensures the smooth running of a global enterprise across facilities, supply chain, logistics, and business services in 48 countries.",
+      responsibilities: [
+        "Oversee operational delivery across multiple sites and geographies",
+        "Drive efficiency, cost optimisation, and continuous improvement",
+        "Manage vendor relationships, contracts, and service level agreements",
+        "Ensure compliance with health, safety, and environmental standards",
+        "Lead cross-functional projects and change initiatives"
+      ],
+      requirements: [
+        "Significant operational management experience in a complex, global business",
+        "Strong project management and stakeholder engagement skills",
+        "Knowledge of lean, six sigma, or other continuous improvement methodologies",
+        "Commercial awareness and budget management experience"
+      ]
+    },
+    legal: {
+      about: "Our Legal & Compliance team protects and enables the business across all markets, providing expert counsel on commercial, regulatory, and governance matters.",
+      responsibilities: [
+        "Draft, review, and negotiate complex commercial agreements",
+        "Advise business leaders on legal risk, regulatory requirements, and governance",
+        "Manage litigation, disputes, and regulatory investigations",
+        "Develop and maintain compliance frameworks and policies",
+        "Support M&A transactions and corporate governance matters"
+      ],
+      requirements: [
+        "Qualified lawyer with relevant post-qualification experience",
+        "Strong drafting, analytical, and negotiation skills",
+        "Ability to provide pragmatic, business-oriented legal advice",
+        "Experience in a multi-jurisdictional or in-house environment preferred"
+      ]
+    },
+    healthcare: {
+      about: "Our Healthcare Technology division develops and deploys digital health solutions for hospitals, health systems, and governments across 22 countries.",
+      responsibilities: [
+        "Design, implement, and support clinical and administrative health IT systems",
+        "Collaborate with clinicians, administrators, and technical teams",
+        "Ensure compliance with health data standards and regulations (HL7, FHIR, HIPAA)",
+        "Analyse workflows and drive system optimisation and innovation",
+        "Contribute to product development and client delivery"
+      ],
+      requirements: [
+        "Experience in healthcare IT, clinical informatics, or health tech",
+        "Knowledge of health data standards and interoperability frameworks",
+        "Strong analytical and problem-solving skills",
+        "Ability to communicate effectively with clinical and technical stakeholders"
+      ]
+    },
+    energy: {
+      about: "Our Energy & Sustainability division helps clients transition to clean energy and achieve net-zero goals through innovative technology and infrastructure solutions.",
+      responsibilities: [
+        "Lead renewable energy, carbon management, and sustainability projects",
+        "Develop technical solutions and advise clients on energy transition strategy",
+        "Manage project timelines, budgets, and stakeholder relationships",
+        "Ensure compliance with environmental regulations and reporting standards",
+        "Contribute to thought leadership and business development"
+      ],
+      requirements: [
+        "Experience in renewable energy, sustainability, or environmental consulting",
+        "Strong project management and technical skills",
+        "Knowledge of ESG reporting frameworks (GRI, CSRD, TCFD)",
+        "Passionate about sustainability and the energy transition"
+      ]
+    },
+    security: {
+      about: "Our Defence & Security division provides cybersecurity, secure communications, and systems integration services to allied governments and defence organisations in 14 nations.",
+      responsibilities: [
+        "Design, implement, and operate security solutions and architectures",
+        "Conduct threat analysis, vulnerability assessments, and incident response",
+        "Work within classified environments and maintain security clearances",
+        "Collaborate with government clients, partners, and internal teams",
+        "Stay current with threat landscape and emerging security technologies"
+      ],
+      requirements: [
+        "Relevant cybersecurity or defence sector experience",
+        "Security certifications (CISSP, CISM, CEH) preferred",
+        "Ability to obtain and maintain appropriate security clearances",
+        "Strong analytical, communication, and problem-solving skills"
+      ]
+    }
+  };
+  const desc = deptDescriptions[job.dept] || deptDescriptions.engineering;
+  jobDescriptions[job.title] = desc;
+});
+
+// ── Render Jobs ──
+function renderJobs(jobs) {
+  const grid = document.getElementById('jobsGrid');
+  grid.innerHTML = '';
+  const display = jobs.slice(0, visibleCount);
+  display.forEach((job, idx) => {
+    const tagsHtml = job.tags.map(t => `<span class="job-tag">${t}</span>`).join('') +
+      (job.urgent ? '<span class="job-tag urgent">Urgent Hire</span>' : '') +
+      (job.remote ? '<span class="job-tag remote">Remote</span>' : '');
+    const jobIndex = allJobs.indexOf(job);
+    grid.innerHTML += `
+      <div class="job-card" onclick="openJobDetail(${jobIndex})" style="cursor:pointer">
+        <div class="job-info">
+          <h3>${job.title}</h3>
+          <div class="job-meta">
+            <span>&#128205; ${job.locLabel}</span>
+            <span>&#128188; ${job.dept.charAt(0).toUpperCase() + job.dept.slice(1)}</span>
+            <span>&#128176; ${job.salary}</span>
+            <span>&#128338; ${job.type.charAt(0).toUpperCase() + job.type.slice(1)}</span>
+          </div>
+          <div class="job-tags">${tagsHtml}</div>
+        </div>
+        <button class="job-apply" onclick="event.stopPropagation(); currentJob = allJobs[${jobIndex}]; openApplyModal()">Apply Now</button>
+      </div>`;
+  });
+  document.getElementById('jobCount').textContent = jobs.length;
+  document.getElementById('loadMoreBtn').style.display = jobs.length > visibleCount ? 'inline-block' : 'none';
+}
+
+function getFilteredJobs() {
+  const search = document.getElementById('jobSearch').value.toLowerCase();
+  const dept = document.getElementById('deptFilter').value;
+  const loc = document.getElementById('locFilter').value;
+  const type = document.getElementById('typeFilter').value;
+  return allJobs.filter(j => {
+    const matchSearch = !search || j.title.toLowerCase().includes(search) || j.tags.some(t => t.toLowerCase().includes(search));
+    const matchDept = !dept || j.dept === dept;
+    const matchLoc = !loc || j.loc === loc;
+    const matchType = !type || j.type === type;
+    return matchSearch && matchDept && matchLoc && matchType;
+  });
+}
+
+function filterJobs() { visibleCount = 15; renderJobs(getFilteredJobs()); }
+function loadMoreJobs() { visibleCount += 15; renderJobs(getFilteredJobs()); }
+
+// ── Modal Helpers ──
+function openModal(id) {
+  document.getElementById(id).classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+function closeModal(id) {
+  document.getElementById(id).classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+// Close on overlay click
+document.querySelectorAll('.modal-overlay').forEach(m => {
+  m.addEventListener('click', (e) => {
+    if (e.target === m) closeModal(m.id);
+  });
+});
+
+// Close on Escape
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') {
+    document.querySelectorAll('.modal-overlay.open').forEach(m => closeModal(m.id));
+  }
+});
+
+// ── Job Detail Modal ──
+function openJobDetail(idx) {
+  currentJob = allJobs[idx];
+  const desc = jobDescriptions[currentJob.title];
+  document.getElementById('modalJobTitle').textContent = currentJob.title;
+  document.getElementById('modalJobDept').textContent = currentJob.dept.charAt(0).toUpperCase() + currentJob.dept.slice(1) + ' Department';
+  document.getElementById('modalJobMeta').innerHTML = `
+    <span>&#128205; ${currentJob.locLabel}</span>
+    <span>&#128176; ${currentJob.salary}</span>
+    <span>&#128338; ${currentJob.type.charAt(0).toUpperCase() + currentJob.type.slice(1)}</span>
+    ${currentJob.remote ? '<span style="background:#f0fdf4;color:#16a34a">&#127758; Remote</span>' : ''}
+    ${currentJob.urgent ? '<span style="background:#fef2f2;color:#dc2626">&#9888; Urgent Hire</span>' : ''}
+  `;
+  const tagsHtml = currentJob.tags.map(t => `<span class="job-tag">${t}</span>`).join('');
+  document.getElementById('modalJobDesc').innerHTML = `
+    <h4>About the Role</h4>
+    <p>${desc.about}</p>
+    <h4 style="margin-top:20px">Key Responsibilities</h4>
+    <ul>${desc.responsibilities.map(r => '<li>' + r + '</li>').join('')}</ul>
+    <h4>Requirements</h4>
+    <ul>${desc.requirements.map(r => '<li>' + r + '</li>').join('')}</ul>
+    <h4>Skills & Tags</h4>
+    <div class="job-tags" style="margin-top:8px">${tagsHtml}</div>
+  `;
+  openModal('jobDetailModal');
+}
+
+// ── Application Form ──
+function openApplyModal() {
+  if (!currentJob) return;
+  applyStep = 1;
+  // Reset form
+  document.querySelectorAll('#applyModal input, #applyModal select, #applyModal textarea').forEach(el => {
+    if (el.type === 'checkbox') el.checked = false;
+    else if (el.type === 'file') el.value = '';
+    else el.value = '';
+  });
+  document.querySelectorAll('.form-group').forEach(g => g.classList.remove('has-error'));
+  document.querySelectorAll('.file-name').forEach(f => { f.style.display = 'none'; f.textContent = ''; });
+  document.getElementById('cvError').style.display = 'none';
+  document.getElementById('gdprError').style.display = 'none';
+
+  document.getElementById('applyJobTitle').textContent = currentJob.title;
+  document.getElementById('applyJobMeta').textContent = currentJob.locLabel + ' · ' + currentJob.salary + ' · ' + currentJob.type.charAt(0).toUpperCase() + currentJob.type.slice(1);
+
+  updateApplyStep();
+  openModal('applyModal');
+}
+
+function updateApplyStep() {
+  ['step1','step2','step3','stepSuccess'].forEach(s => document.getElementById(s).style.display = 'none');
+  document.getElementById('applyFooter').style.display = 'flex';
+  document.getElementById('applyBackBtn').style.display = applyStep > 1 ? 'inline-block' : 'none';
+
+  // Update step indicators
+  for (let i = 1; i <= 3; i++) {
+    const fs = document.getElementById('fs' + i);
+    fs.classList.remove('active', 'done');
+    if (i < applyStep) fs.classList.add('done');
+    else if (i === applyStep) fs.classList.add('active');
+  }
+  for (let i = 1; i <= 2; i++) {
+    document.getElementById('sl' + i).classList.toggle('active', i < applyStep);
+  }
+
+  if (applyStep === 1) {
+    document.getElementById('step1').style.display = 'block';
+    document.getElementById('applyNextBtn').textContent = 'Continue';
+  } else if (applyStep === 2) {
+    document.getElementById('step2').style.display = 'block';
+    document.getElementById('applyNextBtn').textContent = 'Review Application';
+  } else if (applyStep === 3) {
+    document.getElementById('step3').style.display = 'block';
+    document.getElementById('applyNextBtn').textContent = 'Submit Application';
+    buildReview();
+  } else if (applyStep === 4) {
+    document.getElementById('stepSuccess').style.display = 'block';
+    document.getElementById('applyFooter').style.display = 'none';
+    document.getElementById('appRef').textContent = 'REF-ATP-' + Date.now().toString(36).toUpperCase();
+  }
+}
+
+function applyNext() {
+  if (applyStep === 1 && !validateStep1()) return;
+  if (applyStep === 2 && !validateStep2()) return;
+  if (applyStep === 3) { submitApplication(); applyStep = 4; updateApplyStep(); return; }
+  applyStep++;
+  updateApplyStep();
+  // Scroll modal to top
+  document.querySelector('#applyModal .modal').scrollTop = 0;
+}
+
+function applyBack() {
+  if (applyStep > 1) { applyStep--; updateApplyStep(); }
+}
+
+// ── Validation ──
+function clearErrors() {
+  document.querySelectorAll('.form-group').forEach(g => g.classList.remove('has-error'));
+  document.getElementById('cvError').style.display = 'none';
+  document.getElementById('gdprError').style.display = 'none';
+}
+
+function setError(id) {
+  const el = document.getElementById(id);
+  if (el) el.closest('.form-group').classList.add('has-error');
+}
+
+function validateStep1() {
+  clearErrors();
+  let valid = true;
+  const fields = ['appFirstName','appLastName','appEmail','appPhone','appLocation','appNotice'];
+  fields.forEach(id => {
+    const el = document.getElementById(id);
+    if (!el.value.trim()) { setError(id); valid = false; }
+  });
+  // Email format
+  const email = document.getElementById('appEmail');
+  if (email.value && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.value)) { setError('appEmail'); valid = false; }
+  return valid;
+}
+
+function validateStep2() {
+  clearErrors();
+  let valid = true;
+  if (!document.getElementById('cvFile').files.length) {
+    document.getElementById('cvError').style.display = 'block'; valid = false;
+  }
+  if (!document.getElementById('appExperience').value) { setError('appExperience'); valid = false; }
+  if (!document.getElementById('appVisa').value) { setError('appVisa'); valid = false; }
+  if (!document.getElementById('appGDPR').checked) {
+    document.getElementById('gdprError').style.display = 'block'; valid = false;
+  }
+  return valid;
+}
+
+// ── File Upload ──
+function handleFileUpload(input, nameId) {
+  const nameEl = document.getElementById(nameId);
+  if (input.files.length) {
+    const file = input.files[0];
+    if (file.size > 5 * 1024 * 1024) {
+      alert('File size must be under 5MB');
+      input.value = '';
+      nameEl.style.display = 'none';
+      return;
+    }
+    nameEl.textContent = '&#10003; ' + file.name + ' (' + (file.size / 1024).toFixed(0) + ' KB)';
+    nameEl.innerHTML = nameEl.textContent;
+    nameEl.style.display = 'block';
+    document.getElementById('cvError').style.display = 'none';
+  } else {
+    nameEl.style.display = 'none';
+  }
+}
+
+// ── Review ──
+function buildReview() {
+  const getValue = id => document.getElementById(id).value || '—';
+  const cvName = document.getElementById('cvFile').files.length ? document.getElementById('cvFile').files[0].name : '—';
+  const clName = document.getElementById('clFile').files.length ? document.getElementById('clFile').files[0].name : 'Not provided';
+
+  document.getElementById('reviewContent').innerHTML = `
+    <div style="background:var(--bg-alt);border-radius:12px;padding:24px;margin-bottom:20px;border:1px solid var(--border)">
+      <h4 style="font-size:1rem;font-weight:700;color:var(--primary);margin-bottom:4px">${currentJob.title}</h4>
+      <p style="font-size:.88rem;color:var(--text-light)">${currentJob.locLabel} &middot; ${currentJob.salary} &middot; ${currentJob.type}</p>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+      <div><p style="font-size:.78rem;color:var(--text-light);margin-bottom:2px">Name</p><p style="font-weight:600;font-size:.92rem">${getValue('appFirstName')} ${getValue('appLastName')}</p></div>
+      <div><p style="font-size:.78rem;color:var(--text-light);margin-bottom:2px">Email</p><p style="font-weight:600;font-size:.92rem">${getValue('appEmail')}</p></div>
+      <div><p style="font-size:.78rem;color:var(--text-light);margin-bottom:2px">Phone</p><p style="font-weight:600;font-size:.92rem">${getValue('appPhone')}</p></div>
+      <div><p style="font-size:.78rem;color:var(--text-light);margin-bottom:2px">Location</p><p style="font-weight:600;font-size:.92rem">${getValue('appLocation')}</p></div>
+      <div><p style="font-size:.78rem;color:var(--text-light);margin-bottom:2px">Notice Period</p><p style="font-weight:600;font-size:.92rem">${getValue('appNotice')}</p></div>
+      <div><p style="font-size:.78rem;color:var(--text-light);margin-bottom:2px">Experience</p><p style="font-weight:600;font-size:.92rem">${getValue('appExperience')}</p></div>
+      <div><p style="font-size:.78rem;color:var(--text-light);margin-bottom:2px">Salary Expectation</p><p style="font-weight:600;font-size:.92rem">${getValue('appSalary') || 'Not specified'}</p></div>
+      <div><p style="font-size:.78rem;color:var(--text-light);margin-bottom:2px">Right to Work</p><p style="font-weight:600;font-size:.92rem">${getValue('appVisa')}</p></div>
+      <div><p style="font-size:.78rem;color:var(--text-light);margin-bottom:2px">CV / Resume</p><p style="font-weight:600;font-size:.92rem">${cvName}</p></div>
+      <div><p style="font-size:.78rem;color:var(--text-light);margin-bottom:2px">Cover Letter</p><p style="font-weight:600;font-size:.92rem">${clName}</p></div>
+      ${getValue('appLinkedIn') !== '—' ? '<div><p style="font-size:.78rem;color:var(--text-light);margin-bottom:2px">LinkedIn</p><p style="font-weight:600;font-size:.92rem">' + getValue('appLinkedIn') + '</p></div>' : ''}
+      ${getValue('appSource') !== '—' ? '<div><p style="font-size:.78rem;color:var(--text-light);margin-bottom:2px">Source</p><p style="font-weight:600;font-size:.92rem">' + getValue('appSource') + '</p></div>' : ''}
+    </div>
+    ${getValue('appMotivation') !== '—' ? '<div style="margin-top:16px"><p style="font-size:.78rem;color:var(--text-light);margin-bottom:2px">Motivation</p><p style="font-size:.88rem;color:var(--text);line-height:1.7;background:var(--bg-alt);padding:12px 16px;border-radius:8px;border:1px solid var(--border)">' + getValue('appMotivation') + '</p></div>' : ''}
+    <p style="margin-top:20px;font-size:.82rem;color:var(--text-light);font-style:italic">Please review your details above. Click "Submit Application" to finalise, or go back to make changes.</p>
+  `;
+}
+
+// ── Submit to ATS (localStorage) ──
+function submitApplication() {
+  try {
+    const apps = JSON.parse(localStorage.getItem('atp_applications') || '[]');
+    apps.push({
+      firstName: document.getElementById('appFirstName').value.trim(),
+      lastName: document.getElementById('appLastName').value.trim(),
+      email: document.getElementById('appEmail').value.trim(),
+      phone: document.getElementById('appPhone').value.trim(),
+      location: document.getElementById('appLocation').value.trim(),
+      linkedin: document.getElementById('appLinkedIn').value.trim(),
+      salary: document.getElementById('appSalary').value.trim(),
+      notice: document.getElementById('appNotice').value,
+      experience: document.getElementById('appExperience').value,
+      visa: document.getElementById('appVisa').value,
+      motivation: document.getElementById('appMotivation').value.trim(),
+      source: document.getElementById('appSource').value || 'Careers Site',
+      job: currentJob ? currentJob.title : 'General Application',
+      department: currentJob ? currentJob.dept.charAt(0).toUpperCase() + currentJob.dept.slice(1) : 'General',
+      appliedDate: new Date().toISOString(),
+      notes: []
+    });
+    localStorage.setItem('atp_applications', JSON.stringify(apps));
+  } catch(e) { console.log('Storage not available:', e); }
+}
+
+// Initial render
+renderJobs(allJobs);
+</script>
+
+</body>
+</html>
