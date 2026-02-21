@@ -1851,6 +1851,25 @@ function submitApplication() {
 let chatOpen = false;
 let chatInitialised = false;
 
+// ── Chat-to-Apply State ──
+let chatApplyMode = false;
+let chatApplyStep = 0;
+let chatApplyData = {};
+let chatApplyJob = null;
+
+const chatApplySteps = [
+  { key:'fullName', prompt:"Let's get started! First, what's your <strong>full name</strong>?" },
+  { key:'email', prompt:"Thanks, {name}! What's your <strong>email address</strong>?" },
+  { key:'phone', prompt:"And your <strong>phone number</strong> (with country code)?" },
+  { key:'location', prompt:"Where are you currently based? (e.g. London, UK)" },
+  { key:'experience', prompt:"How many years of <strong>relevant experience</strong> do you have?", quick:["< 1 year","1–2 years","3–5 years","6–10 years","10–15 years","15+ years"] },
+  { key:'notice', prompt:"What's your <strong>notice period</strong>?", quick:["Immediately","1 week","2 weeks","1 month","2 months","3 months"] },
+  { key:'visa', prompt:"Do you have the <strong>right to work</strong> in the role's location?", quick:["Yes — right to work","Yes — with sponsorship","I need sponsorship"] },
+  { key:'linkedin', prompt:"Do you have a <strong>LinkedIn profile</strong> URL? (or type 'skip' to skip)" },
+  { key:'motivation', prompt:"Nearly there! In a few sentences, tell us <strong>why you're interested</strong> in this role and what you'd bring to the team. (or type 'skip')" },
+  { key:'confirm', prompt:"_REVIEW_" }
+];
+
 function toggleChat() {
   chatOpen = !chatOpen;
   document.getElementById('chatFab').classList.toggle('open', chatOpen);
@@ -1860,21 +1879,19 @@ function toggleChat() {
 }
 
 function initChat() {
-  addBotMessage("Hi there! I'm Ava, your AI careers assistant at Acquire Talent Partners. How can I help you today?", [
+  addBotMessage("Hi there! I'm <strong>Ava</strong>, your AI careers assistant at Acquire Talent Partners. I can answer questions about our roles, benefits, and culture — or I can <strong>help you apply right here in the chat</strong>. What would you like to do?", [
+    "Apply via chat",
     "What jobs are available?",
     "Tell me about benefits",
     "How do I apply?",
-    "What's the interview process?",
     "Company culture"
   ]);
 }
 
-function addBotMessage(text, quickReplies) {
+function addBotMessage(text, quickReplies, callback) {
   const msgs = document.getElementById('chatMessages');
   const wrapper = document.createElement('div');
   wrapper.className = 'chat-msg bot';
-
-  // Typing indicator first
   const typingDiv = document.createElement('div');
   typingDiv.className = 'chat-bubble';
   typingDiv.innerHTML = '<div class="typing-indicator"><span></span><span></span><span></span></div>';
@@ -1882,17 +1899,13 @@ function addBotMessage(text, quickReplies) {
   msgs.appendChild(wrapper);
   msgs.scrollTop = msgs.scrollHeight;
 
-  // Replace with actual message after delay
-  const delay = Math.min(600 + text.length * 8, 1800);
+  const delay = Math.min(600 + text.length * 5, 1600);
   setTimeout(() => {
     typingDiv.innerHTML = text;
-    // Add time
     const time = document.createElement('div');
     time.className = 'chat-time';
     time.textContent = new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
     wrapper.appendChild(time);
-
-    // Quick replies
     if (quickReplies && quickReplies.length) {
       const qr = document.createElement('div');
       qr.className = 'quick-replies';
@@ -1906,6 +1919,7 @@ function addBotMessage(text, quickReplies) {
       wrapper.appendChild(qr);
     }
     msgs.scrollTop = msgs.scrollHeight;
+    if (callback) callback();
   }, delay);
 }
 
@@ -1922,7 +1936,6 @@ function addUserMessage(text) {
   time.textContent = new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
   wrapper.appendChild(time);
   msgs.appendChild(wrapper);
-  // Remove any existing quick replies
   document.querySelectorAll('.quick-replies').forEach(q => q.remove());
   msgs.scrollTop = msgs.scrollHeight;
 }
@@ -1933,118 +1946,373 @@ function sendChat(override) {
   if (!text) return;
   addUserMessage(text);
   if (!override) input.value = '';
-  setTimeout(() => { processMessage(text); }, 300);
+
+  if (chatApplyMode) {
+    setTimeout(() => { handleApplyStep(text); }, 300);
+  } else {
+    setTimeout(() => { processMessage(text); }, 300);
+  }
+}
+
+// ═══════════ CHAT-TO-APPLY FLOW ═══════════
+function startChatApply() {
+  chatApplyMode = true;
+  chatApplyStep = -1; // job selection step
+  chatApplyData = {};
+  chatApplyJob = null;
+
+  // Show job categories
+  addBotMessage("Brilliant! Let's get you applied. First, which <strong>department</strong> are you interested in?", [
+    "Engineering", "Product & Design", "Sales", "Consulting", "Finance", "HR", "Marketing", "Operations", "Legal", "Healthcare", "Energy", "Security", "Not sure — show all"
+  ]);
+}
+
+function handleApplyStep(text) {
+  const m = text.toLowerCase();
+
+  // ── Step -1: Department selection ──
+  if (chatApplyStep === -1) {
+    const deptMap = {
+      'engineering':'engineering', 'product':'product', 'design':'product', 'sales':'sales', 'business':'sales',
+      'consult':'consulting', 'finance':'finance', 'hr':'hr', 'human':'hr', 'people':'hr', 'recruit':'hr',
+      'marketing':'marketing', 'operation':'operations', 'legal':'legal', 'compliance':'legal',
+      'health':'healthcare', 'energy':'energy', 'sustainab':'energy', 'security':'security', 'defence':'security', 'defense':'security',
+      'not sure':'all', 'show all':'all', 'all':'all'
+    };
+    let dept = 'all';
+    for (const [key, val] of Object.entries(deptMap)) {
+      if (m.includes(key)) { dept = val; break; }
+    }
+
+    const matchingJobs = dept === 'all' ? allJobs : allJobs.filter(j => j.dept === dept);
+    const topJobs = matchingJobs.slice(0, 8);
+
+    if (topJobs.length === 0) {
+      addBotMessage("I couldn't find roles in that area. Let me show you all available positions instead.", []);
+      chatApplyStep = -1;
+      setTimeout(() => {
+        const all8 = allJobs.slice(0, 8);
+        showJobSelection(all8);
+      }, 800);
+      return;
+    }
+    showJobSelection(topJobs);
+    return;
+  }
+
+  // ── Step -0.5: Job number selection ──
+  if (chatApplyStep === -0.5) {
+    // Parse job number or title
+    const num = parseInt(text);
+    if (num >= 1 && num <= chatApplyData._jobList.length) {
+      chatApplyJob = chatApplyData._jobList[num - 1];
+    } else {
+      // Try matching by title
+      const match = chatApplyData._jobList.find(j => j.title.toLowerCase().includes(m));
+      if (match) chatApplyJob = match;
+    }
+
+    if (!chatApplyJob) {
+      addBotMessage("I didn't catch that. Please type the <strong>number</strong> next to the role you'd like to apply for, or type the job title.", []);
+      return;
+    }
+
+    const tags = chatApplyJob.tags.join(', ');
+    addBotMessage(
+      `Great choice! Here's a summary of the role:<br><br>` +
+      `<strong>${chatApplyJob.title}</strong><br>` +
+      `&#128205; ${chatApplyJob.locLabel} &nbsp;|&nbsp; &#128176; ${chatApplyJob.salary} &nbsp;|&nbsp; &#128338; ${chatApplyJob.type}<br>` +
+      `&#127991; ${tags}` +
+      `${chatApplyJob.remote ? '<br>&#127758; <strong>Remote</strong>' : ''}` +
+      `<br><br>Would you like to apply for this role?`,
+      ["Yes, let's go!", "No, show me other roles", "Cancel application"]
+    );
+    chatApplyStep = -0.25;
+    return;
+  }
+
+  // ── Step -0.25: Confirm role ──
+  if (chatApplyStep === -0.25) {
+    if (m.includes('yes') || m.includes('let') || m.includes('go') || m.includes('apply') || m.includes('sure')) {
+      chatApplyStep = 0;
+      const step = chatApplySteps[0];
+      addBotMessage(step.prompt, step.quick || []);
+    } else if (m.includes('other') || m.includes('no') || m.includes('different') || m.includes('back')) {
+      chatApplyStep = -1;
+      chatApplyJob = null;
+      addBotMessage("No problem! Which department would you like to explore?", [
+        "Engineering", "Product & Design", "Sales", "Consulting", "Finance", "HR", "Marketing", "Show all"
+      ]);
+    } else if (m.includes('cancel') || m.includes('stop') || m.includes('exit') || m.includes('quit')) {
+      exitChatApply();
+    } else {
+      chatApplyStep = 0;
+      const step = chatApplySteps[0];
+      addBotMessage(step.prompt, step.quick || []);
+    }
+    return;
+  }
+
+  // ── Cancel at any point ──
+  if (m === 'cancel' || m === 'stop' || m === 'exit' || m === 'quit') {
+    exitChatApply();
+    return;
+  }
+
+  // ── Collecting fields ──
+  const currentStep = chatApplySteps[chatApplyStep];
+
+  // Validate
+  if (currentStep.key === 'email' && !text.includes('@')) {
+    addBotMessage("That doesn't look like a valid email address. Could you try again?", []);
+    return;
+  }
+
+  if (currentStep.key === 'confirm') {
+    if (m.includes('yes') || m.includes('submit') || m.includes('confirm') || m.includes('send') || m.includes('go')) {
+      submitChatApplication();
+    } else if (m.includes('edit') || m.includes('change') || m.includes('restart') || m.includes('start over')) {
+      chatApplyStep = 0;
+      chatApplyData = {};
+      addBotMessage("No worries — let's start again.", []);
+      setTimeout(() => {
+        const step = chatApplySteps[0];
+        addBotMessage(step.prompt, step.quick || []);
+      }, 1000);
+    } else if (m.includes('cancel')) {
+      exitChatApply();
+    } else {
+      addBotMessage("Would you like to submit this application?", ["Yes, submit it!", "Edit my details", "Cancel"]);
+    }
+    return;
+  }
+
+  // Store value
+  let val = text.trim();
+  if (currentStep.key === 'linkedin' && (m === 'skip' || m === 'none' || m === 'n/a')) val = '';
+  if (currentStep.key === 'motivation' && (m === 'skip' || m === 'none' || m === 'n/a')) val = '';
+  chatApplyData[currentStep.key] = val;
+
+  // Parse full name into first/last
+  if (currentStep.key === 'fullName') {
+    const parts = val.split(' ');
+    chatApplyData.firstName = parts[0] || '';
+    chatApplyData.lastName = parts.slice(1).join(' ') || '';
+  }
+
+  // Move to next step
+  chatApplyStep++;
+
+  if (chatApplyStep >= chatApplySteps.length) return;
+
+  const nextStep = chatApplySteps[chatApplyStep];
+
+  if (nextStep.key === 'confirm') {
+    // Show review
+    const name = chatApplyData.fullName || (chatApplyData.firstName + ' ' + chatApplyData.lastName);
+    let review = `Perfect! Here's a summary of your application:<br><br>`;
+    review += `<div style="background:#f8fafc;border-radius:10px;padding:14px;border:1px solid #e2e8f0;margin:4px 0 8px;font-size:.84rem;line-height:1.8">`;
+    review += `<strong>Role:</strong> ${chatApplyJob.title}<br>`;
+    review += `<strong>Name:</strong> ${name}<br>`;
+    review += `<strong>Email:</strong> ${chatApplyData.email}<br>`;
+    review += `<strong>Phone:</strong> ${chatApplyData.phone}<br>`;
+    review += `<strong>Location:</strong> ${chatApplyData.location}<br>`;
+    review += `<strong>Experience:</strong> ${chatApplyData.experience}<br>`;
+    review += `<strong>Notice:</strong> ${chatApplyData.notice}<br>`;
+    review += `<strong>Right to Work:</strong> ${chatApplyData.visa}<br>`;
+    if (chatApplyData.linkedin) review += `<strong>LinkedIn:</strong> ${chatApplyData.linkedin}<br>`;
+    if (chatApplyData.motivation) review += `<strong>Motivation:</strong> ${chatApplyData.motivation}<br>`;
+    review += `</div><br>Does everything look correct? I'll submit it to our talent team.`;
+
+    addBotMessage(review, ["Yes, submit it!", "Edit my details", "Cancel"]);
+    return;
+  }
+
+  let prompt = nextStep.prompt.replace('{name}', chatApplyData.firstName || '');
+  addBotMessage(prompt, nextStep.quick || []);
+}
+
+function showJobSelection(jobs) {
+  chatApplyData._jobList = jobs;
+  let msg = "Here are the matching roles. Type the <strong>number</strong> to select one:<br><br>";
+  jobs.forEach((j, i) => {
+    msg += `<strong>${i+1}.</strong> ${j.title}<br>`;
+    msg += `<span style="font-size:.78rem;color:#64748b">&nbsp;&nbsp;&nbsp;&nbsp;&#128205; ${j.locLabel} &nbsp;|&nbsp; &#128176; ${j.salary}${j.remote ? ' &nbsp;|&nbsp; &#127758; Remote' : ''}</span><br>`;
+  });
+  msg += `<br>Type a number (1–${jobs.length}) to select a role.`;
+  addBotMessage(msg, []);
+  chatApplyStep = -0.5;
+}
+
+function submitChatApplication() {
+  try {
+    const apps = JSON.parse(localStorage.getItem('atp_applications') || '[]');
+    apps.push({
+      firstName: chatApplyData.firstName || '',
+      lastName: chatApplyData.lastName || '',
+      email: chatApplyData.email || '',
+      phone: chatApplyData.phone || '',
+      location: chatApplyData.location || '',
+      linkedin: chatApplyData.linkedin || '',
+      salary: '',
+      notice: chatApplyData.notice || '',
+      experience: chatApplyData.experience || '',
+      visa: chatApplyData.visa || '',
+      motivation: chatApplyData.motivation || '',
+      source: 'Chat Assistant',
+      job: chatApplyJob ? chatApplyJob.title : 'General Application',
+      department: chatApplyJob ? chatApplyJob.dept.charAt(0).toUpperCase() + chatApplyJob.dept.slice(1) : 'General',
+      appliedDate: new Date().toISOString(),
+      notes: []
+    });
+    localStorage.setItem('atp_applications', JSON.stringify(apps));
+  } catch(e) { console.log('Storage not available:', e); }
+
+  const ref = 'REF-ATP-' + Date.now().toString(36).toUpperCase();
+  addBotMessage(
+    `<div style="text-align:center;padding:8px 0">` +
+    `<div style="font-size:2rem;margin-bottom:8px">&#10003;</div>` +
+    `<strong style="font-size:1.05rem;color:#0f2b46">Application Submitted!</strong><br><br>` +
+    `Thank you, ${chatApplyData.firstName}! Your application for <strong>${chatApplyJob.title}</strong> has been received.<br><br>` +
+    `<span style="font-family:monospace;background:#eff6ff;padding:6px 14px;border-radius:6px;color:#2563eb;font-weight:600">${ref}</span><br><br>` +
+    `<span style="font-size:.84rem;color:#64748b">Our talent acquisition team will review your application and be in touch within <strong>5 working days</strong>. Save your reference number for your records.</span>` +
+    `</div>`,
+    ["What else can I ask?", "Tell me about the interview process", "What are the benefits?"]
+  );
+
+  chatApplyMode = false;
+  chatApplyStep = 0;
+  chatApplyData = {};
+  chatApplyJob = null;
+}
+
+function exitChatApply() {
+  chatApplyMode = false;
+  chatApplyStep = 0;
+  chatApplyData = {};
+  chatApplyJob = null;
+  addBotMessage("No problem — I've cancelled the application. Feel free to ask me anything else or start a new application whenever you're ready.", [
+    "What jobs are available?",
+    "Apply via chat",
+    "Tell me about benefits"
+  ]);
 }
 
 // ── Knowledge Base ──
 function processMessage(msg) {
   const m = msg.toLowerCase();
 
+  // Trigger chat apply
+  if (m.includes('apply via chat') || m.includes('apply through chat') || m.includes('apply here') || m.includes('apply now') || m.includes('chat apply') || m.includes('quick apply') || (m.includes('apply') && m.includes('chat'))) {
+    startChatApply();
+    return;
+  }
+
   // Jobs / roles
   if (m.includes('job') || m.includes('role') || m.includes('position') || m.includes('hiring') || m.includes('vacanc') || m.includes('opening') || m.includes('available')) {
     if (m.includes('engineer') || m.includes('tech') || m.includes('develop') || m.includes('software')) {
-      addBotMessage("We have several engineering roles open right now, including Senior Software Engineer (London), Staff ML Engineer (New York), Frontend Engineer (Singapore), and Platform Engineer (Remote). Would you like me to help you find the right fit?", ["Show me engineering roles", "How do I apply?", "What's the salary range?"]);
+      addBotMessage("We have several engineering roles open right now, including Senior Software Engineer (London), Staff ML Engineer (New York), Frontend Engineer (Singapore), and Platform Engineer (Remote). Would you like me to help you find the right fit?", ["Apply via chat", "Show me engineering roles", "What's the salary range?"]);
     } else if (m.includes('consult')) {
-      addBotMessage("Our consulting practice is hiring across London, Dubai, and Sydney. Roles include Management Consultant, Senior Strategy Consultant, and Principal Consultant. These are client-facing roles working with C-suite leaders.", ["Show me consulting roles", "What experience do I need?", "How do I apply?"]);
+      addBotMessage("Our consulting practice is hiring across London, Dubai, and Sydney. Roles include Management Consultant, Senior Strategy Consultant, and Principal Consultant. These are client-facing roles working with C-suite leaders.", ["Apply via chat", "Show me consulting roles", "What experience do I need?"]);
     } else if (m.includes('intern')) {
-      addBotMessage("Great news — we have Summer 2026 internships in Engineering (London & Singapore), Consulting (New York), and Data Science (Singapore). All are paid with dedicated mentorship programmes. They're competitive, so I'd recommend applying soon!", ["How do I apply?", "What's the interview process?", "Tell me about benefits"]);
+      addBotMessage("Great news — we have Summer 2026 internships in Engineering (London & Singapore), Consulting (New York), and Data Science (Singapore). All are paid with dedicated mentorship programmes.", ["Apply via chat", "What's the interview process?", "Tell me about benefits"]);
     } else if (m.includes('remote')) {
-      addBotMessage("We have several remote-friendly roles including Site Reliability Engineer (Global), Platform Engineer (Americas), Product Designer (EMEA), L&D Manager (EMEA), Content Strategist (Global), and Contract Technical Writer (Global). You can filter for remote roles in our job search.", ["Show me remote roles", "How do I apply?", "Tell me about benefits"]);
+      addBotMessage("We have several remote-friendly roles including Site Reliability Engineer (Global), Platform Engineer (Americas), Product Designer (EMEA), L&D Manager (EMEA), Content Strategist (Global), and Contract Technical Writer (Global).", ["Apply via chat", "Show me remote roles", "Tell me about benefits"]);
     } else if (m.includes('sales') || m.includes('business dev')) {
-      addBotMessage("Our Sales & Business Development team is growing! Open roles include Enterprise Account Executive (New York), BDM — APAC (Singapore), SDR (London), Solutions Architect (Frankfurt), and VP Client Partnerships (New York).", ["Show me sales roles", "What's the OTE?", "How do I apply?"]);
+      addBotMessage("Our Sales & Business Development team is growing! Open roles include Enterprise Account Executive (New York), BDM — APAC (Singapore), SDR (London), Solutions Architect (Frankfurt), and VP Client Partnerships (New York).", ["Apply via chat", "Show me sales roles", "What's the OTE?"]);
     } else if (m.includes('hr') || m.includes('people') || m.includes('recruit') || m.includes('talent')) {
-      addBotMessage("We're hiring across our People team — Talent Acquisition Partner in London (urgent!), HRBP for APAC in Singapore, L&D Manager (Remote EMEA), and Head of DEI in London. Given your recruitment background, the TA Partner role might be a great fit!", ["Tell me about TA Partner role", "How do I apply?", "What are the benefits?"]);
+      addBotMessage("We're hiring across our People team — Talent Acquisition Partner in London (urgent!), HRBP for APAC in Singapore, L&D Manager (Remote EMEA), and Head of DEI in London.", ["Apply via chat", "Tell me about TA Partner role", "What are the benefits?"]);
     } else {
-      addBotMessage("We currently have <strong>45+ open positions</strong> across 12 departments in 48 countries. Roles span Engineering, Product, Sales, Consulting, Finance, HR, Marketing, Operations, Legal, Healthcare Tech, Energy, and Security. You can browse them all on our careers page, or tell me what area interests you and I'll narrow it down!", ["Engineering roles", "Consulting roles", "Remote roles", "Show all roles"]);
+      addBotMessage("We currently have <strong>45+ open positions</strong> across 12 departments in 48 countries. Roles span Engineering, Product, Sales, Consulting, Finance, HR, Marketing, Operations, Legal, Healthcare Tech, Energy, and Security. I can help you browse them or <strong>apply right here in the chat</strong>!", ["Apply via chat", "Engineering roles", "Consulting roles", "Remote roles"]);
     }
     return;
   }
 
   // Salary
   if (m.includes('salary') || m.includes('pay') || m.includes('compensation') || m.includes('ote') || m.includes('how much')) {
-    addBotMessage("Our compensation is benchmarked to the <strong>top quartile</strong> of the market. All roles include base salary, annual bonus, and equity participation. We also have transparent pay bands at every level. Salary ranges are displayed on each job listing. Can I help you find a specific role?", ["What jobs are available?", "Tell me about benefits", "How do I apply?"]);
+    addBotMessage("Our compensation is benchmarked to the <strong>top quartile</strong> of the market. All roles include base salary, annual bonus, and equity participation. We also have transparent pay bands at every level. Salary ranges are displayed on each job listing.", ["Apply via chat", "What jobs are available?", "Tell me about benefits"]);
     return;
   }
 
   // Benefits / perks
   if (m.includes('benefit') || m.includes('perk') || m.includes('wellbeing') || m.includes('wellness') || m.includes('health') && (m.includes('insurance') || m.includes('cover'))) {
-    addBotMessage("We offer an excellent benefits package:<br><br>&#127891; <strong>$5,000</strong> annual learning budget + sponsored degrees<br>&#127758; Global mobility programme (12% relocated last year)<br>&#9878; Premium medical, dental & vision cover<br>&#127968; Hybrid working — 3 days your choice, core hours only<br>&#128176; Top-quartile pay, annual bonus & equity<br>&#128104;&#8205;&#128105;&#8205;&#128103; 26 weeks paid parental leave (all parents)<br>&#127793; 5 paid volunteer days + charity matching up to $2,000<br>&#128640; 10% innovation time + annual hackathon", ["How do I apply?", "What jobs are available?", "Tell me about the culture"]);
+    addBotMessage("We offer an excellent benefits package:<br><br>&#127891; <strong>$5,000</strong> annual learning budget + sponsored degrees<br>&#127758; Global mobility programme (12% relocated last year)<br>&#9878; Premium medical, dental & vision cover<br>&#127968; Hybrid working — 3 days your choice, core hours only<br>&#128176; Top-quartile pay, annual bonus & equity<br>&#128104;&#8205;&#128105;&#8205;&#128103; 26 weeks paid parental leave (all parents)<br>&#127793; 5 paid volunteer days + charity matching up to $2,000<br>&#128640; 10% innovation time + annual hackathon", ["Apply via chat", "What jobs are available?", "Tell me about the culture"]);
     return;
   }
 
   // Application process
   if (m.includes('apply') || m.includes('application') || m.includes('submit') || m.includes('send my cv') || m.includes('send my resume')) {
-    addBotMessage("Applying is straightforward — here's how it works:<br><br><strong>1.</strong> Browse our open roles on the Careers page<br><strong>2.</strong> Click <strong>Apply Now</strong> on any role<br><strong>3.</strong> Fill in your details (name, email, phone, location)<br><strong>4.</strong> Upload your CV/resume (PDF or DOCX)<br><strong>5.</strong> Add an optional cover letter and motivation<br><strong>6.</strong> Review and submit<br><br>You'll receive a confirmation with a reference number straight away. Our talent team reviews every application within <strong>5 working days</strong>.", ["What's the interview process?", "What jobs are available?", "Any tips for applying?"]);
+    addBotMessage("You have two options:<br><br><strong>1. Apply via the form</strong> — browse roles below and click Apply Now<br><strong>2. Apply via chat</strong> — I'll walk you through it right here, step by step!<br><br>The chat application takes about 2 minutes and goes straight to our talent team.", ["Apply via chat", "What jobs are available?", "Any tips for applying?"]);
     return;
   }
 
   // Tips for applying
   if (m.includes('tip') || m.includes('advice') || m.includes('improve') || m.includes('stand out') || m.includes('best chance')) {
-    addBotMessage("Great question! Here are some tips to make your application stand out:<br><br>&#9989; <strong>Tailor your CV</strong> to the specific role — highlight relevant experience<br>&#9989; <strong>Add a cover letter</strong> — it's optional but we do read them<br>&#9989; <strong>Use the motivation box</strong> to explain why this role excites you<br>&#9989; <strong>Include your LinkedIn</strong> so we can see your full profile<br>&#9989; <strong>Be specific</strong> about your achievements, ideally with numbers<br><br>Our recruiters review every single application personally — no AI screening!", ["How do I apply?", "What's the interview process?", "What jobs are available?"]);
+    addBotMessage("Great question! Here are some tips:<br><br>&#9989; <strong>Tailor your CV</strong> to the specific role<br>&#9989; <strong>Add a cover letter</strong> — it's optional but we read them<br>&#9989; <strong>Use the motivation box</strong> to explain why this role excites you<br>&#9989; <strong>Include your LinkedIn</strong> so we can see your full profile<br>&#9989; <strong>Be specific</strong> about achievements with numbers<br><br>Our recruiters review every application personally — no AI screening!", ["Apply via chat", "What's the interview process?", "What jobs are available?"]);
     return;
   }
 
   // Interview process
   if (m.includes('interview') || m.includes('process') || m.includes('stage') || m.includes('assessment') || m.includes('what to expect')) {
-    addBotMessage("Our interview process is designed to be respectful of your time:<br><br><strong>1. Application Review</strong> — within 5 working days<br><strong>2. Initial Chat</strong> — 30-min call with a recruiter<br><strong>3. Technical / Case Interview</strong> — role-specific assessment<br><strong>4. Panel Interview</strong> — meet the team (usually 60 mins)<br><strong>5. Offer</strong> — typically within 48 hours of final interview<br><br>The whole process usually takes <strong>2–3 weeks</strong>. We provide feedback at every stage, even if it's a no.", ["Any tips for applying?", "Tell me about benefits", "What jobs are available?"]);
+    addBotMessage("Our interview process respects your time:<br><br><strong>1. Application Review</strong> — within 5 working days<br><strong>2. Initial Chat</strong> — 30-min call with a recruiter<br><strong>3. Technical / Case Interview</strong> — role-specific<br><strong>4. Panel Interview</strong> — meet the team (60 mins)<br><strong>5. Offer</strong> — typically within 48 hours<br><br>The whole process usually takes <strong>2–3 weeks</strong>. We provide feedback at every stage.", ["Apply via chat", "Any tips for applying?", "Tell me about benefits"]);
     return;
   }
 
   // Culture
   if (m.includes('culture') || m.includes('work life') || m.includes('values') || m.includes('what\'s it like') || m.includes('environment') || m.includes('diverse') || m.includes('inclusion') || m.includes('dei')) {
-    addBotMessage("Our culture is built on four values: <strong>Innovation</strong>, <strong>Integrity</strong>, <strong>Inclusion</strong>, and <strong>Impact</strong>.<br><br>We're proudly diverse — 52% of leadership roles are held by women, and our teams span 90+ nationalities. We have active employee resource groups, a dedicated Head of DEI, and we publish our diversity data annually.<br><br>Work-life balance matters here: hybrid working, core hours only, 4 wellness days on top of annual leave, and a culture where logging off on time is the norm, not the exception.", ["Tell me about benefits", "What jobs are available?", "How do I apply?"]);
+    addBotMessage("Our culture is built on four values: <strong>Innovation</strong>, <strong>Integrity</strong>, <strong>Inclusion</strong>, and <strong>Impact</strong>.<br><br>We're proudly diverse — 52% of leadership roles are held by women, and our teams span 90+ nationalities. We have active ERGs, a dedicated Head of DEI, and we publish our diversity data annually.<br><br>Work-life balance matters: hybrid working, core hours only, 4 wellness days, and logging off on time is the norm.", ["Apply via chat", "Tell me about benefits", "What jobs are available?"]);
     return;
   }
 
   // Company info
   if (m.includes('about') || m.includes('company') || m.includes('who are') || m.includes('tell me about acquire') || m.includes('what does acquire do') || m.includes('what do you do')) {
-    addBotMessage("Acquire Talent Partners is a global technology and infrastructure company with <strong>102,000 employees</strong> across <strong>48 countries</strong>. Founded in 1987, we're now a Fortune 50 company with $38.2B in revenue.<br><br>We operate across six divisions: Cloud & Digital Infrastructure, Advanced Manufacturing, Energy & Sustainability, Strategic Consulting, Healthcare Technology, and Defence & Security. Our clients include governments, banks, hospitals, and some of the world's largest enterprises.", ["What jobs are available?", "Tell me about the culture", "How do I apply?"]);
+    addBotMessage("Acquire Talent Partners is a global technology and infrastructure company with <strong>102,000 employees</strong> across <strong>48 countries</strong>. Founded in 1987, we're a Fortune 50 company with $38.2B revenue.<br><br>Six divisions: Cloud & Digital, Advanced Manufacturing, Energy & Sustainability, Strategic Consulting, Healthcare Technology, and Defence & Security.", ["What jobs are available?", "Apply via chat", "Tell me about the culture"]);
     return;
   }
 
   // Location
   if (m.includes('location') || m.includes('office') || m.includes('where') || m.includes('country') || m.includes('countries') || m.includes('london') || m.includes('new york') || m.includes('singapore')) {
-    addBotMessage("We have offices in <strong>48 countries</strong>. Our major hubs are:<br><br>&#127468;&#127463; London (Global HQ — 8,200 people)<br>&#127482;&#127480; New York (Americas HQ — 6,100)<br>&#127480;&#127468; Singapore (APAC HQ — 5,800)<br>&#127465;&#127466; Frankfurt (EMEA Hub — 4,200)<br>&#127471;&#127477; Tokyo (3,900)<br>&#127462;&#127466; Dubai (3,100)<br>&#127463;&#127479; São Paulo (2,800)<br>&#127462;&#127482; Sydney (2,400)<br><br>Many roles also offer remote or hybrid working.", ["What jobs are available?", "Remote roles", "How do I apply?"]);
+    addBotMessage("We have offices in <strong>48 countries</strong>. Major hubs:<br><br>&#127468;&#127463; London (Global HQ — 8,200)<br>&#127482;&#127480; New York (Americas HQ — 6,100)<br>&#127480;&#127468; Singapore (APAC HQ — 5,800)<br>&#127465;&#127466; Frankfurt (EMEA Hub — 4,200)<br>&#127471;&#127477; Tokyo (3,900)<br>&#127462;&#127466; Dubai (3,100)<br>&#127463;&#127479; São Paulo (2,800)<br>&#127462;&#127482; Sydney (2,400)<br><br>Many roles offer remote or hybrid working too.", ["Apply via chat", "What jobs are available?", "Remote roles"]);
     return;
   }
 
   // Visa / sponsorship
   if (m.includes('visa') || m.includes('sponsor') || m.includes('right to work') || m.includes('relocation') || m.includes('relocate')) {
-    addBotMessage("We sponsor visas for many of our roles, depending on the position and location. During the application process, you'll be asked about your right to work status — options include right to work, visa with sponsorship, or requiring sponsorship.<br><br>Our global mobility team also supports international transfers for existing employees, with full relocation packages.", ["What jobs are available?", "How do I apply?", "Tell me about benefits"]);
+    addBotMessage("We sponsor visas for many roles depending on position and location. You'll be asked about your right to work status during the application. Our global mobility team also supports international transfers with full relocation packages.", ["Apply via chat", "What jobs are available?", "Tell me about benefits"]);
     return;
   }
 
   // Graduate / early careers
   if (m.includes('graduat') || m.includes('early career') || m.includes('entry level') || m.includes('junior') || m.includes('school leaver')) {
-    addBotMessage("We run a competitive <strong>Graduate Programme</strong> with rotations across divisions, dedicated mentorship, and accelerated career progression. We also offer Summer Internships (10–12 weeks, paid) in Engineering, Consulting, and Data Science.<br><br>Early careers roles are posted from September each year, with applications closing in January. I'd recommend joining our Talent Network to be notified when they go live.", ["Show me internships", "How do I apply?", "Tell me about benefits"]);
+    addBotMessage("We run a competitive <strong>Graduate Programme</strong> with rotations, mentorship, and accelerated progression. Summer Internships (10–12 weeks, paid) are available in Engineering, Consulting, and Data Science.<br><br>Applications open September each year, closing in January.", ["Apply via chat", "Show me internships", "Tell me about benefits"]);
     return;
   }
 
   // Notice period
   if (m.includes('notice') || m.includes('start date') || m.includes('when can i start') || m.includes('how soon')) {
-    addBotMessage("We accommodate a range of notice periods — from immediately available to 3+ months. You'll be asked about your notice period during the application. We're generally flexible on start dates and happy to wait for the right candidate.", ["How do I apply?", "What's the interview process?", "What jobs are available?"]);
+    addBotMessage("We accommodate all notice periods — from immediately available to 3+ months. We're generally flexible on start dates and happy to wait for the right person.", ["Apply via chat", "What's the interview process?", "What jobs are available?"]);
     return;
   }
 
   // Show roles / navigate
   if (m.includes('show') || m.includes('browse') || m.includes('search') || m.includes('find') || m.includes('all roles') || m.includes('see the jobs')) {
-    addBotMessage("You can browse all open positions by scrolling down to the <strong>Open Positions</strong> section on this page, or click the button below. Use the search bar and filters to narrow down by department, location, or job type.<br><br><button class='quick-reply' onclick='showPage(\"careers\");document.getElementById(\"open-roles\").scrollIntoView({behavior:\"smooth\"});toggleChat();' style='margin-top:8px;padding:10px 20px;font-size:.85rem'>&#128269; Browse All Open Roles</button>", []);
+    addBotMessage("You can browse all open positions on the careers page below, or I can help you <strong>apply right here in the chat</strong>!<br><br><button class='quick-reply' onclick='showPage(\"careers\");document.getElementById(\"open-roles\").scrollIntoView({behavior:\"smooth\"});toggleChat();' style='margin-top:8px;padding:10px 20px;font-size:.85rem'>&#128269; Browse All Open Roles</button>", ["Apply via chat"]);
     return;
   }
 
   // Thank you / greeting
   if (m.includes('thank') || m.includes('cheers') || m.includes('great') || m.includes('perfect') || m.includes('helpful') || m.includes('awesome')) {
-    addBotMessage("You're welcome! I'm glad I could help. Is there anything else you'd like to know about careers at Acquire Talent Partners?", ["What jobs are available?", "How do I apply?", "Tell me about benefits"]);
+    addBotMessage("You're welcome! Is there anything else you'd like to know, or would you like to apply for a role?", ["Apply via chat", "What jobs are available?", "Tell me about benefits"]);
     return;
   }
 
   if (m.includes('hello') || m.includes('hi') || m.includes('hey') || m.includes('good morning') || m.includes('good afternoon')) {
-    addBotMessage("Hello! Welcome to Acquire Talent Partners. I'm here to help you explore career opportunities, learn about our benefits, or guide you through the application process. What would you like to know?", ["What jobs are available?", "Tell me about benefits", "How do I apply?", "Company culture"]);
+    addBotMessage("Hello! Welcome to Acquire Talent Partners. I can help you explore careers, learn about benefits, or <strong>apply for a role right here in the chat</strong>. What would you like to do?", ["Apply via chat", "What jobs are available?", "Tell me about benefits", "Company culture"]);
     return;
   }
 
   // Fallback
-  addBotMessage("That's a great question! I'm best at helping with careers-related queries like available jobs, the application process, benefits, interview process, and company culture. Could you try rephrasing, or pick one of these topics?", ["What jobs are available?", "How do I apply?", "Tell me about benefits", "What's the interview process?"]);
+  addBotMessage("I'm best at helping with careers queries — available jobs, the application process, benefits, interviews, and culture. Or I can help you <strong>apply right now via chat</strong>!", ["Apply via chat", "What jobs are available?", "Tell me about benefits", "What's the interview process?"]);
 }
 
 // Initial render
