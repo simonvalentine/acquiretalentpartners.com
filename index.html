@@ -629,6 +629,81 @@
   .chat-send:hover { background: var(--accent-light); }
   .chat-send:disabled { background: #e2e8f0; cursor: not-allowed; }
 
+  /* ── Rich Job Cards in Chat ── */
+  .chat-job-cards { display: flex; flex-direction: column; gap: 10px; margin: 8px 0 4px; }
+  .chat-job-card {
+    background: #fff; border: 1px solid #e2e8f0; border-radius: 14px;
+    overflow: hidden; transition: all .2s; cursor: default;
+    box-shadow: 0 1px 4px rgba(0,0,0,.04);
+  }
+  .chat-job-card:hover { border-color: var(--accent); box-shadow: 0 3px 12px rgba(37,99,235,.1); }
+  .chat-job-card-header { padding: 12px 14px 10px; position: relative; }
+  .chat-job-card-title {
+    font-size: .84rem; font-weight: 700; color: var(--primary); line-height: 1.3;
+    margin-bottom: 6px; padding-right: 30px;
+  }
+  .chat-job-card-urgent {
+    position: absolute; top: 10px; right: 12px;
+    background: #fef2f2; color: #dc2626; font-size: .62rem; font-weight: 700;
+    padding: 2px 7px; border-radius: 6px; text-transform: uppercase; letter-spacing: .3px;
+  }
+  .chat-job-card-meta {
+    display: flex; flex-wrap: wrap; gap: 4px 10px; font-size: .73rem; color: #64748b;
+  }
+  .chat-job-card-meta span { display: flex; align-items: center; gap: 3px; }
+  .chat-job-card-tags {
+    display: flex; flex-wrap: wrap; gap: 4px; padding: 0 14px 10px;
+  }
+  .chat-job-card-tag {
+    font-size: .66rem; background: #f1f5f9; color: #475569; padding: 2px 8px;
+    border-radius: 6px; font-weight: 500;
+  }
+  .chat-job-card-actions {
+    display: flex; border-top: 1px solid #f1f5f9;
+  }
+  .chat-job-card-btn {
+    flex: 1; padding: 9px 0; font-size: .76rem; font-weight: 600;
+    border: none; cursor: pointer; transition: all .15s; font-family: inherit;
+    display: flex; align-items: center; justify-content: center; gap: 4px;
+  }
+  .chat-job-card-btn.details-btn {
+    background: #f8fafc; color: var(--accent);
+    border-right: 1px solid #f1f5f9;
+  }
+  .chat-job-card-btn.details-btn:hover { background: #eff6ff; }
+  .chat-job-card-btn.apply-btn {
+    background: var(--accent); color: #fff;
+  }
+  .chat-job-card-btn.apply-btn:hover { background: #1d4ed8; }
+  .chat-job-card-detail {
+    display: none; padding: 0 14px 12px; font-size: .76rem; color: #475569; line-height: 1.6;
+    border-top: 1px solid #f1f5f9; background: #fafbfc;
+  }
+  .chat-job-card-detail.open { display: block; padding-top: 12px; }
+  .chat-job-card-detail h4 {
+    font-size: .72rem; font-weight: 700; color: var(--primary); margin: 8px 0 4px;
+    text-transform: uppercase; letter-spacing: .4px;
+  }
+  .chat-job-card-detail h4:first-child { margin-top: 0; }
+  .chat-job-card-detail p { margin: 0 0 6px; font-size: .74rem; }
+  .chat-job-card-detail ul { margin: 0 0 6px; padding-left: 16px; }
+  .chat-job-card-detail li { margin-bottom: 2px; font-size: .72rem; }
+
+  .chat-job-filter-bar {
+    display: flex; flex-wrap: wrap; gap: 5px; margin-bottom: 8px;
+  }
+  .chat-job-filter-btn {
+    padding: 5px 10px; border-radius: 14px; border: 1px solid #e2e8f0;
+    background: #fff; color: #475569; font-size: .7rem; font-weight: 500;
+    cursor: pointer; transition: all .15s; font-family: inherit;
+  }
+  .chat-job-filter-btn:hover, .chat-job-filter-btn.active {
+    background: var(--accent); color: #fff; border-color: var(--accent);
+  }
+  .chat-job-count {
+    font-size: .76rem; color: #64748b; margin-bottom: 6px; font-weight: 500;
+  }
+
   /* Powered by */
   .chat-powered {
     text-align: center; padding: 6px; font-size: .65rem; color: var(--text-xs);
@@ -665,6 +740,176 @@
     .footer-grid { grid-template-columns: 1fr; }
     .footer-bottom { flex-direction: column; text-align: center; }
     .search-bar { flex-direction: column; }
+  }
+
+  /* ── Voice Agent ── */
+  .voice-overlay {
+    position: fixed; inset: 0; z-index: 1100;
+    background: rgba(15,43,70,.85); backdrop-filter: blur(12px);
+    display: flex; align-items: center; justify-content: center;
+    opacity: 0; visibility: hidden; transition: all .35s ease;
+  }
+  .voice-overlay.open { opacity: 1; visibility: visible; }
+  .voice-panel {
+    width: 420px; max-width: calc(100vw - 32px);
+    background: #fff; border-radius: 24px;
+    box-shadow: 0 24px 64px rgba(0,0,0,.25);
+    overflow: hidden; transform: translateY(20px) scale(.95);
+    transition: transform .35s ease;
+    display: flex; flex-direction: column; max-height: 90vh;
+  }
+  .voice-overlay.open .voice-panel { transform: none; }
+  .voice-panel-header {
+    background: linear-gradient(135deg, var(--primary), var(--accent));
+    color: #fff; padding: 24px 24px 20px; position: relative;
+  }
+  .voice-panel-close {
+    position: absolute; top: 16px; right: 16px;
+    background: rgba(255,255,255,.15); border: none; color: #fff;
+    width: 32px; height: 32px; border-radius: 50%; cursor: pointer;
+    font-size: 1.1rem; display: flex; align-items: center; justify-content: center;
+    transition: background .15s;
+  }
+  .voice-panel-close:hover { background: rgba(255,255,255,.3); }
+  .voice-panel-job {
+    font-size: .78rem; opacity: .75; margin-bottom: 4px;
+    display: flex; align-items: center; gap: 6px;
+  }
+  .voice-panel-header h3 { font-size: 1.05rem; font-weight: 700; margin: 0 0 2px; }
+  .voice-panel-header p { font-size: .78rem; opacity: .7; margin: 0; }
+
+  .voice-body { padding: 24px; display: flex; flex-direction: column; align-items: center; gap: 16px; }
+
+  /* Mic button */
+  .voice-mic-ring {
+    width: 120px; height: 120px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    position: relative;
+  }
+  .voice-mic-ring::before {
+    content: ''; position: absolute; inset: 0; border-radius: 50%;
+    border: 3px solid #e2e8f0; transition: all .3s;
+  }
+  .voice-mic-ring.listening::before {
+    border-color: var(--accent);
+    animation: voicePulseRing 1.5s ease infinite;
+  }
+  .voice-mic-ring.speaking::before {
+    border-color: #10b981;
+    animation: voicePulseRing 1.2s ease infinite;
+  }
+  @keyframes voicePulseRing {
+    0%,100% { transform: scale(1); opacity: 1; }
+    50% { transform: scale(1.12); opacity: .6; }
+  }
+  .voice-mic-btn {
+    width: 80px; height: 80px; border-radius: 50%;
+    background: linear-gradient(135deg, var(--accent), #7c3aed);
+    color: #fff; border: none; cursor: pointer;
+    font-size: 2rem; display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 4px 20px rgba(37,99,235,.3);
+    transition: all .2s; position: relative; z-index: 2;
+  }
+  .voice-mic-btn:hover { transform: scale(1.06); box-shadow: 0 6px 28px rgba(37,99,235,.4); }
+  .voice-mic-btn.listening {
+    background: linear-gradient(135deg, #dc2626, #ef4444);
+    box-shadow: 0 4px 20px rgba(220,38,38,.3);
+    animation: voicePulseMic 1.5s ease infinite;
+  }
+  .voice-mic-btn.speaking {
+    background: linear-gradient(135deg, #059669, #10b981);
+    box-shadow: 0 4px 20px rgba(16,185,129,.3);
+  }
+  @keyframes voicePulseMic {
+    0%,100% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+  }
+
+  .voice-status {
+    font-size: .82rem; font-weight: 600; color: var(--text-light);
+    text-align: center; min-height: 20px; transition: color .2s;
+  }
+  .voice-status.listening { color: #dc2626; }
+  .voice-status.speaking { color: #059669; }
+
+  /* Waveform bars */
+  .voice-wave {
+    display: flex; align-items: center; justify-content: center; gap: 3px;
+    height: 28px; opacity: 0; transition: opacity .3s;
+  }
+  .voice-wave.active { opacity: 1; }
+  .voice-wave span {
+    width: 3px; border-radius: 3px; background: var(--accent);
+    animation: voiceWave 1s ease-in-out infinite;
+  }
+  .voice-wave span:nth-child(1) { height: 8px; animation-delay: 0s; }
+  .voice-wave span:nth-child(2) { height: 16px; animation-delay: .1s; }
+  .voice-wave span:nth-child(3) { height: 24px; animation-delay: .2s; }
+  .voice-wave span:nth-child(4) { height: 16px; animation-delay: .3s; }
+  .voice-wave span:nth-child(5) { height: 8px; animation-delay: .4s; }
+  .voice-wave span:nth-child(6) { height: 20px; animation-delay: .15s; }
+  .voice-wave span:nth-child(7) { height: 12px; animation-delay: .25s; }
+  @keyframes voiceWave {
+    0%,100% { transform: scaleY(1); }
+    50% { transform: scaleY(2.2); }
+  }
+  .voice-wave.speaking span { background: #10b981; }
+
+  /* Transcript area */
+  .voice-transcript {
+    width: 100%; max-height: 200px; overflow-y: auto;
+    display: flex; flex-direction: column; gap: 10px;
+    padding: 0 4px;
+  }
+  .voice-transcript::-webkit-scrollbar { width: 3px; }
+  .voice-transcript::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 3px; }
+  .vt-bubble {
+    padding: 10px 14px; border-radius: 14px; font-size: .82rem; line-height: 1.55;
+    animation: msgIn .3s ease;
+  }
+  .vt-bubble.user {
+    background: var(--accent); color: #fff; align-self: flex-end;
+    max-width: 85%; border-bottom-right-radius: 4px;
+  }
+  .vt-bubble.bot {
+    background: var(--bg-alt); color: var(--text); align-self: flex-start;
+    max-width: 90%; border-bottom-left-radius: 4px;
+  }
+  .vt-label {
+    font-size: .66rem; color: var(--text-light); margin-bottom: 2px;
+    font-weight: 600; text-transform: uppercase; letter-spacing: .5px;
+  }
+  .vt-label.user { text-align: right; }
+
+  .voice-hint {
+    font-size: .72rem; color: var(--text-light); text-align: center;
+    line-height: 1.5; padding: 0 8px;
+  }
+  .voice-hint strong { color: var(--text); }
+
+  /* Voice button on job cards */
+  .job-voice-btn {
+    display: inline-flex; align-items: center; gap: 5px;
+    padding: 7px 14px; border-radius: 20px;
+    background: linear-gradient(135deg, #7c3aed, #a855f7);
+    color: #fff; border: none; cursor: pointer;
+    font-size: .76rem; font-weight: 600; font-family: inherit;
+    transition: all .15s;
+    box-shadow: 0 2px 8px rgba(124,58,237,.2);
+  }
+  .job-voice-btn:hover { transform: translateY(-1px); box-shadow: 0 4px 16px rgba(124,58,237,.3); }
+
+  /* Voice btn in chat cards */
+  .chat-job-card-btn.voice-btn {
+    background: linear-gradient(135deg, #7c3aed, #a855f7); color: #fff;
+    flex: 0 0 auto; padding: 9px 14px;
+  }
+  .chat-job-card-btn.voice-btn:hover { background: #6d28d9; }
+
+  @media (max-width: 768px) {
+    .voice-panel { width: calc(100vw - 24px); border-radius: 20px; }
+    .voice-mic-ring { width: 100px; height: 100px; }
+    .voice-mic-btn { width: 68px; height: 68px; font-size: 1.6rem; }
   }
 </style>
 </head>
@@ -1587,7 +1832,10 @@ function renderJobs(jobs) {
           </div>
           <div class="job-tags">${tagsHtml}</div>
         </div>
-        <button class="job-apply" onclick="event.stopPropagation(); currentJob = allJobs[${jobIndex}]; openApplyModal()">Apply Now</button>
+        <div style="display:flex;gap:8px;align-items:center;flex-shrink:0">
+          <button class="job-voice-btn" onclick="event.stopPropagation(); openVoiceAgent(${jobIndex})" title="Ask about this role">&#127908; Ask</button>
+          <button class="job-apply" onclick="event.stopPropagation(); currentJob = allJobs[${jobIndex}]; openApplyModal()">Apply Now</button>
+        </div>
       </div>`;
   });
   document.getElementById('jobCount').textContent = jobs.length;
@@ -2134,14 +2382,119 @@ function handleApplyStep(text) {
 
 function showJobSelection(jobs) {
   chatApplyData._jobList = jobs;
-  let msg = "Here are the matching roles. Type the <strong>number</strong> to select one:<br><br>";
-  jobs.forEach((j, i) => {
-    msg += `<strong>${i+1}.</strong> ${j.title}<br>`;
-    msg += `<span style="font-size:.78rem;color:#64748b">&nbsp;&nbsp;&nbsp;&nbsp;&#128205; ${j.locLabel} &nbsp;|&nbsp; &#128176; ${j.salary}${j.remote ? ' &nbsp;|&nbsp; &#127758; Remote' : ''}</span><br>`;
-  });
-  msg += `<br>Type a number (1–${jobs.length}) to select a role.`;
+  const count = jobs.length;
+  let msg = `I found <strong>${count} matching role${count !== 1 ? 's' : ''}</strong>. Here they are — you can view the full details or apply directly:`;
+  msg += buildJobCardsHTML(jobs, true);
+  msg += `<div style="font-size:.76rem;color:#64748b;margin-top:8px">Type a <strong>number</strong> (1–${count}) or tap <strong>Apply Now</strong> on any card.</div>`;
   addBotMessage(msg, []);
   chatApplyStep = -0.5;
+}
+
+function buildJobCardsHTML(jobs, showApplyInChat) {
+  let html = '<div class="chat-job-cards">';
+  jobs.forEach((j, i) => {
+    const idx = allJobs.indexOf(j);
+    const desc = jobDescriptions[j.title] || {};
+    const urgent = j.urgent ? `<span class="chat-job-card-urgent">Urgent</span>` : '';
+    html += `<div class="chat-job-card" data-job-idx="${idx}">`;
+    html += `<div class="chat-job-card-header">`;
+    html += `<div class="chat-job-card-title">${showApplyInChat ? '<span style="color:var(--accent);font-weight:800;margin-right:5px">' + (i+1) + '.</span>' : ''}${j.title}</div>${urgent}`;
+    html += `<div class="chat-job-card-meta">`;
+    html += `<span>&#128205; ${j.locLabel}</span>`;
+    html += `<span>&#128176; ${j.salary}</span>`;
+    html += `<span>&#128338; ${j.type.charAt(0).toUpperCase() + j.type.slice(1)}</span>`;
+    if (j.remote) html += `<span>&#127758; Remote</span>`;
+    html += `</div></div>`;
+    html += `<div class="chat-job-card-tags">`;
+    j.tags.forEach(t => { html += `<span class="chat-job-card-tag">${t}</span>`; });
+    html += `</div>`;
+    // Detail panel (hidden by default)
+    html += `<div class="chat-job-card-detail" id="cjd-${idx}">`;
+    if (desc.about) html += `<h4>About the Team</h4><p>${desc.about}</p>`;
+    if (desc.responsibilities) {
+      html += `<h4>Responsibilities</h4><ul>`;
+      desc.responsibilities.forEach(r => { html += `<li>${r}</li>`; });
+      html += `</ul>`;
+    }
+    if (desc.requirements) {
+      html += `<h4>Requirements</h4><ul>`;
+      desc.requirements.forEach(r => { html += `<li>${r}</li>`; });
+      html += `</ul>`;
+    }
+    if (desc.niceToHave) {
+      html += `<h4>Nice to Have</h4><ul>`;
+      desc.niceToHave.forEach(r => { html += `<li>${r}</li>`; });
+      html += `</ul>`;
+    }
+    html += `</div>`;
+    // Action buttons
+    html += `<div class="chat-job-card-actions">`;
+    html += `<button class="chat-job-card-btn details-btn" onclick="toggleJobCardDetail(${idx})">&#128196; Details</button>`;
+    html += `<button class="chat-job-card-btn voice-btn" onclick="openVoiceAgent(${idx})">&#127908; Ask</button>`;
+    html += `<button class="chat-job-card-btn apply-btn" onclick="applyToJobFromCard(${idx})">&#128640; Apply</button>`;
+    html += `</div></div>`;
+  });
+  html += '</div>';
+  return html;
+}
+
+function toggleJobCardDetail(idx) {
+  const detail = document.getElementById('cjd-' + idx);
+  if (detail) {
+    detail.classList.toggle('open');
+    // Update button text
+    const card = detail.closest('.chat-job-card');
+    const btn = card.querySelector('.details-btn');
+    if (detail.classList.contains('open')) {
+      btn.innerHTML = '&#128196; Hide Details';
+    } else {
+      btn.innerHTML = '&#128196; View Details';
+    }
+    // Scroll to keep visible
+    setTimeout(() => {
+      const msgs = document.getElementById('chatMessages');
+      msgs.scrollTop = msgs.scrollHeight;
+    }, 100);
+  }
+}
+
+function applyToJobFromCard(idx) {
+  const job = allJobs[idx];
+  if (!job) return;
+  // Remove old quick replies
+  document.querySelectorAll('.quick-replies').forEach(q => q.remove());
+  // Set up apply mode
+  chatApplyMode = true;
+  chatApplyStep = 0;
+  chatApplyData = {};
+  chatApplyJob = job;
+  addUserMessage("Apply for " + job.title);
+  setTimeout(() => {
+    const tags = job.tags.join(', ');
+    addBotMessage(
+      `Excellent choice! Let's get you applied for:<br><br>` +
+      `<div style="background:#eff6ff;border-radius:10px;padding:12px;border:1px solid #bfdbfe;margin:4px 0 8px">` +
+      `<strong style="color:var(--primary)">${job.title}</strong><br>` +
+      `<span style="font-size:.78rem;color:#64748b">&#128205; ${job.locLabel} &nbsp;|&nbsp; &#128176; ${job.salary} &nbsp;|&nbsp; &#128338; ${job.type}</span>` +
+      `${job.remote ? '<br><span style="font-size:.78rem;color:#64748b">&#127758; Remote</span>' : ''}` +
+      `</div>` +
+      `I just need a few details — this takes about <strong>2 minutes</strong>.`,
+      [], function() {
+        setTimeout(() => {
+          const step = chatApplySteps[0];
+          addBotMessage(step.prompt, step.quick || []);
+        }, 800);
+      }
+    );
+  }, 400);
+}
+
+function showJobCardsInChat(dept, introText) {
+  const jobs = dept === 'all' ? allJobs : allJobs.filter(j => j.dept === dept);
+  let msg = introText || `Here are our <strong>${dept === 'all' ? '' : dept.charAt(0).toUpperCase() + dept.slice(1) + ' '}open roles</strong>:`;
+  msg += buildJobCardsHTML(jobs, false);
+  msg += `<div style="font-size:.76rem;color:#64748b;margin-top:8px">Tap <strong>View Details</strong> for the full job description, or <strong>Apply Now</strong> to start your application in this chat.</div>`;
+  addBotMessage(msg, ["Show other departments", "Tell me about benefits", "What's the interview process?"]);
 }
 
 function submitChatApplication() {
@@ -2242,7 +2595,7 @@ function processMessage(msg) {
 
   // Application process
   if (m.includes('apply') || m.includes('application') || m.includes('submit') || m.includes('send my cv') || m.includes('send my resume')) {
-    addBotMessage("You have two options:<br><br><strong>1. Apply via the form</strong> — browse roles below and click Apply Now<br><strong>2. Apply via chat</strong> — I'll walk you through it right here, step by step!<br><br>The chat application takes about 2 minutes and goes straight to our talent team.", ["Apply via chat", "What jobs are available?", "Any tips for applying?"]);
+    addBotMessage("You have three ways to engage:<br><br><strong>1. Apply via the form</strong> — browse roles below and click Apply Now<br><strong>2. Apply via chat</strong> — I'll walk you through it right here<br><strong>3. &#127908; Voice assistant</strong> — tap the <strong>Ask</strong> button on any job to speak with our AI about the role<br><br>The chat application takes about 2 minutes and goes straight to our talent team.", ["Apply via chat", "What jobs are available?", "Any tips for applying?"]);
     return;
   }
 
@@ -2294,6 +2647,18 @@ function processMessage(msg) {
     return;
   }
 
+  // Voice agent trigger
+  if (m.includes('voice') || m.includes('speak') || m.includes('talk') || m.includes('call') || m.includes('phone') || m.includes('verbal')) {
+    addBotMessage("You can speak directly with our AI voice assistant! Tap the <strong>&#127908; Ask</strong> button on any job card to start a voice conversation about that role. Or I can open the general voice assistant for you now.", ["Open voice assistant", "What jobs are available?", "Apply via chat"]);
+    return;
+  }
+
+  // Open voice assistant from chat
+  if (m.includes('open voice') || m === 'voice assistant') {
+    openVoiceAgent(null);
+    return;
+  }
+
   // Show roles / navigate
   if (m.includes('show') || m.includes('browse') || m.includes('search') || m.includes('find') || m.includes('all roles') || m.includes('see the jobs')) {
     addBotMessage("You can browse all open positions on the careers page below, or I can help you <strong>apply right here in the chat</strong>!<br><br><button class='quick-reply' onclick='showPage(\"careers\");document.getElementById(\"open-roles\").scrollIntoView({behavior:\"smooth\"});toggleChat();' style='margin-top:8px;padding:10px 20px;font-size:.85rem'>&#128269; Browse All Open Roles</button>", ["Apply via chat"]);
@@ -2317,6 +2682,405 @@ function processMessage(msg) {
 
 // Initial render
 renderJobs(allJobs);
+</script>
+
+<!-- ═══════════ VOICE AGENT OVERLAY ═══════════ -->
+<div class="voice-overlay" id="voiceOverlay" onclick="if(event.target===this)closeVoiceAgent()">
+  <div class="voice-panel">
+    <div class="voice-panel-header">
+      <button class="voice-panel-close" onclick="closeVoiceAgent()">&times;</button>
+      <div class="voice-panel-job" id="voiceJobLabel">&#128188; Asking about a role</div>
+      <h3 id="voiceJobTitle">Voice Assistant</h3>
+      <p>Ask anything about this role or the company</p>
+    </div>
+    <div class="voice-body">
+      <div class="voice-wave" id="voiceWave">
+        <span></span><span></span><span></span><span></span><span></span><span></span><span></span>
+      </div>
+      <div class="voice-mic-ring" id="voiceMicRing">
+        <button class="voice-mic-btn" id="voiceMicBtn" onclick="toggleVoiceListening()">&#127908;</button>
+      </div>
+      <div class="voice-status" id="voiceStatus">Tap the mic to start</div>
+      <div class="voice-transcript" id="voiceTranscript"></div>
+      <div class="voice-hint" id="voiceHint">
+        Try asking: <strong>"What does this role involve?"</strong>, <strong>"What's the salary?"</strong>, or <strong>"Tell me about benefits"</strong>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ═══════════ VOICE AGENT ENGINE ═══════════
+let voiceJob = null;
+let voiceListening = false;
+let voiceSpeaking = false;
+let voiceRecognition = null;
+let voiceSynth = window.speechSynthesis;
+let voicePreferredVoice = null;
+
+// Pick a natural-sounding voice
+function pickVoice() {
+  const voices = voiceSynth.getVoices();
+  // Prefer UK or US English female voices
+  const preferred = ['Google UK English Female', 'Microsoft Libby', 'Samantha', 'Karen',
+    'Google US English', 'Microsoft Zira', 'Moira', 'Fiona', 'Tessa'];
+  for (const name of preferred) {
+    const v = voices.find(v => v.name.includes(name));
+    if (v) return v;
+  }
+  // Fallback: any English voice
+  return voices.find(v => v.lang.startsWith('en')) || voices[0] || null;
+}
+
+// Initialise voices (they load async)
+if (voiceSynth) {
+  voiceSynth.onvoiceschanged = () => { voicePreferredVoice = pickVoice(); };
+  setTimeout(() => { voicePreferredVoice = pickVoice(); }, 500);
+}
+
+function openVoiceAgent(jobIdx) {
+  voiceJob = (jobIdx !== undefined && jobIdx !== null) ? allJobs[jobIdx] : null;
+  const overlay = document.getElementById('voiceOverlay');
+  const titleEl = document.getElementById('voiceJobTitle');
+  const labelEl = document.getElementById('voiceJobLabel');
+  const transcript = document.getElementById('voiceTranscript');
+  const hint = document.getElementById('voiceHint');
+
+  transcript.innerHTML = '';
+  document.getElementById('voiceStatus').textContent = 'Tap the mic to start';
+  document.getElementById('voiceStatus').className = 'voice-status';
+  document.getElementById('voiceMicBtn').className = 'voice-mic-btn';
+  document.getElementById('voiceMicRing').className = 'voice-mic-ring';
+  document.getElementById('voiceWave').className = 'voice-wave';
+
+  if (voiceJob) {
+    titleEl.textContent = voiceJob.title;
+    labelEl.innerHTML = `&#128188; ${voiceJob.dept.charAt(0).toUpperCase() + voiceJob.dept.slice(1)} &bull; ${voiceJob.locLabel}`;
+    hint.innerHTML = `Try: <strong>"What does this role involve?"</strong>, <strong>"What's the salary?"</strong>, <strong>"What skills do I need?"</strong>`;
+  } else {
+    titleEl.textContent = 'Acquire Talent Partners';
+    labelEl.innerHTML = '&#127758; Ask about any role or the company';
+    hint.innerHTML = `Try: <strong>"What jobs are available?"</strong>, <strong>"Tell me about benefits"</strong>, <strong>"What's the culture like?"</strong>`;
+  }
+
+  overlay.classList.add('open');
+  document.body.style.overflow = 'hidden';
+
+  // Auto-greet
+  setTimeout(() => {
+    const greeting = voiceJob
+      ? `Hello! I'm here to answer any questions about the ${voiceJob.title} role. What would you like to know?`
+      : `Hello! I'm the Acquire Talent Partners voice assistant. Ask me anything about our open roles, benefits, culture, or the application process.`;
+    addVoiceResponse(greeting);
+    speakText(greeting);
+  }, 600);
+}
+
+function closeVoiceAgent() {
+  stopVoiceListening();
+  voiceSynth.cancel();
+  voiceSpeaking = false;
+  document.getElementById('voiceOverlay').classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+function toggleVoiceListening() {
+  if (voiceSpeaking) {
+    voiceSynth.cancel();
+    voiceSpeaking = false;
+    updateVoiceUI('idle');
+    return;
+  }
+  if (voiceListening) {
+    stopVoiceListening();
+  } else {
+    startVoiceListening();
+  }
+}
+
+function startVoiceListening() {
+  const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!SpeechRec) {
+    addVoiceResponse("Sorry, your browser doesn't support voice recognition. Please try Chrome or Edge.");
+    return;
+  }
+  voiceSynth.cancel();
+  voiceRecognition = new SpeechRec();
+  voiceRecognition.lang = 'en-GB';
+  voiceRecognition.interimResults = true;
+  voiceRecognition.continuous = false;
+  voiceRecognition.maxAlternatives = 1;
+
+  voiceRecognition.onstart = () => {
+    voiceListening = true;
+    updateVoiceUI('listening');
+  };
+
+  let finalTranscript = '';
+  voiceRecognition.onresult = (e) => {
+    let interim = '';
+    finalTranscript = '';
+    for (let i = e.resultIndex; i < e.results.length; i++) {
+      if (e.results[i].isFinal) {
+        finalTranscript += e.results[i][0].transcript;
+      } else {
+        interim += e.results[i][0].transcript;
+      }
+    }
+    document.getElementById('voiceStatus').textContent = interim || finalTranscript || 'Listening...';
+  };
+
+  voiceRecognition.onend = () => {
+    voiceListening = false;
+    if (finalTranscript.trim()) {
+      addVoiceUserBubble(finalTranscript.trim());
+      processVoiceQuery(finalTranscript.trim());
+    } else {
+      updateVoiceUI('idle');
+    }
+  };
+
+  voiceRecognition.onerror = (e) => {
+    voiceListening = false;
+    if (e.error === 'no-speech') {
+      updateVoiceUI('idle');
+      document.getElementById('voiceStatus').textContent = "I didn't hear anything — try again";
+    } else if (e.error === 'not-allowed') {
+      updateVoiceUI('idle');
+      document.getElementById('voiceStatus').textContent = 'Microphone access denied. Please allow mic access.';
+    } else {
+      updateVoiceUI('idle');
+    }
+  };
+
+  voiceRecognition.start();
+}
+
+function stopVoiceListening() {
+  if (voiceRecognition) {
+    try { voiceRecognition.stop(); } catch(e) {}
+    voiceListening = false;
+  }
+  updateVoiceUI('idle');
+}
+
+function updateVoiceUI(state) {
+  const btn = document.getElementById('voiceMicBtn');
+  const ring = document.getElementById('voiceMicRing');
+  const status = document.getElementById('voiceStatus');
+  const wave = document.getElementById('voiceWave');
+
+  btn.className = 'voice-mic-btn' + (state === 'listening' ? ' listening' : state === 'speaking' ? ' speaking' : '');
+  ring.className = 'voice-mic-ring' + (state === 'listening' ? ' listening' : state === 'speaking' ? ' speaking' : '');
+  wave.className = 'voice-wave' + (state !== 'idle' ? ' active' : '') + (state === 'speaking' ? ' speaking' : '');
+  status.className = 'voice-status' + (state === 'listening' ? ' listening' : state === 'speaking' ? ' speaking' : '');
+
+  if (state === 'listening') {
+    status.textContent = 'Listening...';
+    btn.innerHTML = '&#9899;'; // stop icon
+  } else if (state === 'speaking') {
+    status.textContent = 'Speaking...';
+    btn.innerHTML = '&#9723;'; // pause
+  } else {
+    status.textContent = 'Tap the mic to ask a question';
+    btn.innerHTML = '&#127908;';
+  }
+}
+
+function addVoiceUserBubble(text) {
+  const t = document.getElementById('voiceTranscript');
+  t.innerHTML += `<div class="vt-label user">You</div><div class="vt-bubble user">${text}</div>`;
+  t.scrollTop = t.scrollHeight;
+  document.getElementById('voiceHint').style.display = 'none';
+}
+
+function addVoiceResponse(text) {
+  const t = document.getElementById('voiceTranscript');
+  t.innerHTML += `<div class="vt-label">Ava</div><div class="vt-bubble bot">${text}</div>`;
+  t.scrollTop = t.scrollHeight;
+}
+
+function speakText(text) {
+  if (!voiceSynth) return;
+  voiceSynth.cancel();
+  // Strip HTML tags for speech
+  const clean = text.replace(/<[^>]+>/g, '').replace(/&[a-z]+;/g, ' ').replace(/\s+/g, ' ').trim();
+  const utt = new SpeechSynthesisUtterance(clean);
+  utt.voice = voicePreferredVoice || pickVoice();
+  utt.rate = 1.0;
+  utt.pitch = 1.05;
+  utt.volume = 1;
+
+  utt.onstart = () => {
+    voiceSpeaking = true;
+    updateVoiceUI('speaking');
+  };
+  utt.onend = () => {
+    voiceSpeaking = false;
+    updateVoiceUI('idle');
+  };
+  utt.onerror = () => {
+    voiceSpeaking = false;
+    updateVoiceUI('idle');
+  };
+
+  // Chrome bug: long utterances cut off. Split into chunks
+  if (clean.length > 200) {
+    const sentences = clean.match(/[^.!?]+[.!?]+/g) || [clean];
+    let i = 0;
+    function speakNext() {
+      if (i >= sentences.length) {
+        voiceSpeaking = false;
+        updateVoiceUI('idle');
+        return;
+      }
+      const chunk = new SpeechSynthesisUtterance(sentences[i].trim());
+      chunk.voice = voicePreferredVoice || pickVoice();
+      chunk.rate = 1.0;
+      chunk.pitch = 1.05;
+      chunk.onstart = () => { voiceSpeaking = true; updateVoiceUI('speaking'); };
+      chunk.onend = () => { i++; speakNext(); };
+      chunk.onerror = () => { voiceSpeaking = false; updateVoiceUI('idle'); };
+      voiceSynth.speak(chunk);
+    }
+    speakNext();
+  } else {
+    voiceSynth.speak(utt);
+  }
+}
+
+// ═══════════ VOICE KNOWLEDGE BASE ═══════════
+function processVoiceQuery(query) {
+  const m = query.toLowerCase();
+  const job = voiceJob;
+  let answer = '';
+
+  // Job-specific questions (when a job is selected)
+  if (job) {
+    const desc = jobDescriptions[job.title] || {};
+
+    // Role overview / what does it involve
+    if (m.includes('role') || m.includes('involve') || m.includes('about') || m.includes('what is') || m.includes('describe') || m.includes('overview') || m.includes('do in this') || m.includes('day to day') || m.includes('what does')) {
+      answer = desc.about
+        ? `${desc.about} As a ${job.title}, you'll be working from our ${job.locLabel} office${job.remote ? ', though this role is also available remotely' : ''}. It's a ${job.type} position.`
+        : `The ${job.title} is a ${job.type} role based in ${job.locLabel}${job.remote ? ', with remote working available' : ''}. The position sits within our ${job.dept} team and offers a salary of ${job.salary}.`;
+    }
+
+    // Salary
+    else if (m.includes('salary') || m.includes('pay') || m.includes('compensation') || m.includes('how much') || m.includes('earn') || m.includes('money') || m.includes('package')) {
+      answer = `The salary range for the ${job.title} role is ${job.salary}. On top of base salary, you'll receive an annual performance bonus, equity participation, and our full benefits package including premium healthcare and a five thousand pound learning budget.`;
+    }
+
+    // Location
+    else if (m.includes('location') || m.includes('where') || m.includes('office') || m.includes('based') || m.includes('remote') || m.includes('hybrid') || m.includes('work from home')) {
+      answer = job.remote
+        ? `This role is remote-friendly, listed as ${job.locLabel}. We offer hybrid working with three days your choice and core hours only. You'll have access to our offices worldwide for collaboration.`
+        : `This role is based in ${job.locLabel}. We operate a hybrid model — three days your choice with core hours only. While this particular role is office-based, we offer flexible arrangements to support work-life balance.`;
+    }
+
+    // Skills / requirements
+    else if (m.includes('skill') || m.includes('require') || m.includes('need') || m.includes('qualif') || m.includes('experience') || m.includes('background') || m.includes('looking for')) {
+      if (desc.requirements) {
+        answer = `For the ${job.title} role, we're looking for someone with: ${desc.requirements.join('. ')}. The key technical skills for this role include ${job.tags.join(', ')}.`;
+      } else {
+        answer = `The key skills and technologies for this role include ${job.tags.join(', ')}. We value both technical ability and soft skills like communication and collaboration.`;
+      }
+    }
+
+    // Responsibilities
+    else if (m.includes('responsib') || m.includes('duties') || m.includes('tasks') || m.includes('what will i do') || m.includes('expect')) {
+      if (desc.responsibilities) {
+        answer = `In this role, your main responsibilities will include: ${desc.responsibilities.join('. ')}.`;
+      } else {
+        answer = `As a ${job.title}, you'll be contributing to our ${job.dept} function, working on projects that align with your expertise in ${job.tags.join(', ')}.`;
+      }
+    }
+
+    // Team / department
+    else if (m.includes('team') || m.includes('department') || m.includes('division') || m.includes('who will i work with') || m.includes('report')) {
+      answer = desc.about || `You'll be part of our ${job.dept.charAt(0).toUpperCase() + job.dept.slice(1)} team. We have a collaborative culture where you'll work with talented colleagues across multiple functions and geographies.`;
+    }
+
+    // Urgent
+    else if (m.includes('urgent') || m.includes('soon') || m.includes('quickly') || m.includes('fast track')) {
+      answer = job.urgent
+        ? `Yes, this is an urgent hire — we're actively looking to fill this role as soon as possible. If you apply now, you could expect a faster interview timeline, typically within one to two weeks.`
+        : `This role is open for applications now. Our typical interview process takes two to three weeks from application to offer.`;
+    }
+
+    // How to apply
+    else if (m.includes('apply') || m.includes('application') || m.includes('submit') || m.includes('cv') || m.includes('resume')) {
+      answer = `You can apply for the ${job.title} role in three ways: use the Apply Now button on the careers page, apply through our chat assistant Ava, or submit via the application form. The process takes about two minutes and your application goes straight to our talent team.`;
+    }
+
+    // Contract type
+    else if (m.includes('contract') || m.includes('full time') || m.includes('part time') || m.includes('permanent') || m.includes('temp') || m.includes('intern')) {
+      answer = `This is a ${job.type} position. ${job.type === 'full-time' ? 'You\'ll receive our full benefits package including annual bonus and equity.' : job.type === 'contract' ? 'Contract roles include competitive day rates and access to select benefits.' : 'Our internships are fully paid with dedicated mentorship and real project exposure.'}`;
+    }
+  }
+
+  // General company questions (no job context or fallthrough)
+  if (!answer) {
+    if (m.includes('benefit') || m.includes('perk') || m.includes('wellness') || m.includes('health') || m.includes('insurance')) {
+      answer = "We offer an excellent benefits package. This includes premium medical, dental, and vision cover, a five thousand pound annual learning budget, twenty-six weeks paid parental leave for all parents, hybrid working with three days your choice, top-quartile pay with annual bonus and equity, global mobility programmes, five paid volunteer days, and ten percent innovation time.";
+    }
+    else if (m.includes('culture') || m.includes('values') || m.includes('work life') || m.includes('environment') || m.includes('diverse') || m.includes('inclusion')) {
+      answer = "Our culture is built on four values: Innovation, Integrity, Inclusion, and Impact. We're proudly diverse — fifty-two percent of leadership roles are held by women, and our teams span over ninety nationalities. We have active employee resource groups, a dedicated Head of D.E.I., and we publish our diversity data annually. Work-life balance matters — hybrid working, core hours only, four wellness days, and logging off on time is the norm.";
+    }
+    else if (m.includes('interview') || m.includes('process') || m.includes('stage') || m.includes('assessment')) {
+      answer = "Our interview process respects your time. It starts with an application review within five working days, followed by a thirty-minute recruiter call, then a technical or case interview specific to the role, a sixty-minute panel interview to meet the team, and finally an offer — typically within forty-eight hours of the final interview. The whole process usually takes two to three weeks, and we provide feedback at every stage.";
+    }
+    else if (m.includes('salary') || m.includes('pay') || m.includes('compensation') || m.includes('how much')) {
+      answer = "Our compensation is benchmarked to the top quartile of the market in each location. All roles include base salary, annual performance bonus, and equity participation. We also have transparent pay bands at every level, so you'll always know what's available.";
+    }
+    else if ((m.includes('job') || m.includes('role') || m.includes('position') || m.includes('hiring') || m.includes('opening') || m.includes('available'))) {
+      answer = `We currently have ${allJobs.length} open positions across twelve departments in forty-eight countries. Roles span Engineering, Product, Sales, Consulting, Finance, H.R., Marketing, Operations, Legal, Healthcare Tech, Energy, and Security. You can browse all roles on our careers page or ask me about a specific department.`;
+    }
+    else if (m.includes('about') || m.includes('company') || m.includes('who are') || m.includes('tell me about acquire') || m.includes('what do')) {
+      answer = "Acquire Talent Partners is a global technology and infrastructure company with a hundred and two thousand employees across forty-eight countries. Founded in nineteen eighty-seven, we're a Fortune fifty company with thirty-eight point two billion dollars in revenue. We operate across six divisions: Cloud and Digital, Advanced Manufacturing, Energy and Sustainability, Strategic Consulting, Healthcare Technology, and Defence and Security.";
+    }
+    else if (m.includes('location') || m.includes('office') || m.includes('where') || m.includes('country') || m.includes('countries')) {
+      answer = "We have offices in forty-eight countries. Major hubs include London as our Global H.Q. with eight thousand two hundred people, New York as Americas H.Q. with six thousand one hundred, Singapore as our Asia Pacific H.Q. with five thousand eight hundred, plus Frankfurt, Tokyo, Dubai, São Paulo, and Sydney. Many roles offer remote or hybrid working too.";
+    }
+    else if (m.includes('visa') || m.includes('sponsor') || m.includes('relocation') || m.includes('relocate') || m.includes('right to work')) {
+      answer = "We sponsor visas for many roles depending on position and location. Our global mobility team supports international transfers with full relocation packages. Twelve percent of our workforce relocated internationally last year.";
+    }
+    else if (m.includes('graduat') || m.includes('intern') || m.includes('early career') || m.includes('entry level') || m.includes('junior')) {
+      answer = "We run a competitive Graduate Programme with rotations, mentorship, and accelerated progression. We also offer paid Summer Internships of ten to twelve weeks in Engineering, Consulting, and Data Science. Applications typically open in September and close in January.";
+    }
+    else if (m.includes('notice') || m.includes('start date') || m.includes('when can i start') || m.includes('how soon')) {
+      answer = "We accommodate all notice periods — from immediately available to three months or more. We're generally flexible on start dates and happy to wait for the right person.";
+    }
+    else if (m.includes('tip') || m.includes('advice') || m.includes('stand out') || m.includes('improve') || m.includes('best chance')) {
+      answer = "Here are my top tips for applying. Tailor your C.V. to the specific role. Add a cover letter — it's optional but we read every one. Use the motivation box to explain why this role excites you. Include your LinkedIn profile. Be specific about achievements with numbers. And remember, our recruiters review every application personally — no A.I. screening.";
+    }
+    else if (m.includes('engineering') || m.includes('developer') || m.includes('software')) {
+      const engJobs = allJobs.filter(j => j.dept === 'engineering');
+      answer = `We have ${engJobs.length} engineering roles open right now, including positions in cloud platform, machine learning, frontend, backend, data engineering, and site reliability. Locations include London, New York, Singapore, Frankfurt, Bangalore, and remote.`;
+    }
+    else if (m.includes('consulting') || m.includes('consultant')) {
+      answer = "Our consulting practice is hiring across London, Dubai, and Sydney. Roles include Management Consultant for Digital Transformation, Senior Strategy Consultant, and Principal Consultant for Change Management. These are client-facing roles working with C-suite leaders.";
+    }
+    else if (m.includes('thank') || m.includes('cheers') || m.includes('great') || m.includes('helpful') || m.includes('awesome')) {
+      answer = "You're very welcome! Is there anything else you'd like to know about the role or the company? Just tap the mic whenever you're ready.";
+    }
+    else if (m.includes('hello') || m.includes('hi ') || m.includes('hey') || m.includes('good morning') || m.includes('good afternoon')) {
+      answer = voiceJob
+        ? `Hello! I'm here to answer any questions about the ${voiceJob.title} role. What would you like to know?`
+        : "Hello! Welcome to Acquire Talent Partners. I can tell you about our open roles, benefits, culture, interview process, and more. What would you like to know?";
+    }
+  }
+
+  // Final fallback
+  if (!answer) {
+    answer = voiceJob
+      ? `I'm best at answering questions about the ${voiceJob.title} role — things like responsibilities, salary, requirements, and the team. I can also tell you about our benefits, culture, and interview process. What would you like to know?`
+      : "I can help with questions about our open roles, the application process, benefits, interview stages, company culture, and locations. What would you like to know?";
+  }
+
+  addVoiceResponse(answer);
+  speakText(answer);
+}
 </script>
 
 </body>
