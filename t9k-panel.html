@@ -396,13 +396,13 @@ tr { cursor:pointer; transition:background .1s; }
     <div class="section-label">Recruitment</div>
     <a href="#" class="active" onclick="setView('dashboard')"><span class="icon">&#9776;</span> Dashboard</a>
     <a href="#" onclick="setView('pipeline')"><span class="icon">&#9654;</span> Pipeline</a>
-    <a href="#" onclick="setView('candidates')"><span class="icon">&#128100;</span> All Candidates</a>
+    <a href="#" onclick="setView('candidates')"><span class="icon">&#128100;</span> All Candidates <span id="newAppBadge" style="background:#ef4444;color:#fff;font-size:.65rem;padding:2px 7px;border-radius:10px;margin-left:auto;display:none"></span></a>
     <div class="section-label">Manage</div>
-    <a href="#"><span class="icon">&#128188;</span> Jobs</a>
+    <a href="#" onclick="setView('jobs')"><span class="icon">&#128188;</span> Jobs</a>
     <a href="#"><span class="icon">&#128197;</span> Interviews</a>
-    <a href="#"><span class="icon">&#128200;</span> Reports</a>
+    <a href="#" onclick="exportCSV()"><span class="icon">&#128229;</span> Export CSV</a>
     <div class="section-label">Settings</div>
-    <a href="#"><span class="icon">&#9881;</span> Configuration</a>
+    <a href="#" onclick="toggleDemoData()"><span class="icon">&#128202;</span> <span id="demoToggleLabel">Hide Demo Data</span></a>
     <a href="#"><span class="icon">&#128101;</span> Team</a>
   </nav>
   <div class="sidebar-user">
@@ -449,7 +449,6 @@ tr { cursor:pointer; transition:background .1s; }
 // ═══════════ AUTH ═══════════
 const ATS_CREDENTIALS = {
   email: 'simon@acquiretalentpartners.com',
-  // SHA-256 hash of the password — not stored in plain text
   password: 'AcquireATS2026!'
 };
 
@@ -469,20 +468,17 @@ function handleLogin(e) {
   return false;
 }
 
-// Check if already authenticated this session
 if (sessionStorage.getItem('ats_auth') === 'true') {
   document.getElementById('loginOverlay').classList.add('hidden');
 } else {
-  // Hide main content until login
   document.querySelector('.sidebar').style.display = 'none';
   document.querySelector('.main').style.display = 'none';
 }
 
-// ═══════════ DATA ═══════════
+// ═══════════ DATA & PERSISTENCE ═══════════
 const statuses = ['new','reviewing','interview','offer','hired','rejected','withdrawn'];
 const statusLabels = { new:'New', reviewing:'Reviewing', interview:'Interview', offer:'Offer', hired:'Hired', rejected:'Rejected', withdrawn:'Withdrawn' };
-
-// Generate demo candidates
+const departments = ["Engineering","Product","Sales","Consulting","Finance","HR","Marketing","Operations","Legal","Healthcare","Energy","Security"];
 const jobTitles = [
   "Senior Software Engineer — Cloud Platform", "Staff Machine Learning Engineer", "Frontend Engineer — Design Systems",
   "DevOps Engineer", "Backend Engineer — Payments", "Product Manager — Enterprise Platform",
@@ -495,116 +491,174 @@ const jobTitles = [
   "Content Strategist", "UX Researcher", "Business Development Manager — APAC",
   "Software Engineering Intern — Summer 2026", "Sales Development Representative", "Head of Diversity, Equity & Inclusion"
 ];
-
 const locations = ["London, UK","New York, US","Singapore","Frankfurt, DE","Tokyo, JP","Dubai, UAE","Sydney, AU","Toronto, CA","Bangalore, IN","São Paulo, BR","Remote"];
-const sources = ["Careers Site","LinkedIn","Indeed","Referral","Glassdoor","Agency","University"];
-const departments = ["Engineering","Product","Sales","Consulting","Finance","HR","Marketing","Operations","Legal","Healthcare","Energy","Security"];
-
+const demoSources = ["LinkedIn","Indeed","Referral","Glassdoor","Agency","University"];
 const firstNames = ["James","Emma","Liam","Olivia","Noah","Ava","Ethan","Sophia","Mason","Isabella","Lucas","Mia","Alexander","Charlotte","Benjamin","Amelia","Daniel","Harper","Matthew","Evelyn","Aiden","Luna","Henry","Camila","Sebastian","Aria","Jack","Scarlett","Owen","Madison","Samuel","Layla","Ryan","Chloe","Nathan","Penelope","Leo","Riley","Raj","Priya","Wei","Yuki","Ahmed","Fatima","Carlos","Maria","Ivan","Katya","Kwame","Chioma","Hiroshi","Sakura","Omar","Leila","Matteo","Giulia","Lars","Freya","Diego","Valentina"];
 const lastNames = ["Smith","Johnson","Williams","Brown","Jones","Garcia","Miller","Davis","Rodriguez","Martinez","Chen","Wang","Kim","Patel","Nakamura","Singh","Ali","Okafor","Müller","Johansson","Rossi","Dubois","Santos","Petrov","Nguyen","O'Brien","Andersen","Yamamoto","Chowdhury","Van den Berg","Kowalski","Fernandez","Bianchi","Larsson","Sato","Krishnamurthy","Al-Hassan","Nwosu","Weber","Berg","Costa","Tanaka","Gupta","Reeves","Harrison","Campbell","Thompson","Mitchell","Turner","Wright"];
 
-function randomDate(start, end) {
-  return new Date(start.getTime() + Math.random() * (end.getTime() - start.getTime()));
+function randomDate(s,e) { return new Date(s.getTime()+Math.random()*(e.getTime()-s.getTime())); }
+function formatDate(d) { if(typeof d==='string')d=new Date(d); const m=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']; return d.getDate()+' '+m[d.getMonth()]+' '+d.getFullYear(); }
+function formatDateTime(d) { if(typeof d==='string')d=new Date(d); return formatDate(d)+', '+d.getHours().toString().padStart(2,'0')+':'+d.getMinutes().toString().padStart(2,'0'); }
+function randomItem(a) { return a[Math.floor(Math.random()*a.length)]; }
+function randomRating() { return Math.floor(Math.random()*5)+1; }
+function timeAgo(d) {
+  if(typeof d==='string')d=new Date(d);
+  const s=Math.floor((Date.now()-d.getTime())/1000);
+  if(s<60)return 'Just now'; if(s<3600)return Math.floor(s/60)+'m ago';
+  if(s<86400)return Math.floor(s/3600)+'h ago'; return Math.floor(s/86400)+'d ago';
 }
-function formatDate(d) {
-  const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-  return d.getDate() + ' ' + months[d.getMonth()] + ' ' + d.getFullYear();
-}
-function formatDateTime(d) {
-  return formatDate(d) + ', ' + d.getHours().toString().padStart(2,'0') + ':' + d.getMinutes().toString().padStart(2,'0');
-}
-function randomItem(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
-function randomRating() { return Math.floor(Math.random() * 5) + 1; }
 
-// Check for data from careers site
-let storedApps = [];
-try { storedApps = JSON.parse(localStorage.getItem('atp_applications') || '[]'); } catch(e){}
+// ═══════════ PERSISTENT STORE ═══════════
+// The ATS stores all candidate modifications in localStorage so changes persist.
+const ATS_STORE_KEY = 'ats_candidates';
+const ATS_SEEN_KEY = 'ats_seen_app_count';
+let showDemoData = true;
 
-const candidates = [];
-// Add stored applications first
-storedApps.forEach((app, i) => {
-  candidates.push({
-    id: 'APP-' + (1000 + i),
-    firstName: app.firstName || 'Unknown',
-    lastName: app.lastName || 'Applicant',
-    email: app.email || '',
-    phone: app.phone || '',
-    location: app.location || '',
-    job: app.job || 'General Application',
-    department: app.department || 'General',
-    source: 'Careers Site',
-    status: 'new',
-    rating: 0,
-    appliedDate: new Date(app.appliedDate || Date.now()),
-    linkedin: app.linkedin || '',
-    salary: app.salary || '',
-    notice: app.notice || '',
-    experience: app.experience || '',
-    visa: app.visa || '',
-    motivation: app.motivation || '',
-    notes: app.notes || [],
-    timeline: [{ action: 'Applied via Careers Site', date: new Date(app.appliedDate || Date.now()) }]
+function loadATSState() {
+  try { return JSON.parse(localStorage.getItem(ATS_STORE_KEY) || 'null'); } catch(e) { return null; }
+}
+function saveATSState() {
+  try {
+    // Save modifications for real candidates (status, rating, notes, timeline changes)
+    const mods = {};
+    candidates.forEach(c => {
+      if (c._real) {
+        mods[c.id] = { status:c.status, rating:c.rating, notes:c.notes, timeline:c.timeline };
+      }
+    });
+    localStorage.setItem(ATS_STORE_KEY, JSON.stringify(mods));
+  } catch(e) {}
+}
+function getSeenCount() { return parseInt(localStorage.getItem(ATS_SEEN_KEY)||'0'); }
+function setSeenCount(n) { localStorage.setItem(ATS_SEEN_KEY, n.toString()); }
+
+// ═══════════ BUILD CANDIDATES ═══════════
+let candidates = [];
+let lastAppCount = 0;
+
+function buildCandidates() {
+  candidates = [];
+  const savedMods = loadATSState() || {};
+
+  // 1. Load REAL applications from careers site
+  let storedApps = [];
+  try { storedApps = JSON.parse(localStorage.getItem('atp_applications') || '[]'); } catch(e){}
+  lastAppCount = storedApps.length;
+
+  storedApps.forEach((app, i) => {
+    const id = 'APP-' + (1000 + i);
+    const mod = savedMods[id] || {};
+    const src = app.source || 'Application Form';
+    candidates.push({
+      id: id,
+      firstName: app.firstName || 'Unknown',
+      lastName: app.lastName || 'Applicant',
+      email: app.email || '',
+      phone: app.phone || '',
+      location: app.location || '',
+      job: app.job || 'General Application',
+      department: app.department || 'General',
+      source: src,
+      status: mod.status || 'new',
+      rating: mod.rating || 0,
+      appliedDate: app.appliedDate || new Date().toISOString(),
+      linkedin: app.linkedin || '',
+      salary: app.salary || '',
+      notice: app.notice || '',
+      experience: app.experience || '',
+      visa: app.visa || '',
+      motivation: app.motivation || '',
+      notes: mod.notes || app.notes || [],
+      timeline: mod.timeline || [{ action: 'Applied via ' + src, date: app.appliedDate || new Date().toISOString() }],
+      _real: true
+    });
   });
-});
 
-// Generate 85 demo candidates
-for (let i = 0; i < 85; i++) {
-  const first = randomItem(firstNames);
-  const last = randomItem(lastNames);
-  const applied = randomDate(new Date('2026-01-05'), new Date('2026-02-20'));
-  const status = randomItem(['new','new','new','reviewing','reviewing','interview','interview','offer','hired','rejected','withdrawn']);
-  const rating = status === 'new' ? (Math.random() > .5 ? 0 : randomRating()) : randomRating();
-  const job = randomItem(jobTitles);
-  const dept = randomItem(departments);
-  const notes = [];
-  if (status !== 'new') {
-    notes.push({ text: 'CV reviewed. ' + (rating >= 4 ? 'Strong background, relevant experience.' : rating >= 3 ? 'Decent profile, some gaps in experience.' : 'Below average fit for the role.'), author: 'Simon Valentine', date: new Date(applied.getTime() + 86400000 * (1 + Math.floor(Math.random() * 3))) });
-  }
-  if (['interview','offer','hired'].includes(status)) {
-    notes.push({ text: randomItem(['Good technical depth in the interview. Communicates well.', 'Panel was impressed. Culture fit is strong.', 'Solid answers but needs to sharpen on system design.', 'Excellent presentation. Team unanimous on progressing.', 'Strong problem-solving. Would complement the existing team well.']), author: randomItem(['Simon Valentine','Sarah Chen','Tom Barrett']), date: new Date(applied.getTime() + 86400000 * (4 + Math.floor(Math.random() * 5))) });
-  }
-  if (status === 'offer' || status === 'hired') {
-    notes.push({ text: status === 'hired' ? 'Offer accepted. Start date confirmed.' : 'Offer sent. Awaiting response.', author: 'Simon Valentine', date: new Date(applied.getTime() + 86400000 * (10 + Math.floor(Math.random() * 5))) });
-  }
-  if (status === 'rejected') {
-    notes.push({ text: randomItem(['Did not meet minimum requirements for the role.','Decided to go with a stronger candidate.','Culture fit concerns raised by panel.','Withdrew after receiving another offer — marked as rejected.']), author: 'Simon Valentine', date: new Date(applied.getTime() + 86400000 * (3 + Math.floor(Math.random() * 5))) });
-  }
+  // 2. Generate demo candidates (if enabled)
+  if (showDemoData) {
+    // Use a seeded approach so demos are consistent
+    let seed = 42;
+    function seededRand() { seed=(seed*16807)%2147483647; return (seed-1)/2147483646; }
+    function sItem(a) { return a[Math.floor(seededRand()*a.length)]; }
+    function sRating() { return Math.floor(seededRand()*5)+1; }
+    function sDate(s,e) { return new Date(s.getTime()+seededRand()*(e.getTime()-s.getTime())); }
 
-  const timeline = [{ action: 'Applied via ' + randomItem(sources), date: applied }];
-  if (status !== 'new') timeline.push({ action: 'Moved to Reviewing', date: new Date(applied.getTime() + 86400000 * 2) });
-  if (['interview','offer','hired'].includes(status)) timeline.push({ action: 'Interview scheduled', date: new Date(applied.getTime() + 86400000 * 5) });
-  if (['offer','hired'].includes(status)) timeline.push({ action: 'Offer extended', date: new Date(applied.getTime() + 86400000 * 12) });
-  if (status === 'hired') timeline.push({ action: 'Offer accepted', date: new Date(applied.getTime() + 86400000 * 15) });
-  if (status === 'rejected') timeline.push({ action: 'Application rejected', date: new Date(applied.getTime() + 86400000 * 7) });
+    for (let i=0;i<85;i++) {
+      const first=sItem(firstNames), last=sItem(lastNames);
+      const applied=sDate(new Date('2026-01-05'),new Date('2026-02-20'));
+      const status=sItem(['new','new','new','reviewing','reviewing','interview','interview','offer','hired','rejected','withdrawn']);
+      const rating=status==='new'?(seededRand()>.5?0:sRating()):sRating();
+      const job=sItem(jobTitles), dept=sItem(departments);
+      const notes=[];
+      if(status!=='new') notes.push({text:'CV reviewed. '+(rating>=4?'Strong background, relevant experience.':rating>=3?'Decent profile, some gaps.':'Below average fit.'),author:'Simon Valentine',date:new Date(applied.getTime()+86400000*(1+Math.floor(seededRand()*3))).toISOString()});
+      if(['interview','offer','hired'].includes(status)) notes.push({text:sItem(['Good technical depth.','Panel impressed. Culture fit strong.','Solid answers, needs sharper system design.','Excellent presentation. Team unanimous.','Strong problem-solving.']),author:sItem(['Simon Valentine','Sarah Chen','Tom Barrett']),date:new Date(applied.getTime()+86400000*(4+Math.floor(seededRand()*5))).toISOString()});
+      if(status==='offer'||status==='hired') notes.push({text:status==='hired'?'Offer accepted. Start date confirmed.':'Offer sent. Awaiting response.',author:'Simon Valentine',date:new Date(applied.getTime()+86400000*(10+Math.floor(seededRand()*5))).toISOString()});
+      if(status==='rejected') notes.push({text:sItem(['Did not meet minimum requirements.','Stronger candidate selected.','Culture fit concerns.','Withdrew — marked rejected.']),author:'Simon Valentine',date:new Date(applied.getTime()+86400000*(3+Math.floor(seededRand()*5))).toISOString()});
+      const timeline=[{action:'Applied via '+sItem(demoSources),date:applied.toISOString()}];
+      if(status!=='new')timeline.push({action:'Moved to Reviewing',date:new Date(applied.getTime()+86400000*2).toISOString()});
+      if(['interview','offer','hired'].includes(status))timeline.push({action:'Interview scheduled',date:new Date(applied.getTime()+86400000*5).toISOString()});
+      if(['offer','hired'].includes(status))timeline.push({action:'Offer extended',date:new Date(applied.getTime()+86400000*12).toISOString()});
+      if(status==='hired')timeline.push({action:'Offer accepted',date:new Date(applied.getTime()+86400000*15).toISOString()});
+      if(status==='rejected')timeline.push({action:'Application rejected',date:new Date(applied.getTime()+86400000*7).toISOString()});
 
-  candidates.push({
-    id: 'ATP-' + (2000 + i),
-    firstName: first,
-    lastName: last,
-    email: first.toLowerCase() + '.' + last.toLowerCase() + '@email.com',
-    phone: '+' + (Math.floor(Math.random() * 80) + 1) + ' ' + Math.floor(1000000000 + Math.random() * 9000000000),
-    location: randomItem(locations),
-    job: job,
-    department: dept,
-    source: randomItem(sources),
-    status: status,
-    rating: rating,
-    appliedDate: applied,
-    linkedin: Math.random() > .3 ? 'linkedin.com/in/' + first.toLowerCase() + last.toLowerCase() : '',
-    salary: randomItem(['','£80K–100K','$120K–150K','€90K–110K','SGD 100K–130K','AED 300K+','Negotiable']),
-    notice: randomItem(['Immediately','1 week','2 weeks','1 month','2 months','3 months']),
-    experience: randomItem(['< 1 year','1–2 years','3–5 years','6–10 years','10–15 years','15+ years']),
-    visa: randomItem(['Yes — right to work','Yes — with sponsorship','Requires sponsorship']),
-    motivation: '',
-    notes: notes,
-    timeline: timeline
-  });
+      candidates.push({
+        id:'ATP-'+(2000+i), firstName:first, lastName:last,
+        email:first.toLowerCase()+'.'+last.toLowerCase()+'@email.com',
+        phone:'+'+(Math.floor(seededRand()*80)+1)+' '+Math.floor(1000000000+seededRand()*9000000000),
+        location:sItem(locations), job:job, department:dept, source:sItem(demoSources),
+        status:status, rating:rating, appliedDate:applied.toISOString(),
+        linkedin:seededRand()>.3?'linkedin.com/in/'+first.toLowerCase()+last.toLowerCase():'',
+        salary:sItem(['','£80K–100K','$120K–150K','€90K–110K','SGD 100K–130K','AED 300K+','Negotiable']),
+        notice:sItem(['Immediately','1 week','2 weeks','1 month','2 months','3 months']),
+        experience:sItem(['< 1 year','1–2 years','3–5 years','6–10 years','10–15 years','15+ years']),
+        visa:sItem(['Yes — right to work','Yes — with sponsorship','Requires sponsorship']),
+        motivation:'', notes:notes, timeline:timeline, _real:false
+      });
+    }
+  }
+}
+
+buildCandidates();
+
+// ═══════════ AUTO-REFRESH (poll for new applications) ═══════════
+let refreshInterval = null;
+function startAutoRefresh() {
+  refreshInterval = setInterval(() => {
+    let apps = [];
+    try { apps = JSON.parse(localStorage.getItem('atp_applications') || '[]'); } catch(e){}
+    if (apps.length !== lastAppCount) {
+      const newCount = apps.length - lastAppCount;
+      buildCandidates();
+      render();
+      if (newCount > 0) showToast(newCount + ' new application' + (newCount>1?'s':'') + ' received!', 'success');
+      updateNewBadge();
+    }
+  }, 3000); // Check every 3 seconds
+}
+
+function showToast(message, type) {
+  const toast = document.createElement('div');
+  toast.style.cssText = `position:fixed;top:20px;right:20px;z-index:9999;padding:14px 24px;border-radius:10px;font-size:.88rem;font-weight:600;color:#fff;box-shadow:0 6px 24px rgba(0,0,0,.2);animation:slideInRight .3s ease;max-width:360px;`;
+  toast.style.background = type==='success' ? 'linear-gradient(135deg,#10b981,#059669)' : type==='error' ? '#ef4444' : 'var(--accent)';
+  toast.innerHTML = (type==='success'?'&#9989; ':'&#128276; ') + message;
+  document.body.appendChild(toast);
+  setTimeout(() => { toast.style.opacity='0'; toast.style.transition='opacity .3s'; setTimeout(()=>toast.remove(),300); }, 4000);
+}
+
+function updateNewBadge() {
+  const realNew = candidates.filter(c => c._real && c.status === 'new').length;
+  const badge = document.getElementById('newAppBadge');
+  if (badge) {
+    badge.textContent = realNew;
+    badge.style.display = realNew > 0 ? 'inline-flex' : 'none';
+  }
 }
 
 // ═══════════ STATE ═══════════
 let currentView = 'dashboard';
 let statusFilter = '';
 let deptFilter = '';
+let sourceFilter = '';
 let sortField = 'appliedDate';
 let sortDir = -1;
 let currentPage = 1;
@@ -614,10 +668,11 @@ const pageSize = 20;
 function setView(view) {
   currentView = view;
   document.querySelectorAll('.sidebar-nav a').forEach(a => a.classList.remove('active'));
-  const labels = { dashboard:'Dashboard', pipeline:'Pipeline', candidates:'All Candidates' };
-  event.target.closest('a').classList.add('active');
+  const labels = { dashboard:'Dashboard', pipeline:'Pipeline', candidates:'All Candidates', jobs:'Open Jobs' };
+  if(event && event.target) event.target.closest('a').classList.add('active');
   document.getElementById('pageTitle').textContent = labels[view] || 'Dashboard';
   statusFilter = '';
+  sourceFilter = '';
   currentPage = 1;
   render();
 }
@@ -627,7 +682,9 @@ function render() {
   if (currentView === 'dashboard') el.innerHTML = renderDashboard();
   else if (currentView === 'pipeline') el.innerHTML = renderPipeline();
   else if (currentView === 'candidates') el.innerHTML = renderCandidateList();
+  else if (currentView === 'jobs') el.innerHTML = renderJobsView();
   bindEvents();
+  updateNewBadge();
 }
 
 // ═══════════ DASHBOARD ═══════════
@@ -635,9 +692,45 @@ function renderDashboard() {
   const counts = {};
   statuses.forEach(s => counts[s] = candidates.filter(c => c.status === s).length);
   const total = candidates.length;
-  const thisWeek = candidates.filter(c => (Date.now() - c.appliedDate.getTime()) < 7 * 86400000).length;
+  const realTotal = candidates.filter(c => c._real).length;
+  const realNew = candidates.filter(c => c._real && c.status === 'new').length;
+  const thisWeek = candidates.filter(c => { try{return (Date.now() - new Date(c.appliedDate).getTime()) < 7*86400000}catch(e){return false} }).length;
+
+  // Source breakdown for real apps
+  const sourceCounts = {};
+  candidates.filter(c=>c._real).forEach(c => { sourceCounts[c.source] = (sourceCounts[c.source]||0)+1; });
+  let sourceHTML = '';
+  if (realTotal > 0) {
+    sourceHTML = `<div style="background:var(--bg-white);border:1px solid var(--border);border-radius:var(--radius);padding:20px;margin-bottom:20px">
+      <div style="font-size:.85rem;font-weight:700;margin-bottom:12px;display:flex;align-items:center;gap:8px">
+        <span style="font-size:1.1rem">&#128640;</span> Live Applications (${realTotal})
+      </div>
+      <div style="display:flex;gap:12px;flex-wrap:wrap">`;
+    Object.entries(sourceCounts).forEach(([src, count]) => {
+      const color = src.includes('Chat') ? '#7c3aed' : src.includes('Form') ? '#2563eb' : '#64748b';
+      sourceHTML += `<div onclick="filterBySource('${src}')" style="cursor:pointer;padding:10px 16px;background:${color}10;border:1px solid ${color}30;border-radius:8px;flex:1;min-width:120px;text-align:center">
+        <div style="font-size:1.4rem;font-weight:800;color:${color}">${count}</div>
+        <div style="font-size:.72rem;color:${color};font-weight:600;margin-top:2px">${src}</div>
+      </div>`;
+    });
+    if (realNew > 0) {
+      sourceHTML += `<div onclick="filterBySource('_real_new')" style="cursor:pointer;padding:10px 16px;background:#ef444410;border:1px solid #ef444430;border-radius:8px;flex:1;min-width:120px;text-align:center">
+        <div style="font-size:1.4rem;font-weight:800;color:#ef4444">${realNew}</div>
+        <div style="font-size:.72rem;color:#ef4444;font-weight:600;margin-top:2px">Awaiting Review</div>
+      </div>`;
+    }
+    sourceHTML += '</div></div>';
+  } else {
+    sourceHTML = `<div style="background:linear-gradient(135deg,#eff6ff,#f5f3ff);border:1px solid #bfdbfe;border-radius:var(--radius);padding:28px;margin-bottom:20px;text-align:center">
+      <div style="font-size:2rem;margin-bottom:8px">&#128236;</div>
+      <div style="font-size:.95rem;font-weight:700;color:var(--primary);margin-bottom:4px">No live applications yet</div>
+      <div style="font-size:.82rem;color:var(--text-light)">When candidates apply via the careers site, chat assistant, or voice agent, their applications will appear here in real-time.</div>
+      <a href="index.html" target="_blank" class="btn btn-primary" style="margin-top:16px;display:inline-flex">&#127760; Open Careers Site to Test</a>
+    </div>`;
+  }
 
   return `
+    ${sourceHTML}
     <div class="stats-row">
       <div class="stat-card ${statusFilter===''?'active-filter':''}" onclick="filterByStatus('')">
         <div class="stat-label">Total Candidates</div>
@@ -671,8 +764,8 @@ function renderDashboard() {
       </div>
     </div>
     <div style="display:flex;gap:12px;margin-bottom:20px;align-items:center;">
-      <h2 style="font-size:1.1rem;font-weight:700;flex:1">${statusFilter ? statusLabels[statusFilter] + ' Candidates' : 'Recent Candidates'}</h2>
-      ${statusFilter ? '<button class="btn btn-secondary btn-sm" onclick="filterByStatus(\'\')">Clear Filter</button>' : ''}
+      <h2 style="font-size:1.1rem;font-weight:700;flex:1">${statusFilter ? statusLabels[statusFilter]+' Candidates' : sourceFilter ? 'Filtered by: '+sourceFilter : 'Recent Candidates'}</h2>
+      ${(statusFilter||sourceFilter) ? '<button class="btn btn-secondary btn-sm" onclick="filterByStatus(\'\');sourceFilter=\'\';render()">Clear Filter</button>' : ''}
     </div>
     ${renderTable(getFilteredCandidates())}
   `;
@@ -685,7 +778,7 @@ function renderPipeline() {
 
   let html = '<div class="kanban-board">';
   columns.forEach(col => {
-    const cards = candidates.filter(c => c.status === col).sort((a,b) => b.appliedDate - a.appliedDate);
+    const cards = candidates.filter(c => c.status === col).sort((a,b) => new Date(b.appliedDate) - new Date(a.appliedDate));
     html += `
       <div class="kanban-column">
         <div class="kanban-header">
@@ -705,6 +798,7 @@ function renderPipeline() {
           <div class="kc-meta">
             <span>&#128205; ${c.location}</span>
             <span>&#128197; ${formatDate(c.appliedDate)}</span>
+            ${c._real ? '<span style="color:#10b981;font-weight:700">&#9679; Live</span>' : ''}
           </div>
           ${c.rating > 0 ? '<div class="kc-rating">' + stars + '</div>' : ''}
         </div>`;
@@ -718,6 +812,8 @@ function renderPipeline() {
 
 // ═══════════ CANDIDATE LIST ═══════════
 function renderCandidateList() {
+  const filtered = getFilteredCandidates();
+  const realCount = filtered.filter(c=>c._real).length;
   return `
     <div class="filters-bar">
       <select class="filter-select" id="listStatusFilter" onchange="statusFilter=this.value;currentPage=1;render()">
@@ -728,10 +824,13 @@ function renderCandidateList() {
         <option value="">All Departments</option>
         ${departments.map(d => `<option value="${d}" ${deptFilter===d?'selected':''}>${d}</option>`).join('')}
       </select>
+      <div class="filter-chip ${sourceFilter==='_real'?'active':''}" onclick="sourceFilter=sourceFilter==='_real'?'':'_real';currentPage=1;render()" style="display:flex;align-items:center;gap:4px">
+        <span style="width:8px;height:8px;border-radius:50%;background:#10b981;display:inline-block"></span> Live Only
+      </div>
       <span style="flex:1"></span>
-      <span style="font-size:.82rem;color:var(--text-light)">${getFilteredCandidates().length} candidates</span>
+      <span style="font-size:.82rem;color:var(--text-light)">${filtered.length} candidates${realCount>0?' ('+realCount+' live)':''}</span>
     </div>
-    ${renderTable(getFilteredCandidates())}
+    ${renderTable(filtered)}
   `;
 }
 
@@ -741,20 +840,26 @@ function getFilteredCandidates() {
   return candidates.filter(c => {
     const matchStatus = !statusFilter || c.status === statusFilter;
     const matchDept = !deptFilter || c.department === deptFilter;
+    const matchSource = !sourceFilter || (sourceFilter === '_real_new' ? (c._real && c.status === 'new') : sourceFilter === '_real' ? c._real : c.source === sourceFilter);
     const matchSearch = !search ||
       (c.firstName + ' ' + c.lastName).toLowerCase().includes(search) ||
       c.email.toLowerCase().includes(search) ||
       c.job.toLowerCase().includes(search) ||
       c.id.toLowerCase().includes(search);
-    return matchStatus && matchDept && matchSearch;
+    return matchStatus && matchDept && matchSource && matchSearch;
   }).sort((a, b) => {
+    // Real applications always sort first
+    if (a._real && !b._real) return -1;
+    if (!a._real && b._real) return 1;
     let va = a[sortField], vb = b[sortField];
     if (sortField === 'name') { va = a.firstName + a.lastName; vb = b.firstName + b.lastName; }
-    if (sortField === 'appliedDate') return sortDir * (vb.getTime() - va.getTime());
+    if (sortField === 'appliedDate') return sortDir * (new Date(vb).getTime() - new Date(va).getTime());
     if (typeof va === 'string') return sortDir * va.localeCompare(vb);
     return sortDir * (va - vb);
   });
 }
+
+function filterBySource(src) { sourceFilter = src; statusFilter = ''; currentPage = 1; render(); }
 
 function renderTable(data) {
   const start = (currentPage - 1) * pageSize;
@@ -774,13 +879,18 @@ function renderTable(data) {
   html += `<th onclick="toggleSort('appliedDate')">Applied ${sortIcon('appliedDate')}</th>`;
   html += '</tr></thead><tbody>';
   pageData.forEach(c => {
-    html += `<tr onclick="openDrawer('${c.id}')">
-      <td><div class="candidate-name">${c.firstName} ${c.lastName}</div><div class="candidate-email">${c.email}</div></td>
+    const isReal = c._real;
+    const realBadge = isReal ? '<span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#10b981;margin-right:6px;flex-shrink:0" title="Live application"></span>' : '';
+    const srcColor = c.source.includes('Chat') ? '#7c3aed' : c.source.includes('Form') ? '#2563eb' : '#64748b';
+    const srcBadge = isReal ? `<span style="font-size:.7rem;background:${srcColor}15;color:${srcColor};padding:2px 8px;border-radius:10px;font-weight:600">${c.source}</span>` : `<span style="font-size:.82rem;color:var(--text-light)">${c.source}</span>`;
+    const rowBg = isReal && c.status === 'new' ? 'background:#f0fdf4;' : '';
+    html += `<tr onclick="openDrawer('${c.id}')" style="${rowBg}">
+      <td><div style="display:flex;align-items:center">${realBadge}<div><div class="candidate-name">${c.firstName} ${c.lastName}</div><div class="candidate-email">${c.email}</div></div></div></td>
       <td><div class="candidate-job">${c.job}</div><div class="candidate-loc">&#128205; ${c.location}</div></td>
       <td><span class="status-badge status-${c.status}"><span class="status-dot dot-${c.status}"></span>${statusLabels[c.status]}</span></td>
       <td>${renderStarsHTML(c.rating)}</td>
-      <td style="font-size:.82rem;color:var(--text-light)">${c.source}</td>
-      <td style="font-size:.82rem;color:var(--text-light);white-space:nowrap">${formatDate(c.appliedDate)}</td>
+      <td>${srcBadge}</td>
+      <td style="font-size:.82rem;color:var(--text-light);white-space:nowrap">${formatDate(c.appliedDate)}<br><span style="font-size:.7rem">${timeAgo(c.appliedDate)}</span></td>
     </tr>`;
   });
   html += '</tbody></table>';
@@ -824,7 +934,7 @@ function openDrawer(id) {
   const c = candidates.find(x => x.id === id);
   if (!c) return;
 
-  document.getElementById('drawerName').textContent = c.firstName + ' ' + c.lastName;
+  document.getElementById('drawerName').innerHTML = c.firstName + ' ' + c.lastName + (c._real ? ' <span style="font-size:.65rem;background:#ecfdf5;color:#10b981;padding:3px 10px;border-radius:12px;font-weight:700;vertical-align:middle;margin-left:8px">LIVE APPLICATION</span>' : '');
   document.getElementById('drawerRole').textContent = c.job;
 
   let body = '';
@@ -879,7 +989,7 @@ function openDrawer(id) {
   body += `<div class="d-section">
     <div class="d-section-title">Activity Timeline</div>
     <div class="timeline">
-      ${c.timeline.sort((a,b) => b.date - a.date).map((t, i) => `
+      ${c.timeline.sort((a,b) => new Date(b.date) - new Date(a.date)).map((t, i) => `
         <div class="timeline-item ${i === 0 ? 'active' : ''}">
           <div class="tl-text">${t.action}</div>
           <div class="tl-date">${formatDateTime(t.date)}</div>
@@ -893,7 +1003,7 @@ function openDrawer(id) {
     <div class="d-section-title">Notes</div>
     <div class="notes-list" id="notesList">
       ${c.notes.length === 0 ? '<p style="font-size:.85rem;color:var(--text-xs)">No notes yet. Add your first note below.</p>' : ''}
-      ${c.notes.sort((a,b) => b.date - a.date).map(n => `
+      ${c.notes.sort((a,b) => new Date(b.date) - new Date(a.date)).map(n => `
         <div class="note-item">
           <div class="note-meta"><span>${n.author}</span><span>${formatDateTime(n.date)}</span></div>
           <div class="note-text">${n.text}</div>
@@ -930,7 +1040,8 @@ function updateStatus(id, newStatus) {
   if (!c) return;
   const oldStatus = c.status;
   c.status = newStatus;
-  c.timeline.push({ action: `Status changed from ${statusLabels[oldStatus]} to ${statusLabels[newStatus]}`, date: new Date() });
+  c.timeline.push({ action: `Status changed: ${statusLabels[oldStatus]} → ${statusLabels[newStatus]}`, date: new Date().toISOString() });
+  saveATSState();
   render();
 }
 
@@ -938,6 +1049,7 @@ function updateRating(id, rating) {
   const c = candidates.find(x => x.id === id);
   if (!c) return;
   c.rating = rating;
+  saveATSState();
   openDrawer(id);
   render();
 }
@@ -946,9 +1058,68 @@ function addNote(id) {
   const c = candidates.find(x => x.id === id);
   const input = document.getElementById('noteInput');
   if (!c || !input.value.trim()) return;
-  c.notes.push({ text: input.value.trim(), author: 'Simon Valentine', date: new Date() });
-  c.timeline.push({ action: 'Note added', date: new Date() });
+  c.notes.push({ text: input.value.trim(), author: 'Simon Valentine', date: new Date().toISOString() });
+  c.timeline.push({ action: 'Note added', date: new Date().toISOString() });
+  saveATSState();
   openDrawer(id);
+}
+
+// ═══════════ TOGGLE DEMO DATA ═══════════
+function toggleDemoData() {
+  showDemoData = !showDemoData;
+  document.getElementById('demoToggleLabel').textContent = showDemoData ? 'Hide Demo Data' : 'Show Demo Data';
+  buildCandidates();
+  currentPage = 1;
+  render();
+  showToast(showDemoData ? 'Demo data visible' : 'Showing live applications only', 'info');
+}
+
+// ═══════════ CSV EXPORT ═══════════
+function exportCSV() {
+  const data = getFilteredCandidates();
+  if (data.length === 0) { showToast('No candidates to export', 'error'); return; }
+  const headers = ['ID','First Name','Last Name','Email','Phone','Location','Job','Department','Source','Status','Rating','Applied Date','Experience','Notice Period','Visa','LinkedIn','Motivation'];
+  const rows = data.map(c => [
+    c.id, c.firstName, c.lastName, c.email, c.phone, c.location, `"${c.job}"`, c.department, c.source,
+    statusLabels[c.status], c.rating, formatDate(c.appliedDate), c.experience, c.notice, c.visa,
+    c.linkedin, `"${(c.motivation||'').replace(/"/g,'""')}"`
+  ]);
+  let csv = headers.join(',') + '\n' + rows.map(r => r.join(',')).join('\n');
+  const blob = new Blob([csv], {type:'text/csv'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'acquire-tp-candidates-' + new Date().toISOString().slice(0,10) + '.csv';
+  a.click();
+  showToast(data.length + ' candidates exported to CSV', 'success');
+}
+
+// ═══════════ JOBS VIEW ═══════════
+function renderJobsView() {
+  const jobCounts = {};
+  candidates.forEach(c => { jobCounts[c.job] = (jobCounts[c.job]||0)+1; });
+  const jobs = Object.entries(jobCounts).sort((a,b) => b[1]-a[1]);
+  let html = `<div style="display:flex;gap:12px;margin-bottom:20px;align-items:center">
+    <h2 style="font-size:1.1rem;font-weight:700;flex:1">Open Jobs — Application Count</h2>
+    <span style="font-size:.82rem;color:var(--text-light)">${jobs.length} roles with applications</span>
+  </div>`;
+  html += '<div class="table-wrapper"><table><thead><tr><th>Job Title</th><th>Total Applications</th><th>New</th><th>In Review</th><th>Interview</th><th>Offer/Hired</th></tr></thead><tbody>';
+  jobs.forEach(([job, count]) => {
+    const jCands = candidates.filter(c => c.job === job);
+    const nw = jCands.filter(c=>c.status==='new').length;
+    const rv = jCands.filter(c=>c.status==='reviewing').length;
+    const iv = jCands.filter(c=>c.status==='interview').length;
+    const oh = jCands.filter(c=>c.status==='offer'||c.status==='hired').length;
+    html += `<tr style="cursor:pointer" onclick="document.getElementById('globalSearch').value='${job.replace(/'/g,"\\'")}';handleGlobalSearch();setView('candidates')">
+      <td style="font-weight:600">${job}</td>
+      <td><strong>${count}</strong></td>
+      <td><span class="status-badge status-new">${nw}</span></td>
+      <td><span class="status-badge status-reviewing">${rv}</span></td>
+      <td><span class="status-badge status-interview">${iv}</span></td>
+      <td><span class="status-badge status-hired">${oh}</span></td>
+    </tr>`;
+  });
+  html += '</tbody></table></div>';
+  return html;
 }
 
 function bindEvents() {}
@@ -956,8 +1127,15 @@ function bindEvents() {}
 // Close drawer on escape
 document.addEventListener('keydown', e => { if (e.key === 'Escape') closeDrawer(); });
 
+// Add slide-in animation
+const animStyle = document.createElement('style');
+animStyle.textContent = '@keyframes slideInRight{from{transform:translateX(100px);opacity:0}to{transform:none;opacity:1}}';
+document.head.appendChild(animStyle);
+
 // ═══════════ INIT ═══════════
 render();
+startAutoRefresh();
+updateNewBadge();
 </script>
 </body>
 </html>
