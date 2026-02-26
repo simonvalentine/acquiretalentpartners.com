@@ -349,6 +349,107 @@ tr { cursor:pointer; transition:background .1s; }
 .empty-state .empty-icon { font-size:2.5rem; margin-bottom:12px; }
 .empty-state p { color:var(--text-light); font-size:.92rem; }
 
+/* ── Email Modal ── */
+.email-modal-overlay {
+  display:none; position:fixed; inset:0; z-index:300;
+  background:rgba(15,23,42,.5); backdrop-filter:blur(6px);
+  align-items:center; justify-content:center;
+}
+.email-modal-overlay.open { display:flex; }
+.email-modal {
+  background:var(--bg-white); border-radius:16px; width:720px; max-width:94vw;
+  max-height:90vh; display:flex; flex-direction:column;
+  box-shadow: 0 24px 64px rgba(0,0,0,.2); overflow:hidden;
+}
+.email-modal-header {
+  padding:20px 24px; border-bottom:1px solid var(--border);
+  display:flex; align-items:center; justify-content:space-between;
+}
+.email-modal-header h3 { font-size:1rem; font-weight:700; }
+.email-modal-close {
+  background:none; border:none; font-size:1.3rem; cursor:pointer;
+  color:var(--text-light); padding:4px 8px; border-radius:6px;
+}
+.email-modal-close:hover { background:var(--bg); color:var(--text); }
+.email-modal-body { flex:1; overflow-y:auto; }
+.email-modal-body iframe {
+  width:100%; height:520px; border:none;
+}
+.email-modal-meta {
+  padding:16px 24px; background:var(--bg); border-bottom:1px solid var(--border);
+}
+.email-meta-row {
+  display:flex; gap:8px; align-items:center; margin-bottom:6px; font-size:.85rem;
+}
+.email-meta-row:last-child { margin-bottom:0; }
+.email-meta-label { font-weight:600; color:var(--text-light); min-width:50px; font-size:.78rem; text-transform:uppercase; letter-spacing:.5px; }
+.email-meta-value { color:var(--text); flex:1; }
+.email-modal-footer {
+  padding:16px 24px; border-top:1px solid var(--border);
+  display:flex; gap:10px; justify-content:space-between; align-items:center;
+}
+.email-status-sent { display:inline-flex; align-items:center; gap:6px; font-size:.85rem; color:#10b981; font-weight:600; }
+.email-status-sent .checkmark { width:20px; height:20px; border-radius:50%; background:#ecfdf5; display:flex; align-items:center; justify-content:center; font-size:.75rem; }
+
+/* Email log in drawer */
+.email-log { display:flex; flex-direction:column; gap:8px; }
+.email-log-item {
+  display:flex; align-items:center; gap:12px; padding:10px 14px;
+  background:var(--bg); border:1px solid var(--border); border-radius:8px;
+  cursor:pointer; transition:all .15s;
+}
+.email-log-item:hover { border-color:var(--accent); box-shadow:var(--shadow); }
+.email-log-icon {
+  width:32px; height:32px; border-radius:8px; display:flex; align-items:center;
+  justify-content:center; font-size:.9rem; flex-shrink:0;
+}
+.email-log-icon.sent { background:#ecfdf5; color:#10b981; }
+.email-log-icon.pending { background:#fffbeb; color:#f59e0b; }
+.email-log-info { flex:1; min-width:0; }
+.email-log-info .el-subject { font-size:.85rem; font-weight:600; color:var(--text); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.email-log-info .el-date { font-size:.72rem; color:var(--text-xs); margin-top:1px; }
+.email-log-badge { font-size:.72rem; padding:3px 8px; border-radius:10px; font-weight:600; }
+.email-log-badge.sent { background:#ecfdf5; color:#10b981; }
+
+/* Email Templates page */
+.email-templates-grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(300px, 1fr)); gap:20px; }
+.email-tpl-card {
+  background:var(--bg-white); border:1px solid var(--border); border-radius:var(--radius);
+  overflow:hidden; transition:all .2s; cursor:pointer;
+}
+.email-tpl-card:hover { box-shadow:var(--shadow-lg); transform:translateY(-2px); }
+.email-tpl-preview {
+  height:180px; overflow:hidden; border-bottom:1px solid var(--border);
+  position:relative; background:#f8fafc;
+}
+.email-tpl-preview iframe { width:200%; height:360px; transform:scale(.5); transform-origin:top left; pointer-events:none; border:none; }
+.email-tpl-info { padding:16px; }
+.email-tpl-info h4 { font-size:.92rem; font-weight:700; margin-bottom:4px; }
+.email-tpl-info p { font-size:.78rem; color:var(--text-light); line-height:1.5; }
+.email-tpl-info .tpl-trigger { display:inline-flex; align-items:center; gap:4px; margin-top:8px; font-size:.72rem; padding:3px 10px; border-radius:10px; font-weight:600; }
+.email-tpl-info .tpl-trigger.auto { background:#ecfdf5; color:#10b981; }
+.email-tpl-info .tpl-trigger.manual { background:#eff6ff; color:#2563eb; }
+
+/* Send Email dropdown/selector */
+.send-email-dropdown {
+  position:relative; display:inline-block;
+}
+.send-email-menu {
+  display:none; position:absolute; bottom:100%; left:0; margin-bottom:8px;
+  background:var(--bg-white); border:1px solid var(--border); border-radius:10px;
+  box-shadow:var(--shadow-lg); min-width:280px; z-index:10; overflow:hidden;
+}
+.send-email-menu.open { display:block; }
+.send-email-menu-title { padding:12px 16px; font-size:.78rem; font-weight:700; color:var(--text-light); text-transform:uppercase; letter-spacing:1px; border-bottom:1px solid var(--border); }
+.send-email-option {
+  display:flex; align-items:center; gap:10px; padding:10px 16px; cursor:pointer;
+  transition:background .1s; font-size:.85rem; border:none; background:none; width:100%; text-align:left;
+}
+.send-email-option:hover { background:var(--bg); }
+.send-email-option .seo-icon { font-size:1rem; }
+.send-email-option .seo-label { font-weight:600; color:var(--text); }
+.send-email-option .seo-desc { font-size:.72rem; color:var(--text-light); }
+
 /* Responsive */
 /* ── Responsive: Large tablet ── */
 @media (max-width:1200px) {
@@ -440,6 +541,7 @@ tr { cursor:pointer; transition:background .1s; }
     <div class="section-label">Manage</div>
     <a href="#"><span class="icon">&#128188;</span> Jobs</a>
     <a href="#"><span class="icon">&#128197;</span> Interviews</a>
+    <a href="#" onclick="setView('emails')"><span class="icon">&#9993;</span> Email Templates</a>
     <a href="#"><span class="icon">&#128200;</span> Reports</a>
     <div class="section-label">Settings</div>
     <a href="#"><span class="icon">&#9881;</span> Configuration</a>
@@ -483,6 +585,21 @@ tr { cursor:pointer; transition:background .1s; }
   </div>
   <div class="drawer-body" id="drawerBody"></div>
   <div class="drawer-footer" id="drawerFooter"></div>
+</div>
+
+<!-- ═══════════ EMAIL PREVIEW MODAL ═══════════ -->
+<div class="email-modal-overlay" id="emailModalOverlay" onclick="if(event.target===this)closeEmailModal()">
+  <div class="email-modal">
+    <div class="email-modal-header">
+      <h3 id="emailModalTitle">Email Preview</h3>
+      <button class="email-modal-close" onclick="closeEmailModal()">&times;</button>
+    </div>
+    <div class="email-modal-meta" id="emailModalMeta"></div>
+    <div class="email-modal-body">
+      <iframe id="emailPreviewFrame" sandbox="allow-same-origin"></iframe>
+    </div>
+    <div class="email-modal-footer" id="emailModalFooter"></div>
+  </div>
 </div>
 
 <script>
@@ -654,8 +771,8 @@ const pageSize = 20;
 function setView(view) {
   currentView = view;
   document.querySelectorAll('.sidebar-nav a').forEach(a => a.classList.remove('active'));
-  const labels = { dashboard:'Dashboard', pipeline:'Pipeline', candidates:'All Candidates' };
-  event.target.closest('a').classList.add('active');
+  const labels = { dashboard:'Dashboard', pipeline:'Pipeline', candidates:'All Candidates', emails:'Email Templates' };
+  if (event && event.target) event.target.closest('a').classList.add('active');
   document.getElementById('pageTitle').textContent = labels[view] || 'Dashboard';
   statusFilter = '';
   currentPage = 1;
@@ -667,6 +784,7 @@ function render() {
   if (currentView === 'dashboard') el.innerHTML = renderDashboard();
   else if (currentView === 'pipeline') el.innerHTML = renderPipeline();
   else if (currentView === 'candidates') el.innerHTML = renderCandidateList();
+  else if (currentView === 'emails') el.innerHTML = renderEmailTemplatesPage();
   bindEvents();
 }
 
@@ -928,6 +1046,37 @@ function openDrawer(id) {
     </div>
   </div>`;
 
+  // Email Communications
+  const elog = getEmailLog(c.id);
+  body += `<div class="d-section">
+    <div class="d-section-title" style="display:flex;align-items:center;justify-content:space-between;">
+      Email Communications
+      <div class="send-email-dropdown" id="sendEmailDropdown">
+        <button class="btn btn-primary btn-sm" onclick="event.stopPropagation();document.getElementById('sendEmailMenu').classList.toggle('open')">&#9993; Send Email</button>
+        <div class="send-email-menu" id="sendEmailMenu">
+          <div class="send-email-menu-title">Choose Template</div>
+          ${emailTemplates.map(t => `<button class="send-email-option" onclick="event.stopPropagation();document.getElementById('sendEmailMenu').classList.remove('open');previewEmail('${t.id}','${c.id}')">
+            <span class="seo-icon">${t.icon}</span>
+            <div><div class="seo-label">${t.name}</div><div class="seo-desc">${t.trigger === 'auto' ? 'Auto-triggered' : 'Manual'}</div></div>
+          </button>`).join('')}
+        </div>
+      </div>
+    </div>
+    <div class="email-log">
+      ${elog.length === 0 ? '<p style="font-size:.85rem;color:var(--text-xs);">No emails sent yet. Use the button above or change the candidate\'s status to trigger an email.</p>' : ''}
+      ${elog.sort((a,b) => b.sentAt - a.sentAt).map(e => `
+        <div class="email-log-item" onclick="previewEmail('${e.templateId}','${c.id}')">
+          <div class="email-log-icon sent">&#10003;</div>
+          <div class="email-log-info">
+            <div class="el-subject">${e.templateName}</div>
+            <div class="el-date">${formatDateTime(e.sentAt)}</div>
+          </div>
+          <span class="email-log-badge sent">Sent</span>
+        </div>
+      `).join('')}
+    </div>
+  </div>`;
+
   // Notes
   body += `<div class="d-section">
     <div class="d-section-title">Notes</div>
@@ -972,6 +1121,8 @@ function updateStatus(id, newStatus) {
   c.status = newStatus;
   c.timeline.push({ action: `Status changed from ${statusLabels[oldStatus]} to ${statusLabels[newStatus]}`, date: new Date() });
   render();
+  // Auto-trigger email notification
+  triggerEmailForStatus(id, newStatus);
 }
 
 function updateRating(id, rating) {
@@ -993,8 +1144,537 @@ function addNote(id) {
 
 function bindEvents() {}
 
-// Close drawer on escape
-document.addEventListener('keydown', e => { if (e.key === 'Escape') closeDrawer(); });
+// Close drawer on escape & close dropdown on outside click
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') { closeEmailModal(); closeDrawer(); }
+});
+document.addEventListener('click', e => {
+  const menu = document.getElementById('sendEmailMenu');
+  if (menu && menu.classList.contains('open') && !e.target.closest('.send-email-dropdown')) {
+    menu.classList.remove('open');
+  }
+});
+
+// ═══════════ EMAIL TEMPLATE SYSTEM ═══════════
+const emailTemplates = [
+  {
+    id: 'application-received',
+    name: 'Application Received',
+    subject: 'Thanks for applying, {{first_name}} — Application Received',
+    description: 'Sent automatically when a candidate submits an application.',
+    trigger: 'auto',
+    triggerStatus: 'new',
+    badgeColor: '#dcfce7', badgeText: '#166534', icon: '&#10003;',
+    statusBadge: '&#10003; Application Received',
+    statusBg: '#dcfce7', statusColor: '#166534'
+  },
+  {
+    id: 'under-review',
+    name: 'Application Under Review',
+    subject: 'Your application is being reviewed — {{job_title}}',
+    description: 'Sent when a candidate is moved to the Reviewing stage.',
+    trigger: 'auto',
+    triggerStatus: 'reviewing',
+    badgeColor: '#dbeafe', badgeText: '#1e40af', icon: '&#128269;',
+    statusBadge: '&#128269; Under Review',
+    statusBg: '#dbeafe', statusColor: '#1e40af'
+  },
+  {
+    id: 'interview-invitation',
+    name: 'Interview Invitation',
+    subject: 'Interview Invitation — {{job_title}} at Acquire Talent Partners',
+    description: 'Sent when a candidate is moved to Interview stage. Includes date, time, and preparation tips.',
+    trigger: 'auto',
+    triggerStatus: 'interview',
+    badgeColor: '#fef3c7', badgeText: '#92400e', icon: '&#127881;',
+    statusBadge: '&#127881; Interview Invitation',
+    statusBg: '#fef3c7', statusColor: '#92400e'
+  },
+  {
+    id: 'interview-reminder',
+    name: 'Interview Reminder',
+    subject: 'Reminder: Your interview is tomorrow — {{job_title}}',
+    description: 'Sent 24 hours before the scheduled interview. Includes meeting link and checklist.',
+    trigger: 'manual',
+    triggerStatus: null,
+    badgeColor: '#eff6ff', badgeText: '#1e40af', icon: '&#9200;',
+    statusBadge: '&#9200; Interview Tomorrow',
+    statusBg: '#eff6ff', statusColor: '#1e40af'
+  },
+  {
+    id: 'post-interview',
+    name: 'Post-Interview Thank You',
+    subject: 'Thank you for interviewing with us, {{first_name}}',
+    description: 'Sent after an interview is completed. Includes timeline for decision and feedback request.',
+    trigger: 'manual',
+    triggerStatus: null,
+    badgeColor: '#e0e7ff', badgeText: '#3730a3', icon: '&#10024;',
+    statusBadge: '&#10024; Interview Complete',
+    statusBg: '#e0e7ff', statusColor: '#3730a3'
+  },
+  {
+    id: 'offer',
+    name: 'Offer of Employment',
+    subject: 'Welcome aboard, {{first_name}} — Offer from Acquire Talent Partners',
+    description: 'Sent when a candidate is moved to Offer stage. Includes role, salary, and start date.',
+    trigger: 'auto',
+    triggerStatus: 'offer',
+    badgeColor: '#dcfce7', badgeText: '#166534', icon: '&#127881;',
+    statusBadge: '&#127881; Offer Extended',
+    statusBg: '#dcfce7', statusColor: '#166534'
+  },
+  {
+    id: 'rejection',
+    name: 'Application Update (Rejection)',
+    subject: 'Update on your application for {{job_title}}',
+    description: 'Sent when a candidate is moved to Rejected. Warm and respectful, with talent network invite.',
+    trigger: 'auto',
+    triggerStatus: 'rejected',
+    badgeColor: '#fef2f2', badgeText: '#dc2626', icon: '&#128172;',
+    statusBadge: 'Application Update',
+    statusBg: '#fef2f2', statusColor: '#dc2626'
+  }
+];
+
+// Email log per candidate: { candidateId: [{ templateId, subject, sentAt, status }] }
+const emailLogs = {};
+
+function getEmailLog(candidateId) {
+  if (!emailLogs[candidateId]) emailLogs[candidateId] = [];
+  return emailLogs[candidateId];
+}
+
+// Generate full email HTML from a template for a candidate
+function generateEmailHTML(templateId, candidate) {
+  const tpl = emailTemplates.find(t => t.id === templateId);
+  if (!tpl) return '';
+
+  const mergeData = {
+    first_name: candidate.firstName,
+    last_name: candidate.lastName,
+    job_title: candidate.job,
+    location: candidate.location,
+    department: candidate.department,
+    recruiter_name: 'Simon Valentine',
+    recruiter_email: 'simon@acquiretalentpartners.com',
+    expected_update_date: formatDate(new Date(Date.now() + 5 * 86400000)),
+    decision_date: formatDate(new Date(Date.now() + 7 * 86400000)),
+    interview_date: formatDate(new Date(Date.now() + 3 * 86400000)),
+    interview_time: '10:00 AM',
+    timezone: 'GMT',
+    interview_format: 'Video Call (Microsoft Teams)',
+    interview_duration: '45 minutes',
+    interviewer_names: 'Simon Valentine, Sarah Chen',
+    interview_location: 'Microsoft Teams',
+    meeting_link: '#',
+    confirm_url: '#',
+    reschedule_url: '#',
+    feedback_url: '#',
+    application_portal_url: '#',
+    website_url: '#',
+    accept_offer_url: '#',
+    discuss_offer_url: '#',
+    talent_network_url: '#',
+    careers_url: '#',
+    salary: candidate.salary || 'As discussed',
+    start_date: formatDate(new Date(Date.now() + 30 * 86400000)),
+    manager_name: 'Sarah Chen',
+    response_deadline: formatDate(new Date(Date.now() + 5 * 86400000)),
+    unsubscribe_url: '#',
+    privacy_url: '#'
+  };
+
+  let html = buildEmailHTML(templateId, tpl, mergeData);
+  return html;
+}
+
+function buildEmailHTML(templateId, tpl, data) {
+  // Generate inline email HTML (self-contained, no external dependencies)
+  const font = "-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif";
+  const m = data;
+
+  // Shared header
+  const header = `<tr><td style="background:linear-gradient(135deg,#0f2b46 0%,#1a3a5c 40%,#2563eb 100%);padding:${templateId==='offer'?'40':'32'}px 40px;text-align:center;">
+    <span style="font-family:${font};font-size:22px;font-weight:800;color:#fff;letter-spacing:-.5px;">Acquire<span style="color:#93c5fd;">TP</span></span>
+    ${templateId==='offer'?'<p style="margin:16px 0 0;font-family:'+font+';font-size:32px;font-weight:800;color:#fff;line-height:1.2;">Welcome aboard!</p>':''}
+  </td></tr>`;
+
+  // Shared footer
+  const footer = `<tr><td style="padding:32px 40px 0;"><div style="border-top:1px solid #e2e8f0;"></div></td></tr>
+    <tr><td style="padding:24px 40px 32px;">
+      <p style="margin:0 0 4px;font-family:${font};font-size:13px;color:#94a3b8;text-align:center;line-height:1.6;">
+        Questions? Contact <a href="mailto:careers@acquiretp.com" style="color:#2563eb;text-decoration:none;font-weight:600;">careers@acquiretp.com</a>
+      </p>
+      <p style="margin:0;font-family:${font};font-size:12px;color:#cbd5e1;text-align:center;line-height:1.6;margin-top:16px;">
+        &copy; 2026 Acquire Talent Partners Ltd. All rights reserved.<br>
+        London &bull; New York &bull; Singapore &bull; Frankfurt &bull; Tokyo &bull; Dubai
+      </p>
+    </td></tr>`;
+
+  // Status badge
+  const badge = `<tr><td style="padding:32px 40px 0;text-align:center;">
+    <table role="presentation" cellspacing="0" cellpadding="0" border="0" style="margin:0 auto;">
+      <tr><td style="background-color:${tpl.statusBg};color:${tpl.statusColor};font-family:${font};font-size:13px;font-weight:700;padding:6px 16px;border-radius:20px;text-transform:uppercase;letter-spacing:1px;">${tpl.statusBadge}</td></tr>
+    </table>
+  </td></tr>`;
+
+  // CTA button helper
+  function cta(text, href) {
+    return `<tr><td style="padding:28px 40px 0;text-align:center;">
+      <table role="presentation" cellspacing="0" cellpadding="0" border="0" style="margin:0 auto;">
+        <tr><td style="background-color:#2563eb;border-radius:8px;">
+          <a href="${href||'#'}" style="display:inline-block;padding:14px 36px;font-family:${font};font-size:15px;font-weight:600;color:#fff;text-decoration:none;">${text}</a>
+        </td></tr>
+      </table>
+    </td></tr>`;
+  }
+
+  // Job card
+  const jobCard = `<tr><td style="padding:24px 40px 0;">
+    <table role="presentation" width="100%" style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;">
+      <tr><td style="padding:20px 24px;">
+        <p style="margin:0 0 4px;font-family:${font};font-size:12px;font-weight:700;color:#2563eb;text-transform:uppercase;letter-spacing:1.5px;">Position</p>
+        <p style="margin:0 0 16px;font-family:${font};font-size:17px;font-weight:700;color:#0f2b46;">${m.job_title}</p>
+        <table role="presentation" width="100%"><tr>
+          <td width="50%"><p style="margin:0 0 2px;font-family:${font};font-size:12px;color:#64748b;text-transform:uppercase;letter-spacing:1px;">Location</p><p style="margin:0;font-family:${font};font-size:14px;font-weight:600;color:#1e293b;">${m.location}</p></td>
+          <td width="50%"><p style="margin:0 0 2px;font-family:${font};font-size:12px;color:#64748b;text-transform:uppercase;letter-spacing:1px;">Department</p><p style="margin:0;font-family:${font};font-size:14px;font-weight:600;color:#1e293b;">${m.department}</p></td>
+        </tr></table>
+      </td></tr>
+    </table>
+  </td></tr>`;
+
+  // Progress bar
+  function progressBar(steps) {
+    let bars = '', labels = '';
+    const colors = ['Applied','Review','Interview','Decision'];
+    colors.forEach((l, i) => {
+      const active = i < steps;
+      bars += `<td width="25%" style="padding:2px;"><div style="height:4px;background:${active?'#2563eb':'#e2e8f0'};border-radius:2px;"></div></td>`;
+      labels += `<td style="padding:4px 2px 0;"><p style="margin:0;font-family:${font};font-size:11px;color:${active?'#2563eb':'#94a3b8'};font-weight:600;">${l}</p></td>`;
+    });
+    return `<tr><td style="padding:32px 40px 0;">
+      <p style="margin:0 0 8px;font-family:${font};font-size:12px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:1px;">Your progress</p>
+      <table role="presentation" width="100%"><tr>${bars}</tr><tr>${labels}</tr></table>
+    </td></tr>`;
+  }
+
+  let body = '';
+
+  switch (templateId) {
+    case 'application-received':
+      body = badge + `<tr><td style="padding:28px 40px 0;text-align:center;">
+        <h1 style="margin:0 0 8px;font-family:${font};font-size:24px;font-weight:800;color:#0f2b46;">Thanks for applying, ${m.first_name}!</h1>
+        <p style="margin:0;font-family:${font};font-size:15px;color:#64748b;">We're excited to have received your application.</p>
+      </td></tr>` + jobCard + `<tr><td style="padding:24px 40px 0;">
+        <p style="margin:0 0 16px;font-family:${font};font-size:15px;color:#1e293b;line-height:1.7;">Our recruitment team will carefully review your application and experience. We aim to get back to you within <strong>5 working days</strong> with an update on the next steps.</p>
+      </td></tr>` + cta('View My Application') +
+      `<tr><td style="padding:32px 40px 0;">
+        <p style="margin:0 0 16px;font-family:${font};font-size:14px;font-weight:700;color:#0f2b46;text-transform:uppercase;letter-spacing:1px;">What happens next</p>
+        ${[{n:'1',c:'#2563eb',tc:'#fff',t:'<strong>Application Review</strong> — Our team reviews your CV and cover letter'},
+           {n:'2',c:'#e2e8f0',tc:'#64748b',t:'<strong>Screening Call</strong> — A brief chat with our recruitment team'},
+           {n:'3',c:'#e2e8f0',tc:'#64748b',t:'<strong>Interview</strong> — Meet the hiring manager and the team'},
+           {n:'4',c:'#e2e8f0',tc:'#64748b',t:'<strong>Offer</strong> — We extend a formal offer'}
+          ].map(s => `<table role="presentation" width="100%" style="margin-bottom:12px;"><tr>
+            <td width="32" style="vertical-align:top;padding-top:2px;"><div style="width:24px;height:24px;border-radius:50%;background:${s.c};color:${s.tc};font-family:${font};font-size:12px;font-weight:700;text-align:center;line-height:24px;">${s.n}</div></td>
+            <td style="padding-left:12px;"><p style="margin:0;font-family:${font};font-size:14px;color:${s.tc==='#fff'?'#1e293b':'#64748b'};line-height:1.6;">${s.t}</p></td>
+          </tr></table>`).join('')}
+      </td></tr>`;
+      break;
+
+    case 'under-review':
+      body = badge + `<tr><td style="padding:28px 40px 0;text-align:center;">
+        <h1 style="margin:0 0 8px;font-family:${font};font-size:24px;font-weight:800;color:#0f2b46;">Your application is being reviewed</h1>
+        <p style="margin:0;font-family:${font};font-size:15px;color:#64748b;">Good news, ${m.first_name} — your profile has caught our attention.</p>
+      </td></tr>` + jobCard + `<tr><td style="padding:24px 40px 0;">
+        <p style="margin:0 0 16px;font-family:${font};font-size:15px;color:#1e293b;line-height:1.7;">The hiring manager for the <strong>${m.department}</strong> team is currently reviewing your application alongside other candidates.</p>
+        <p style="margin:0;font-family:${font};font-size:15px;color:#1e293b;line-height:1.7;">We expect to have an update for you by <strong>${m.expected_update_date}</strong>.</p>
+      </td></tr>` + cta('Check Application Status') + progressBar(2);
+      break;
+
+    case 'interview-invitation':
+      body = badge + `<tr><td style="padding:28px 40px 0;text-align:center;">
+        <h1 style="margin:0 0 8px;font-family:${font};font-size:24px;font-weight:800;color:#0f2b46;">You've been invited to interview!</h1>
+        <p style="margin:0;font-family:${font};font-size:15px;color:#64748b;">Congratulations ${m.first_name}, we'd love to learn more about you.</p>
+      </td></tr>
+      <tr><td style="padding:24px 40px 0;">
+        <table role="presentation" width="100%" style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;">
+          <tr><td style="padding:24px;">
+            <p style="margin:0 0 4px;font-family:${font};font-size:12px;font-weight:700;color:#2563eb;text-transform:uppercase;letter-spacing:1.5px;">Interview Details</p>
+            <p style="margin:0 0 20px;font-family:${font};font-size:17px;font-weight:700;color:#0f2b46;">${m.job_title}</p>
+            <table role="presentation" width="100%" style="margin-bottom:16px;"><tr>
+              <td width="50%"><p style="margin:0 0 2px;font-family:${font};font-size:12px;color:#64748b;text-transform:uppercase;letter-spacing:1px;">&#128197; Date</p><p style="margin:0;font-family:${font};font-size:15px;font-weight:600;color:#1e293b;">${m.interview_date}</p></td>
+              <td width="50%"><p style="margin:0 0 2px;font-family:${font};font-size:12px;color:#64748b;text-transform:uppercase;letter-spacing:1px;">&#128336; Time</p><p style="margin:0;font-family:${font};font-size:15px;font-weight:600;color:#1e293b;">${m.interview_time} (${m.timezone})</p></td>
+            </tr></table>
+            <table role="presentation" width="100%" style="margin-bottom:16px;"><tr>
+              <td width="50%"><p style="margin:0 0 2px;font-family:${font};font-size:12px;color:#64748b;text-transform:uppercase;letter-spacing:1px;">&#128187; Format</p><p style="margin:0;font-family:${font};font-size:15px;font-weight:600;color:#1e293b;">${m.interview_format}</p></td>
+              <td width="50%"><p style="margin:0 0 2px;font-family:${font};font-size:12px;color:#64748b;text-transform:uppercase;letter-spacing:1px;">&#9200; Duration</p><p style="margin:0;font-family:${font};font-size:15px;font-weight:600;color:#1e293b;">${m.interview_duration}</p></td>
+            </tr></table>
+            <p style="margin:0 0 2px;font-family:${font};font-size:12px;color:#64748b;text-transform:uppercase;letter-spacing:1px;">&#128100; Interviewer(s)</p>
+            <p style="margin:0;font-family:${font};font-size:15px;font-weight:600;color:#1e293b;">${m.interviewer_names}</p>
+          </td></tr>
+        </table>
+      </td></tr>` +
+      `<tr><td style="padding:28px 40px 0;text-align:center;">
+        <table role="presentation" style="margin:0 auto;"><tr>
+          <td style="background:#2563eb;border-radius:8px;"><a href="#" style="display:inline-block;padding:14px 32px;font-family:${font};font-size:15px;font-weight:600;color:#fff;text-decoration:none;">Confirm Interview</a></td>
+          <td width="12"></td>
+          <td style="border:2px solid #2563eb;border-radius:8px;"><a href="#" style="display:inline-block;padding:12px 24px;font-family:${font};font-size:15px;font-weight:600;color:#2563eb;text-decoration:none;">Reschedule</a></td>
+        </tr></table>
+      </td></tr>` +
+      `<tr><td style="padding:32px 40px 0;">
+        <p style="margin:0 0 16px;font-family:${font};font-size:14px;font-weight:700;color:#0f2b46;text-transform:uppercase;letter-spacing:1px;">How to prepare</p>
+        ${['&#128218; Review the job description and think about how your experience aligns',
+           '&#127760; Familiarise yourself with Acquire Talent Partners',
+           '&#128172; Prepare 2–3 questions you\'d like to ask about the role or team',
+           '&#128187; If it\'s a video call, test your camera and mic beforehand'
+          ].map(tip => `<table role="presentation" width="100%" style="margin-bottom:10px;"><tr>
+            <td width="28" style="vertical-align:top;padding-top:1px;font-size:16px;">${tip.substring(0,tip.indexOf(' '))}</td>
+            <td style="padding-left:8px;"><p style="margin:0;font-family:${font};font-size:14px;color:#1e293b;line-height:1.6;">${tip.substring(tip.indexOf(' ')+1)}</p></td>
+          </tr></table>`).join('')}
+      </td></tr>`;
+      break;
+
+    case 'interview-reminder':
+      body = `<tr><td style="padding:32px 40px 0;text-align:center;">
+        <table role="presentation" width="100%" style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:8px;">
+          <tr><td style="padding:20px 24px;text-align:center;">
+            <p style="margin:0 0 4px;font-family:${font};font-size:12px;font-weight:700;color:#2563eb;text-transform:uppercase;letter-spacing:1.5px;">&#9200; Interview Tomorrow</p>
+            <p style="margin:0;font-family:${font};font-size:28px;font-weight:800;color:#0f2b46;">${m.interview_date}</p>
+            <p style="margin:4px 0 0;font-family:${font};font-size:16px;font-weight:600;color:#2563eb;">${m.interview_time} (${m.timezone})</p>
+          </td></tr>
+        </table>
+      </td></tr>
+      <tr><td style="padding:24px 40px 0;">
+        <p style="margin:0;font-family:${font};font-size:15px;color:#1e293b;line-height:1.7;">Hi ${m.first_name}, just a friendly reminder that your interview for <strong>${m.job_title}</strong> is coming up.</p>
+      </td></tr>` + cta('Join Meeting Link') +
+      `<tr><td style="padding:28px 40px 0;">
+        <table role="presentation" width="100%" style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:8px;">
+          <tr><td style="padding:20px 24px;">
+            <p style="margin:0 0 12px;font-family:${font};font-size:13px;font-weight:700;color:#166534;text-transform:uppercase;letter-spacing:1px;">Quick Checklist</p>
+            ${['Test your camera and microphone','Find a quiet, well-lit space','Have a copy of your CV to hand','Prepare your questions for the interviewer'].map(item =>
+              `<p style="margin:0 0 6px;font-family:${font};font-size:14px;color:#1e293b;line-height:1.6;">&#9744; ${item}</p>`
+            ).join('')}
+          </td></tr>
+        </table>
+      </td></tr>`;
+      break;
+
+    case 'post-interview':
+      body = badge + `<tr><td style="padding:28px 40px 0;text-align:center;">
+        <h1 style="margin:0 0 8px;font-family:${font};font-size:24px;font-weight:800;color:#0f2b46;">Thank you, ${m.first_name}!</h1>
+        <p style="margin:0;font-family:${font};font-size:15px;color:#64748b;">We really enjoyed meeting you.</p>
+      </td></tr>
+      <tr><td style="padding:24px 40px 0;">
+        <p style="margin:0 0 16px;font-family:${font};font-size:15px;color:#1e293b;line-height:1.7;">Thank you for taking the time to speak with us about the <strong>${m.job_title}</strong> role. We appreciate your thoughtful responses.</p>
+        <p style="margin:0;font-family:${font};font-size:15px;color:#1e293b;line-height:1.7;">We expect to have a decision by <strong>${m.decision_date}</strong>.</p>
+      </td></tr>` + progressBar(3) +
+      `<tr><td style="padding:28px 40px 0;">
+        <table role="presentation" width="100%" style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;">
+          <tr><td style="padding:20px 24px;text-align:center;">
+            <p style="margin:0 0 8px;font-family:${font};font-size:14px;font-weight:700;color:#0f2b46;">How was your interview experience?</p>
+            <p style="margin:0 0 16px;font-family:${font};font-size:13px;color:#64748b;">Your feedback helps us improve.</p>
+            <table role="presentation" style="margin:0 auto;"><tr>
+              <td style="background:#2563eb;border-radius:8px;"><a href="#" style="display:inline-block;padding:10px 24px;font-family:${font};font-size:14px;font-weight:600;color:#fff;text-decoration:none;">Share Feedback</a></td>
+            </tr></table>
+          </td></tr>
+        </table>
+      </td></tr>`;
+      break;
+
+    case 'offer':
+      body = badge + `<tr><td style="padding:28px 40px 0;">
+        <p style="margin:0 0 16px;font-family:${font};font-size:15px;color:#1e293b;line-height:1.7;">Dear ${m.first_name},</p>
+        <p style="margin:0 0 16px;font-family:${font};font-size:15px;color:#1e293b;line-height:1.7;">On behalf of the entire team, I'm delighted to offer you the position of <strong>${m.job_title}</strong> at Acquire Talent Partners.</p>
+      </td></tr>
+      <tr><td style="padding:24px 40px 0;">
+        <table role="presentation" width="100%" style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;">
+          <tr><td style="padding:24px;">
+            <p style="margin:0 0 16px;font-family:${font};font-size:12px;font-weight:700;color:#2563eb;text-transform:uppercase;letter-spacing:1.5px;">Offer Summary</p>
+            <table role="presentation" width="100%" style="margin-bottom:16px;"><tr>
+              <td width="50%"><p style="margin:0 0 2px;font-family:${font};font-size:12px;color:#64748b;text-transform:uppercase;letter-spacing:1px;">Role</p><p style="margin:0;font-family:${font};font-size:15px;font-weight:600;color:#1e293b;">${m.job_title}</p></td>
+              <td width="50%"><p style="margin:0 0 2px;font-family:${font};font-size:12px;color:#64748b;text-transform:uppercase;letter-spacing:1px;">Department</p><p style="margin:0;font-family:${font};font-size:15px;font-weight:600;color:#1e293b;">${m.department}</p></td>
+            </tr></table>
+            <table role="presentation" width="100%" style="margin-bottom:16px;"><tr>
+              <td width="50%"><p style="margin:0 0 2px;font-family:${font};font-size:12px;color:#64748b;text-transform:uppercase;letter-spacing:1px;">Location</p><p style="margin:0;font-family:${font};font-size:15px;font-weight:600;color:#1e293b;">${m.location}</p></td>
+              <td width="50%"><p style="margin:0 0 2px;font-family:${font};font-size:12px;color:#64748b;text-transform:uppercase;letter-spacing:1px;">Start Date</p><p style="margin:0;font-family:${font};font-size:15px;font-weight:600;color:#1e293b;">${m.start_date}</p></td>
+            </tr></table>
+            <table role="presentation" width="100%"><tr>
+              <td width="50%"><p style="margin:0 0 2px;font-family:${font};font-size:12px;color:#64748b;text-transform:uppercase;letter-spacing:1px;">Salary</p><p style="margin:0;font-family:${font};font-size:15px;font-weight:600;color:#1e293b;">${m.salary}</p></td>
+              <td width="50%"><p style="margin:0 0 2px;font-family:${font};font-size:12px;color:#64748b;text-transform:uppercase;letter-spacing:1px;">Reports To</p><p style="margin:0;font-family:${font};font-size:15px;font-weight:600;color:#1e293b;">${m.manager_name}</p></td>
+            </tr></table>
+          </td></tr>
+        </table>
+      </td></tr>
+      <tr><td style="padding:24px 40px 0;">
+        <p style="margin:0;font-family:${font};font-size:15px;color:#1e293b;line-height:1.7;">Please confirm your acceptance by <strong>${m.response_deadline}</strong>.</p>
+      </td></tr>` +
+      `<tr><td style="padding:28px 40px 0;text-align:center;">
+        <table role="presentation" style="margin:0 auto;"><tr>
+          <td style="background:#2563eb;border-radius:8px;"><a href="#" style="display:inline-block;padding:14px 36px;font-family:${font};font-size:15px;font-weight:600;color:#fff;text-decoration:none;">Accept Offer</a></td>
+          <td width="12"></td>
+          <td style="border:2px solid #e2e8f0;border-radius:8px;"><a href="#" style="display:inline-block;padding:12px 24px;font-family:${font};font-size:15px;font-weight:600;color:#64748b;text-decoration:none;">Discuss Offer</a></td>
+        </tr></table>
+      </td></tr>`;
+      break;
+
+    case 'rejection':
+      body = `<tr><td style="padding:36px 40px 0;">
+        <h1 style="margin:0 0 20px;font-family:${font};font-size:24px;font-weight:800;color:#0f2b46;">Thank you for your interest, ${m.first_name}</h1>
+        <p style="margin:0 0 16px;font-family:${font};font-size:15px;color:#1e293b;line-height:1.7;">Thank you for taking the time to apply for the <strong>${m.job_title}</strong> position. We truly appreciate the effort you put into your application.</p>
+        <p style="margin:0 0 16px;font-family:${font};font-size:15px;color:#1e293b;line-height:1.7;">After careful consideration, we've decided to move forward with another candidate whose experience more closely aligns with the specific requirements of this role.</p>
+        <p style="margin:0;font-family:${font};font-size:15px;color:#1e293b;line-height:1.7;">We'd love to keep your details on file for future opportunities.</p>
+      </td></tr>
+      <tr><td style="padding:28px 40px 0;">
+        <table role="presentation" width="100%" style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;">
+          <tr><td style="padding:24px;text-align:center;">
+            <p style="margin:0 0 8px;font-family:${font};font-size:16px;font-weight:700;color:#0f2b46;">Stay connected</p>
+            <p style="margin:0 0 20px;font-family:${font};font-size:14px;color:#64748b;line-height:1.6;">We regularly open new positions. Join our talent network.</p>
+            <table role="presentation" style="margin:0 auto;"><tr>
+              <td style="background:#2563eb;border-radius:8px;"><a href="#" style="display:inline-block;padding:12px 28px;font-family:${font};font-size:14px;font-weight:600;color:#fff;text-decoration:none;">Join Talent Network</a></td>
+              <td width="12"></td>
+              <td style="border:2px solid #2563eb;border-radius:8px;"><a href="#" style="display:inline-block;padding:10px 20px;font-family:${font};font-size:14px;font-weight:600;color:#2563eb;text-decoration:none;">View Open Roles</a></td>
+            </tr></table>
+          </td></tr>
+        </table>
+      </td></tr>`;
+      break;
+  }
+
+  // Wrap in full email HTML document
+  return `<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"></head>
+    <body style="margin:0;padding:0;background:#f1f5f9;">
+    <center><table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="background:#f1f5f9;">
+    <tr><td style="padding:40px 10px;">
+      <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="600" style="margin:0 auto;background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,.08),0 4px 12px rgba(0,0,0,.04);">
+        ${header}${body}${footer}
+      </table>
+    </td></tr></table></center></body></html>`;
+}
+
+// Show email preview modal
+function previewEmail(templateId, candidateId, opts) {
+  opts = opts || {};
+  const c = candidates.find(x => x.id === candidateId);
+  const tpl = emailTemplates.find(t => t.id === templateId);
+  if (!c || !tpl) return;
+
+  const html = generateEmailHTML(templateId, c);
+  const subject = tpl.subject.replace(/\{\{first_name\}\}/g, c.firstName).replace(/\{\{job_title\}\}/g, c.job);
+
+  document.getElementById('emailModalTitle').textContent = tpl.name;
+
+  // Meta info
+  document.getElementById('emailModalMeta').innerHTML = `
+    <div class="email-meta-row"><span class="email-meta-label">To</span><span class="email-meta-value">${c.firstName} ${c.lastName} &lt;${c.email}&gt;</span></div>
+    <div class="email-meta-row"><span class="email-meta-label">From</span><span class="email-meta-value">Acquire Talent Partners &lt;careers@acquiretp.com&gt;</span></div>
+    <div class="email-meta-row"><span class="email-meta-label">Subject</span><span class="email-meta-value" style="font-weight:600">${subject}</span></div>
+  `;
+
+  // Write HTML to iframe
+  const iframe = document.getElementById('emailPreviewFrame');
+  iframe.srcdoc = html;
+
+  // Footer buttons
+  const alreadySent = getEmailLog(candidateId).some(e => e.templateId === templateId);
+  let footerHTML = '';
+  if (opts.justSent) {
+    footerHTML = `<div class="email-status-sent"><div class="checkmark">&#10003;</div> Email sent successfully</div>`;
+  } else if (alreadySent) {
+    footerHTML = `<div class="email-status-sent"><div class="checkmark">&#10003;</div> Already sent</div>`;
+  }
+  footerHTML += `<div style="display:flex;gap:10px;">
+    <button class="btn btn-secondary" onclick="closeEmailModal()">Close</button>
+    ${!opts.justSent ? `<button class="btn btn-primary" onclick="sendEmail('${templateId}','${candidateId}')">&#9993; Send Email</button>` : ''}
+  </div>`;
+  document.getElementById('emailModalFooter').innerHTML = footerHTML;
+
+  document.getElementById('emailModalOverlay').classList.add('open');
+}
+
+function closeEmailModal() {
+  document.getElementById('emailModalOverlay').classList.remove('open');
+}
+
+function sendEmail(templateId, candidateId) {
+  const c = candidates.find(x => x.id === candidateId);
+  const tpl = emailTemplates.find(t => t.id === templateId);
+  if (!c || !tpl) return;
+
+  const subject = tpl.subject.replace(/\{\{first_name\}\}/g, c.firstName).replace(/\{\{job_title\}\}/g, c.job);
+
+  // Log the email
+  getEmailLog(candidateId).push({
+    templateId: templateId,
+    templateName: tpl.name,
+    subject: subject,
+    sentAt: new Date(),
+    status: 'sent'
+  });
+
+  // Add to candidate timeline
+  c.timeline.push({ action: `Email sent: ${tpl.name}`, date: new Date() });
+
+  // Show success state
+  previewEmail(templateId, candidateId, { justSent: true });
+
+  // Refresh drawer if open
+  if (document.getElementById('candidateDrawer').classList.contains('open')) {
+    setTimeout(() => openDrawer(candidateId), 100);
+  }
+  render();
+}
+
+// Auto-trigger email on status change
+function triggerEmailForStatus(candidateId, newStatus) {
+  const tpl = emailTemplates.find(t => t.triggerStatus === newStatus);
+  if (!tpl) return;
+  // Show the email preview ready to send
+  setTimeout(() => previewEmail(tpl.id, candidateId), 300);
+}
+
+// Email Templates view
+function renderEmailTemplatesPage() {
+  let html = '<div style="margin-bottom:24px;"><h2 style="font-size:1.1rem;font-weight:700;margin-bottom:4px;">Email Templates</h2><p style="font-size:.88rem;color:var(--text-light);">Preview and manage candidate email notifications. Auto-triggered emails are sent when a candidate\'s status changes.</p></div>';
+
+  html += '<div class="email-templates-grid">';
+  emailTemplates.forEach(tpl => {
+    // Generate a sample preview
+    const sampleCandidate = { firstName:'Alex', lastName:'Johnson', email:'alex.johnson@email.com', job:'Senior Software Engineer', location:'London, UK', department:'Engineering', salary:'£90K–110K', notice:'1 month', experience:'6–10 years', visa:'Yes — right to work' };
+    const previewHTML = generateEmailHTML(tpl.id, sampleCandidate);
+
+    html += `<div class="email-tpl-card" onclick="previewTemplateOnly('${tpl.id}')">
+      <div class="email-tpl-preview">
+        <iframe srcdoc="${previewHTML.replace(/"/g, '&quot;')}" sandbox="allow-same-origin"></iframe>
+      </div>
+      <div class="email-tpl-info">
+        <h4>${tpl.name}</h4>
+        <p>${tpl.description}</p>
+        <span class="tpl-trigger ${tpl.trigger}">${tpl.trigger === 'auto' ? '&#9889; Auto-triggered' : '&#9998; Manual send'}</span>
+      </div>
+    </div>`;
+  });
+  html += '</div>';
+  return html;
+}
+
+function previewTemplateOnly(templateId) {
+  const tpl = emailTemplates.find(t => t.id === templateId);
+  if (!tpl) return;
+  const sampleCandidate = { id:'SAMPLE', firstName:'Alex', lastName:'Johnson', email:'alex.johnson@email.com', job:'Senior Software Engineer — Cloud Platform', location:'London, UK', department:'Engineering', salary:'£90K–110K', notice:'1 month', experience:'6–10 years', visa:'Yes — right to work' };
+  const html = generateEmailHTML(templateId, sampleCandidate);
+  const subject = tpl.subject.replace(/\{\{first_name\}\}/g, 'Alex').replace(/\{\{job_title\}\}/g, 'Senior Software Engineer — Cloud Platform');
+
+  document.getElementById('emailModalTitle').textContent = tpl.name + ' (Preview)';
+  document.getElementById('emailModalMeta').innerHTML = `
+    <div class="email-meta-row"><span class="email-meta-label">To</span><span class="email-meta-value" style="color:var(--text-xs);font-style:italic;">Sample candidate — Alex Johnson &lt;alex.johnson@email.com&gt;</span></div>
+    <div class="email-meta-row"><span class="email-meta-label">From</span><span class="email-meta-value">Acquire Talent Partners &lt;careers@acquiretp.com&gt;</span></div>
+    <div class="email-meta-row"><span class="email-meta-label">Subject</span><span class="email-meta-value" style="font-weight:600">${subject}</span></div>
+    <div class="email-meta-row"><span class="email-meta-label">Trigger</span><span class="email-meta-value">${tpl.trigger === 'auto' ? '&#9889; Automatically sent when status changes to <strong>' + (tpl.triggerStatus ? statusLabels[tpl.triggerStatus] || tpl.triggerStatus : 'N/A') + '</strong>' : '&#9998; Manually triggered by recruiter'}</span></div>
+  `;
+  document.getElementById('emailPreviewFrame').srcdoc = html;
+  document.getElementById('emailModalFooter').innerHTML = `<div style="font-size:.85rem;color:var(--text-light);">This is a preview with sample data. Send from a candidate\'s profile.</div><button class="btn btn-secondary" onclick="closeEmailModal()">Close</button>`;
+  document.getElementById('emailModalOverlay').classList.add('open');
+}
 
 // ═══════════ INIT ═══════════
 render();
