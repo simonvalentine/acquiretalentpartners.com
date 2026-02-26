@@ -1525,10 +1525,10 @@ function openEmailModal(candidateId, templateKey) {
 
   document.getElementById('emailModalBody').innerHTML = body;
   document.getElementById('emailModalFooter').innerHTML = `
-    <div class="email-meta">&#128274; Email will be simulated (not actually sent)</div>
+    <div class="email-meta" id="emailFooterStatus">&#9993; Sends from hello@acquiretalentpartners.com</div>
     <div style="display:flex;gap:10px">
       <button class="btn btn-secondary" onclick="closeEmailModal()">Cancel</button>
-      <button class="btn btn-primary" onclick="sendEmail()">&#9993; Send Email</button>
+      <button class="btn btn-primary" id="sendEmailBtn" onclick="sendEmail()">&#9993; Send Email</button>
     </div>
   `;
 
@@ -1552,38 +1552,105 @@ function closeEmailModal() {
   emailSendingTemplate = null;
 }
 
-function sendEmail() {
+async function sendEmail() {
   const c = emailSendingForCandidate;
   if (!c) return;
   const subject = document.getElementById('emailSubject').value;
   const tpl = EMAIL_TEMPLATES[emailSendingTemplate];
   const stage = tpl ? tpl.stage : 'Email';
+  const sendBtn = document.getElementById('sendEmailBtn');
+  const statusEl = document.getElementById('emailFooterStatus');
 
-  // Log the email
-  if (!c._emails) c._emails = [];
-  c._emails.push({
-    stage: stage,
-    subject: subject,
-    date: new Date().toISOString(),
-    template: emailSendingTemplate
-  });
-  c.timeline.push({
-    action: `&#9993; Email sent: "${stage}" to ${c.email}`,
-    date: new Date().toISOString()
-  });
+  // Build the branded HTML email
+  const emailBody = document.getElementById('emailPreviewBody').innerHTML;
+  const fullHTML = buildBrandedEmailHTML(subject, emailBody);
 
-  // Save to localStorage
-  saveATSState();
-  saveEmailLog(c.id, c._emails);
+  // Show sending state
+  sendBtn.disabled = true;
+  sendBtn.innerHTML = '&#9203; Sending...';
+  statusEl.innerHTML = '&#9203; Connecting to email server...';
 
-  closeEmailModal();
-  showToast(`Email "${stage}" sent to ${c.firstName} ${c.lastName}`, 'success');
+  try {
+    const res = await fetch('http://localhost:3001/send-email', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        to: c.email,
+        toName: c.firstName + ' ' + c.lastName,
+        subject: subject,
+        html: fullHTML,
+        templateName: stage
+      })
+    });
+    const data = await res.json();
 
-  // Refresh drawer if open
-  if (document.getElementById('candidateDrawer').classList.contains('open')) {
-    openDrawer(c.id);
+    if (data.success) {
+      // Log the email
+      if (!c._emails) c._emails = [];
+      c._emails.push({
+        stage: stage,
+        subject: subject,
+        date: new Date().toISOString(),
+        template: emailSendingTemplate,
+        messageId: data.messageId,
+        actualSend: true
+      });
+      c.timeline.push({
+        action: `&#9993; Email sent: "${stage}" to ${c.email}`,
+        date: new Date().toISOString()
+      });
+      saveATSState();
+      saveEmailLog(c.id, c._emails);
+
+      statusEl.innerHTML = '<span style="color:#10b981;font-weight:600">&#10003; Email delivered successfully!</span>';
+      sendBtn.innerHTML = '&#10003; Sent';
+      sendBtn.style.background = '#10b981';
+
+      showToast(`Email "${stage}" sent to ${c.firstName} ${c.lastName}`, 'success');
+
+      setTimeout(() => {
+        closeEmailModal();
+        if (document.getElementById('candidateDrawer').classList.contains('open')) {
+          openDrawer(c.id);
+        }
+        render();
+      }, 1500);
+    } else {
+      throw new Error(data.error || 'Send failed');
+    }
+  } catch (err) {
+    console.error('Email send error:', err);
+    statusEl.innerHTML = `<span style="color:#ef4444">&#10060; ${err.message.includes('fetch') ? 'Email server not running. Start it with: node email-server.js' : 'Error: ' + err.message}</span>`;
+    sendBtn.disabled = false;
+    sendBtn.innerHTML = '&#9993; Retry Send';
   }
-  render();
+}
+
+// Build a full branded HTML email wrapper
+function buildBrandedEmailHTML(subject, bodyContent) {
+  return '<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"></head>' +
+  '<body style="margin:0;padding:0;background:#f1f5f9;font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Helvetica,Arial,sans-serif;">' +
+  '<center><table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="background:#f1f5f9;">' +
+  '<tr><td style="padding:40px 10px;">' +
+  '<table role="presentation" cellspacing="0" cellpadding="0" border="0" width="600" style="margin:0 auto;background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,.08),0 4px 12px rgba(0,0,0,.04);">' +
+  // Header
+  '<tr><td style="background:linear-gradient(135deg,#0f2b46 0%,#1a3a5c 40%,#2563eb 100%);padding:32px 40px;text-align:center;">' +
+  '<span style="font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Helvetica,Arial,sans-serif;font-size:22px;font-weight:800;color:#fff;letter-spacing:-.5px;">Acquire<span style="color:#93c5fd;">TP</span></span>' +
+  '</td></tr>' +
+  // Body
+  '<tr><td style="padding:32px 40px;font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Helvetica,Arial,sans-serif;font-size:15px;color:#1e293b;line-height:1.7;">' +
+  bodyContent.replace(/class="ep-highlight"/g, 'style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:16px 20px;margin:16px 0;"')
+             .replace(/class="ep-cta"/g, 'style="display:inline-block;padding:12px 28px;background:#2563eb;color:#fff;border-radius:8px;text-decoration:none;font-weight:600;margin:8px 0;"') +
+  '</td></tr>' +
+  // Footer
+  '<tr><td style="padding:0 40px;"><div style="border-top:1px solid #e2e8f0;"></div></td></tr>' +
+  '<tr><td style="padding:24px 40px 32px;">' +
+  '<p style="margin:0 0 4px;font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Helvetica,Arial,sans-serif;font-size:13px;color:#94a3b8;text-align:center;line-height:1.6;">Acquire Talent Partners &bull; Talent Acquisition Team</p>' +
+  '<p style="margin:0;font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Helvetica,Arial,sans-serif;font-size:12px;color:#cbd5e1;text-align:center;line-height:1.6;">' +
+  'London &bull; New York &bull; Singapore &bull; Frankfurt &bull; Tokyo &bull; Dubai<br>' +
+  '&copy; 2026 Acquire Talent Partners Ltd. All rights reserved.</p>' +
+  '</td></tr>' +
+  '</table></td></tr></table></center></body></html>';
 }
 
 function saveEmailLog(id, emails) {

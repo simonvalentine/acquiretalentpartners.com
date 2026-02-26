@@ -1595,33 +1595,70 @@ function closeEmailModal() {
   document.getElementById('emailModalOverlay').classList.remove('open');
 }
 
-function sendEmail(templateId, candidateId) {
+async function sendEmail(templateId, candidateId) {
   const c = candidates.find(x => x.id === candidateId);
   const tpl = emailTemplates.find(t => t.id === templateId);
   if (!c || !tpl) return;
 
   const subject = tpl.subject.replace(/\{\{first_name\}\}/g, c.firstName).replace(/\{\{job_title\}\}/g, c.job);
+  const htmlBody = generateEmailHTML(templateId, c);
 
-  // Log the email
-  getEmailLog(candidateId).push({
-    templateId: templateId,
-    templateName: tpl.name,
-    subject: subject,
-    sentAt: new Date(),
-    status: 'sent'
-  });
-
-  // Add to candidate timeline
-  c.timeline.push({ action: `Email sent: ${tpl.name}`, date: new Date() });
-
-  // Show success state
-  previewEmail(templateId, candidateId, { justSent: true });
-
-  // Refresh drawer if open
-  if (document.getElementById('candidateDrawer').classList.contains('open')) {
-    setTimeout(() => openDrawer(candidateId), 100);
+  // Show sending state in the modal
+  const modalFooter = document.querySelector('.email-modal-footer');
+  if (modalFooter) {
+    modalFooter.innerHTML = '<span style="color:var(--accent);font-weight:600;">⏳ Sending email to ' + c.email + '...</span>';
   }
-  render();
+
+  try {
+    const res = await fetch('http://localhost:3001/send-email', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        to: c.email,
+        toName: c.firstName + ' ' + c.lastName,
+        subject: subject,
+        html: htmlBody,
+        templateName: tpl.name
+      })
+    });
+
+    const data = await res.json();
+
+    if (data.success) {
+      // Log the email
+      getEmailLog(candidateId).push({
+        templateId: templateId,
+        templateName: tpl.name,
+        subject: subject,
+        sentAt: new Date(),
+        status: 'sent',
+        messageId: data.messageId
+      });
+
+      // Add to candidate timeline
+      c.timeline.push({ action: `Email sent: ${tpl.name}`, date: new Date() });
+
+      // Show success state
+      if (modalFooter) {
+        modalFooter.innerHTML = '<span style="color:#16a34a;font-weight:600;">✅ Email delivered to ' + c.email + '</span>';
+      }
+
+      // Refresh drawer if open
+      if (document.getElementById('candidateDrawer').classList.contains('open')) {
+        setTimeout(() => openDrawer(candidateId), 500);
+      }
+      render();
+    } else {
+      throw new Error(data.error || 'Email send failed');
+    }
+  } catch (err) {
+    console.error('Email send error:', err);
+    if (modalFooter) {
+      modalFooter.innerHTML = '<span style="color:#dc2626;font-weight:600;">❌ Failed to send: ' + err.message + '</span>' +
+        '<br><span style="font-size:.82rem;color:var(--text-light);margin-top:4px;display:inline-block;">Make sure email-server.js is running on port 3001</span>' +
+        '<button onclick="sendEmail(\'' + templateId + '\',\'' + candidateId + '\')" style="margin-left:12px;margin-top:8px;padding:6px 16px;background:var(--accent);color:#fff;border:none;border-radius:6px;cursor:pointer;font-weight:600;">Retry</button>';
+    }
+  }
 }
 
 // Auto-trigger email on status change
