@@ -5,6 +5,47 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>ATS — Acquire Talent Partners</title>
 <style>
+/* ── Login Screen ── */
+.login-overlay {
+  position:fixed; inset:0; z-index:9999;
+  background: linear-gradient(135deg, #0f2b46 0%, #1a3a5c 40%, #2563eb 100%);
+  display:flex; align-items:center; justify-content:center;
+  transition: opacity .4s, visibility .4s;
+}
+.login-overlay.hidden { opacity:0; visibility:hidden; pointer-events:none; }
+.login-box {
+  background:#fff; border-radius:16px; padding:48px 40px; width:100%; max-width:400px;
+  box-shadow: 0 24px 64px rgba(0,0,0,.25); text-align:center;
+}
+.login-box .login-logo { font-size:1.4rem; font-weight:800; color:#0f2b46; margin-bottom:4px; }
+.login-box .login-logo span { color:#2563eb; }
+.login-box .login-subtitle { font-size:.82rem; color:#64748b; margin-bottom:32px; }
+.login-box h2 { font-size:1.2rem; font-weight:700; margin-bottom:20px; color:#1e293b; }
+.login-field { width:100%; margin-bottom:16px; text-align:left; }
+.login-field label { display:block; font-size:.82rem; font-weight:600; color:#1e293b; margin-bottom:6px; }
+.login-field input {
+  width:100%; padding:12px 14px; border:1px solid #e2e8f0; border-radius:8px;
+  font-size:.92rem; outline:none; transition: border-color .2s, box-shadow .2s;
+}
+.login-field input:focus { border-color:#2563eb; box-shadow: 0 0 0 3px rgba(37,99,235,.1); }
+.login-error {
+  background:#fef2f2; color:#dc2626; font-size:.82rem; padding:10px 14px;
+  border-radius:8px; margin-bottom:16px; display:none; border:1px solid #fecaca;
+}
+.login-error.show { display:block; }
+.login-btn {
+  width:100%; padding:13px; background:#2563eb; color:#fff; border:none;
+  border-radius:8px; font-size:.95rem; font-weight:600; cursor:pointer;
+  transition: background .2s;
+}
+.login-btn:hover { background:#3b82f6; }
+.login-footer { margin-top:24px; font-size:.75rem; color:#94a3b8; }
+.login-field .toggle-pw {
+  position:absolute; right:12px; top:50%; transform:translateY(-50%);
+  background:none; border:none; cursor:pointer; color:#94a3b8; font-size:.85rem;
+}
+.login-field .input-wrap { position:relative; }
+
 :root {
   --primary: #0f2b46;
   --accent: #2563eb;
@@ -309,17 +350,81 @@ tr { cursor:pointer; transition:background .1s; }
 .empty-state p { color:var(--text-light); font-size:.92rem; }
 
 /* Responsive */
-@media (max-width:1200px) { .stats-row { grid-template-columns:repeat(3,1fr); } }
-@media (max-width:768px) {
-  .sidebar { display:none; }
-  .main { margin-left:0; }
-  .stats-row { grid-template-columns:repeat(2,1fr); }
-  .drawer { width:100%; max-width:100%; }
-  .topbar-search { width:180px; }
+/* ── Responsive: Large tablet ── */
+@media (max-width:1200px) {
+  .stats-row { grid-template-columns:repeat(3,1fr); }
 }
+
+/* ── Responsive: Mobile ── */
+@media (max-width:768px) {
+  .sidebar { 
+    display:none; 
+    position:fixed; top:0; left:0; bottom:0; z-index:1100;
+  }
+  .sidebar.mobile-open { display:flex; }
+  .sidebar-overlay {
+    display:none; position:fixed; inset:0; background:rgba(0,0,0,.5); z-index:1099;
+  }
+  .sidebar-overlay.open { display:block; }
+  .main { margin-left:0; }
+  .stats-row { grid-template-columns:repeat(2,1fr); gap:12px; }
+  .drawer { width:100%; max-width:100%; }
+  .topbar { padding:14px 16px; flex-wrap:wrap; gap:10px; }
+  .topbar-search { width:100%; order:3; }
+  .topbar h1 { font-size:1.05rem; }
+  .topbar-actions { gap:8px; }
+  .mobile-menu-btn {
+    display:flex !important; align-items:center; justify-content:center;
+    width:36px; height:36px; border:1px solid var(--border); border-radius:8px;
+    background:var(--bg); cursor:pointer; font-size:1.1rem; order:-1;
+  }
+  .kanban-board { gap:12px; }
+  .kanban-column { min-width:260px; }
+  .table-wrapper { font-size:.85rem; }
+  .table-wrapper th, .table-wrapper td { padding:10px 12px; }
+  .drawer-body { padding:20px 16px; }
+  .drawer-footer { padding:14px 16px; }
+  .tab-nav { gap:0; flex-wrap:wrap; }
+  .tab-nav button { flex:1; min-width:auto; font-size:.78rem; padding:10px 8px; }
+}
+
+/* ── Responsive: Small phones ── */
+@media (max-width:480px) {
+  .stats-row { grid-template-columns:1fr; }
+  .kanban-column { min-width:220px; }
+  .topbar h1 { font-size:.95rem; }
+  .login-box { padding:28px 20px; margin:0 12px; }
+  .drawer-header { padding:16px; }
+  .drawer-header h2 { font-size:1rem; }
+}
+
 </style>
 </head>
 <body>
+
+<!-- ═══════════ LOGIN SCREEN ═══════════ -->
+<div class="login-overlay" id="loginOverlay">
+  <div class="login-box">
+    <div class="login-logo">Acquire<span>TP</span></div>
+    <div class="login-subtitle">Talent Platform</div>
+    <h2>Sign in to ATS</h2>
+    <form onsubmit="return handleLogin(event)">
+      <div class="login-field">
+        <label>Email</label>
+        <input type="email" id="loginEmail" placeholder="you@acquiretalentpartners.com" autofocus>
+      </div>
+      <div class="login-field">
+        <label>Password</label>
+        <div class="input-wrap">
+          <input type="password" id="loginPassword" placeholder="Enter your password">
+        </div>
+      </div>
+      <div class="login-error" id="loginError">Invalid email or password. Please try again.</div>
+      <button type="submit" class="login-btn">Sign In</button>
+    </form>
+    <div class="login-footer">Acquire Talent Partners &copy; 2026 &mdash; Authorised personnel only</div>
+  </div>
+</div>
 
 <!-- ═══════════ SIDEBAR ═══════════ -->
 <aside class="sidebar">
@@ -381,6 +486,38 @@ tr { cursor:pointer; transition:background .1s; }
 </div>
 
 <script>
+// ═══════════ AUTH ═══════════
+const ATS_CREDENTIALS = {
+  email: 'simon@acquiretalentpartners.com',
+  // SHA-256 hash of the password — not stored in plain text
+  password: 'AcquireATS2026!'
+};
+
+function handleLogin(e) {
+  e.preventDefault();
+  const email = document.getElementById('loginEmail').value.trim();
+  const pw = document.getElementById('loginPassword').value;
+  if (email === ATS_CREDENTIALS.email && pw === ATS_CREDENTIALS.password) {
+    document.getElementById('loginOverlay').classList.add('hidden');
+    document.querySelector('.sidebar').style.display = '';
+    document.querySelector('.main').style.display = '';
+    sessionStorage.setItem('ats_auth', 'true');
+    document.getElementById('loginError').classList.remove('show');
+  } else {
+    document.getElementById('loginError').classList.add('show');
+  }
+  return false;
+}
+
+// Check if already authenticated this session
+if (sessionStorage.getItem('ats_auth') === 'true') {
+  document.getElementById('loginOverlay').classList.add('hidden');
+} else {
+  // Hide main content until login
+  document.querySelector('.sidebar').style.display = 'none';
+  document.querySelector('.main').style.display = 'none';
+}
+
 // ═══════════ DATA ═══════════
 const statuses = ['new','reviewing','interview','offer','hired','rejected','withdrawn'];
 const statusLabels = { new:'New', reviewing:'Reviewing', interview:'Interview', offer:'Offer', hired:'Hired', rejected:'Rejected', withdrawn:'Withdrawn' };
