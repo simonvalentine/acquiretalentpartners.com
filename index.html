@@ -710,17 +710,19 @@
     border-top: 1px solid var(--border); flex-shrink: 0;
   }
 
-  @media (max-width: 480px) {
-    .chat-window { bottom: 0; right: 0; width: 100%; height: 100vh; max-height: 100vh; border-radius: 0; }
-    .chat-fab { bottom: 16px; right: 16px; }
-  }
 
-  /* ── Responsive ── */
+  /* ── Responsive: Tablet ── */
   @media (max-width: 1024px) {
     .services-grid, .locations-grid, .perks-grid { grid-template-columns: repeat(2, 1fr); }
     .leadership-grid { grid-template-columns: repeat(2, 1fr); }
+    .news-grid, .testimonials-grid { grid-template-columns: repeat(2, 1fr); }
     .footer-grid { grid-template-columns: 1fr 1fr; }
+    .hero h1 { font-size: 2.6rem; }
+    .section-title { font-size: 1.9rem; }
+    section { padding: 72px 20px; }
   }
+
+  /* ── Responsive: Mobile ── */
   @media (max-width: 768px) {
     .nav-links { display: none; }
     .menu-toggle { display: block; }
@@ -728,189 +730,88 @@
       display: flex; flex-direction: column; position: absolute;
       top: 68px; left: 0; right: 0; background: #fff;
       padding: 20px 24px; border-bottom: 1px solid var(--border);
-      box-shadow: var(--shadow);
+      box-shadow: var(--shadow); gap: 4px; z-index: 999;
     }
-    .hero h1 { font-size: 2.2rem; }
+    .nav-links.open li { width: 100%; }
+    .nav-links.open a { display: block; padding: 12px 0; font-size: 1rem; }
+    .nav-links.open .nav-cta { text-align: center; margin: 8px 0 0; display: block; }
+
+    .hero { padding: 120px 20px 72px; }
+    .hero h1 { font-size: 2rem; }
+    .hero p { font-size: 1rem; margin-bottom: 28px; }
     .hero-stats { gap: 24px; }
+    .hero-stat h3 { font-size: 1.8rem; }
+
+    .btn { padding: 12px 24px; font-size: .9rem; }
+    .btn-secondary { margin-left: 0; margin-top: 10px; }
+
+    section { padding: 56px 16px; }
+    .section-title { font-size: 1.7rem; }
+    .section-subtitle { font-size: .95rem; }
+
     .about-grid { grid-template-columns: 1fr; gap: 32px; }
+    .about-image { height: 280px; }
+    .about-facts { grid-template-columns: 1fr 1fr; gap: 12px; }
+
     .services-grid, .news-grid, .testimonials-grid { grid-template-columns: 1fr; }
-    .locations-grid, .perks-grid { grid-template-columns: 1fr; }
-    .leadership-grid { grid-template-columns: repeat(2, 1fr); }
-    .job-card { flex-direction: column; align-items: flex-start; }
-    .footer-grid { grid-template-columns: 1fr; }
-    .footer-bottom { flex-direction: column; text-align: center; }
+    .locations-grid, .perks-grid { grid-template-columns: 1fr 1fr; }
+    .leadership-grid { grid-template-columns: repeat(2, 1fr); gap: 20px; }
+
+    .job-card { flex-direction: column; align-items: flex-start; gap: 12px; }
+
+    .cta-section { padding: 56px 20px; }
+    .cta-section h2 { font-size: 1.7rem; }
+
+    .footer-grid { grid-template-columns: 1fr; gap: 24px; }
+    .footer-bottom { flex-direction: column; text-align: center; gap: 12px; }
     .search-bar { flex-direction: column; }
+    .search-bar input, .search-bar select { width: 100%; }
   }
 
-  /* ── Voice Agent ── */
-  .voice-overlay {
-    position: fixed; inset: 0; z-index: 1100;
-    background: rgba(15,43,70,.85); backdrop-filter: blur(12px);
-    display: flex; align-items: center; justify-content: center;
-    opacity: 0; visibility: hidden; transition: all .35s ease;
-  }
-  .voice-overlay.open { opacity: 1; visibility: visible; }
-  .voice-panel {
-    width: 420px; max-width: calc(100vw - 32px);
-    background: #fff; border-radius: 24px;
-    box-shadow: 0 24px 64px rgba(0,0,0,.25);
-    overflow: hidden; transform: translateY(20px) scale(.95);
-    transition: transform .35s ease;
-    display: flex; flex-direction: column; max-height: 90vh;
-  }
-  .voice-overlay.open .voice-panel { transform: none; }
-  .voice-panel-header {
-    background: linear-gradient(135deg, var(--primary), var(--accent));
-    color: #fff; padding: 24px 24px 20px; position: relative;
-  }
-  .voice-panel-close {
-    position: absolute; top: 16px; right: 16px;
-    background: rgba(255,255,255,.15); border: none; color: #fff;
-    width: 32px; height: 32px; border-radius: 50%; cursor: pointer;
-    font-size: 1.1rem; display: flex; align-items: center; justify-content: center;
-    transition: background .15s;
-  }
-  .voice-panel-close:hover { background: rgba(255,255,255,.3); }
-  .voice-panel-job {
-    font-size: .78rem; opacity: .75; margin-bottom: 4px;
-    display: flex; align-items: center; gap: 6px;
-  }
-  .voice-panel-header h3 { font-size: 1.05rem; font-weight: 700; margin: 0 0 2px; }
-  .voice-panel-header p { font-size: .78rem; opacity: .7; margin: 0; }
+  /* ── Responsive: Small phones ── */
+  @media (max-width: 480px) {
+    .hero { padding: 100px 16px 56px; }
+    .hero h1 { font-size: 1.65rem; line-height: 1.2; }
+    .hero p { font-size: .92rem; }
+    .hero-stats { flex-direction: column; gap: 16px; align-items: center; }
+    .hero-stat h3 { font-size: 1.5rem; }
 
-  .voice-body { padding: 24px; display: flex; flex-direction: column; align-items: center; gap: 16px; }
+    .section-title { font-size: 1.4rem; }
+    section { padding: 44px 14px; }
 
-  /* Mic button */
-  .voice-mic-ring {
-    width: 120px; height: 120px; border-radius: 50%;
-    display: flex; align-items: center; justify-content: center;
-    position: relative;
-  }
-  .voice-mic-ring::before {
-    content: ''; position: absolute; inset: 0; border-radius: 50%;
-    border: 3px solid #e2e8f0; transition: all .3s;
-  }
-  .voice-mic-ring.listening::before {
-    border-color: var(--accent);
-    animation: voicePulseRing 1.5s ease infinite;
-  }
-  .voice-mic-ring.speaking::before {
-    border-color: #10b981;
-    animation: voicePulseRing 1.2s ease infinite;
-  }
-  @keyframes voicePulseRing {
-    0%,100% { transform: scale(1); opacity: 1; }
-    50% { transform: scale(1.12); opacity: .6; }
-  }
-  .voice-mic-btn {
-    width: 80px; height: 80px; border-radius: 50%;
-    background: linear-gradient(135deg, var(--accent), #7c3aed);
-    color: #fff; border: none; cursor: pointer;
-    font-size: 2rem; display: flex; align-items: center; justify-content: center;
-    box-shadow: 0 4px 20px rgba(37,99,235,.3);
-    transition: all .2s; position: relative; z-index: 2;
-  }
-  .voice-mic-btn:hover { transform: scale(1.06); box-shadow: 0 6px 28px rgba(37,99,235,.4); }
-  .voice-mic-btn.listening {
-    background: linear-gradient(135deg, #dc2626, #ef4444);
-    box-shadow: 0 4px 20px rgba(220,38,38,.3);
-    animation: voicePulseMic 1.5s ease infinite;
-  }
-  .voice-mic-btn.speaking {
-    background: linear-gradient(135deg, #059669, #10b981);
-    box-shadow: 0 4px 20px rgba(16,185,129,.3);
-  }
-  @keyframes voicePulseMic {
-    0%,100% { transform: scale(1); }
-    50% { transform: scale(1.05); }
+    .about-image { height: 220px; }
+    .about-image-inner { font-size: 2rem; }
+    .about-facts { grid-template-columns: 1fr; }
+
+    .locations-grid, .perks-grid { grid-template-columns: 1fr; }
+    .leadership-grid { grid-template-columns: 1fr 1fr; }
+    .leader-avatar { width: 90px; height: 90px; font-size: 1.5rem; }
+
+    .service-card { padding: 24px 20px; }
+    .location-card { padding: 20px; }
+
+    .btn { width: 100%; text-align: center; }
+    .btn-secondary { margin-left: 0; }
+
+    .cta-section h2 { font-size: 1.4rem; }
+    .cta-section p { font-size: .92rem; }
+
+    .nav-inner { padding: 0 16px; }
   }
 
-  .voice-status {
-    font-size: .82rem; font-weight: 600; color: var(--text-light);
-    text-align: center; min-height: 20px; transition: color .2s;
+  /* ── Chat widget: mobile ── */
+  @media (max-width: 480px) {
+    .chat-window { bottom: 0; right: 0; width: 100%; height: 100vh; max-height: 100vh; border-radius: 0; }
+    .chat-fab { bottom: 16px; right: 16px; }
   }
-  .voice-status.listening { color: #dc2626; }
-  .voice-status.speaking { color: #059669; }
 
-  /* Waveform bars */
-  .voice-wave {
-    display: flex; align-items: center; justify-content: center; gap: 3px;
-    height: 28px; opacity: 0; transition: opacity .3s;
-  }
-  .voice-wave.active { opacity: 1; }
-  .voice-wave span {
-    width: 3px; border-radius: 3px; background: var(--accent);
-    animation: voiceWave 1s ease-in-out infinite;
-  }
-  .voice-wave span:nth-child(1) { height: 8px; animation-delay: 0s; }
-  .voice-wave span:nth-child(2) { height: 16px; animation-delay: .1s; }
-  .voice-wave span:nth-child(3) { height: 24px; animation-delay: .2s; }
-  .voice-wave span:nth-child(4) { height: 16px; animation-delay: .3s; }
-  .voice-wave span:nth-child(5) { height: 8px; animation-delay: .4s; }
-  .voice-wave span:nth-child(6) { height: 20px; animation-delay: .15s; }
-  .voice-wave span:nth-child(7) { height: 12px; animation-delay: .25s; }
-  @keyframes voiceWave {
-    0%,100% { transform: scaleY(1); }
-    50% { transform: scaleY(2.2); }
-  }
-  .voice-wave.speaking span { background: #10b981; }
-
-  /* Transcript area */
-  .voice-transcript {
-    width: 100%; max-height: 200px; overflow-y: auto;
-    display: flex; flex-direction: column; gap: 10px;
-    padding: 0 4px;
-  }
-  .voice-transcript::-webkit-scrollbar { width: 3px; }
-  .voice-transcript::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 3px; }
-  .vt-bubble {
-    padding: 10px 14px; border-radius: 14px; font-size: .82rem; line-height: 1.55;
-    animation: msgIn .3s ease;
-  }
-  .vt-bubble.user {
-    background: var(--accent); color: #fff; align-self: flex-end;
-    max-width: 85%; border-bottom-right-radius: 4px;
-  }
-  .vt-bubble.bot {
-    background: var(--bg-alt); color: var(--text); align-self: flex-start;
-    max-width: 90%; border-bottom-left-radius: 4px;
-  }
-  .vt-label {
-    font-size: .66rem; color: var(--text-light); margin-bottom: 2px;
-    font-weight: 600; text-transform: uppercase; letter-spacing: .5px;
-  }
-  .vt-label.user { text-align: right; }
-
-  .voice-hint {
-    font-size: .72rem; color: var(--text-light); text-align: center;
-    line-height: 1.5; padding: 0 8px;
-  }
-  .voice-hint strong { color: var(--text); }
-
-  /* Voice button on job cards */
-  .job-voice-btn {
-    display: inline-flex; align-items: center; gap: 5px;
-    padding: 7px 14px; border-radius: 20px;
-    background: linear-gradient(135deg, #7c3aed, #a855f7);
-    color: #fff; border: none; cursor: pointer;
-    font-size: .76rem; font-weight: 600; font-family: inherit;
-    transition: all .15s;
-    box-shadow: 0 2px 8px rgba(124,58,237,.2);
-  }
-  .job-voice-btn:hover { transform: translateY(-1px); box-shadow: 0 4px 16px rgba(124,58,237,.3); }
-
-  /* Voice btn in chat cards */
-  .chat-job-card-btn.voice-btn {
-    background: linear-gradient(135deg, #7c3aed, #a855f7); color: #fff;
-    flex: 0 0 auto; padding: 9px 14px;
-  }
-  .chat-job-card-btn.voice-btn:hover { background: #6d28d9; }
-
+  /* ── Voice agent: mobile ── */
   @media (max-width: 768px) {
     .voice-panel { width: calc(100vw - 24px); border-radius: 20px; }
     .voice-mic-ring { width: 100px; height: 100px; }
     .voice-mic-btn { width: 68px; height: 68px; font-size: 1.6rem; }
   }
+
 </style>
 </head>
 <body>

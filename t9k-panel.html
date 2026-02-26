@@ -349,15 +349,144 @@ tr { cursor:pointer; transition:background .1s; }
 .empty-state .empty-icon { font-size:2.5rem; margin-bottom:12px; }
 .empty-state p { color:var(--text-light); font-size:.92rem; }
 
-/* Responsive */
-@media (max-width:1200px) { .stats-row { grid-template-columns:repeat(3,1fr); } }
-@media (max-width:768px) {
-  .sidebar { display:none; }
-  .main { margin-left:0; }
-  .stats-row { grid-template-columns:repeat(2,1fr); }
-  .drawer { width:100%; max-width:100%; }
-  .topbar-search { width:180px; }
+/* ── Email Modal ── */
+.email-overlay {
+  display:none; position:fixed; inset:0; z-index:300;
+  background:rgba(15,23,42,.5); backdrop-filter:blur(6px);
+  align-items:center; justify-content:center;
 }
+.email-overlay.open { display:flex; }
+.email-modal {
+  background:#fff; border-radius:16px; width:680px; max-width:calc(100vw - 32px);
+  max-height:90vh; display:flex; flex-direction:column;
+  box-shadow:0 24px 64px rgba(0,0,0,.2); animation:slideInRight .25s ease;
+}
+.email-modal-header {
+  padding:20px 24px 16px; border-bottom:1px solid var(--border);
+  display:flex; align-items:center; justify-content:space-between;
+}
+.email-modal-header h3 { font-size:1.05rem; font-weight:700; display:flex; align-items:center; gap:8px; }
+.email-modal-close {
+  background:none; border:none; font-size:1.3rem; cursor:pointer;
+  color:var(--text-light); padding:4px 8px; border-radius:6px; transition:background .15s;
+}
+.email-modal-close:hover { background:var(--bg); }
+.email-modal-body { flex:1; overflow-y:auto; padding:20px 24px; }
+.email-field { margin-bottom:16px; }
+.email-field label {
+  display:block; font-size:.75rem; font-weight:700; color:var(--text-light);
+  text-transform:uppercase; letter-spacing:.6px; margin-bottom:6px;
+}
+.email-field input, .email-field textarea, .email-field select {
+  width:100%; padding:10px 14px; border:1px solid var(--border); border-radius:8px;
+  font-size:.88rem; font-family:inherit; outline:none; transition:border-color .2s;
+}
+.email-field input:focus, .email-field textarea:focus { border-color:var(--accent); }
+.email-field textarea { min-height:180px; line-height:1.7; resize:vertical; }
+.email-field .email-to {
+  background:var(--bg); font-weight:500; cursor:default;
+}
+.email-preview-box {
+  background:var(--bg); border:1px solid var(--border); border-radius:10px;
+  padding:24px; font-size:.88rem; line-height:1.8;
+}
+.email-preview-box .ep-logo {
+  font-size:1.1rem; font-weight:800; color:var(--primary); margin-bottom:16px;
+  padding-bottom:12px; border-bottom:2px solid var(--accent);
+}
+.email-preview-box .ep-logo span { color:var(--accent); }
+.email-preview-box .ep-subject {
+  font-size:1rem; font-weight:700; color:var(--primary); margin-bottom:12px;
+}
+.email-preview-box .ep-body { color:var(--text); }
+.email-preview-box .ep-body p { margin-bottom:10px; }
+.email-preview-box .ep-body .ep-highlight {
+  background:var(--accent-bg); border-left:3px solid var(--accent);
+  padding:12px 16px; border-radius:0 8px 8px 0; margin:14px 0;
+}
+.email-preview-box .ep-body .ep-cta {
+  display:inline-block; padding:10px 24px; background:var(--accent); color:#fff;
+  border-radius:8px; font-weight:600; text-decoration:none; margin:10px 0;
+}
+.email-preview-box .ep-footer {
+  margin-top:20px; padding-top:14px; border-top:1px solid var(--border);
+  font-size:.78rem; color:var(--text-light);
+}
+.email-modal-footer {
+  padding:16px 24px; border-top:1px solid var(--border);
+  display:flex; gap:10px; justify-content:space-between; align-items:center;
+}
+.email-modal-footer .email-meta {
+  font-size:.78rem; color:var(--text-xs); display:flex; align-items:center; gap:6px;
+}
+.email-sent-list {
+  display:flex; flex-direction:column; gap:8px; margin-top:12px;
+}
+.email-sent-item {
+  background:var(--accent-bg); border:1px solid #bfdbfe; border-radius:8px;
+  padding:10px 14px; font-size:.82rem; display:flex; align-items:center; gap:10px;
+}
+.email-sent-item .esi-icon { font-size:1.1rem; }
+.email-sent-item .esi-info { flex:1; }
+.email-sent-item .esi-info strong { display:block; font-size:.82rem; color:var(--primary); }
+.email-sent-item .esi-info span { font-size:.72rem; color:var(--text-light); }
+.email-toggle { display:flex; gap:4px; margin-bottom:16px; }
+.email-toggle-btn {
+  padding:7px 14px; border-radius:6px; border:1px solid var(--border);
+  background:var(--bg-white); font-size:.8rem; font-weight:500; cursor:pointer;
+  color:var(--text-light); transition:all .15s;
+}
+.email-toggle-btn.active { background:var(--accent); color:#fff; border-color:var(--accent); }
+
+/* Responsive */
+/* ── Responsive: Large tablet ── */
+@media (max-width:1200px) {
+  .stats-row { grid-template-columns:repeat(3,1fr); }
+}
+
+/* ── Responsive: Mobile ── */
+@media (max-width:768px) {
+  .sidebar { 
+    display:none; 
+    position:fixed; top:0; left:0; bottom:0; z-index:1100;
+  }
+  .sidebar.mobile-open { display:flex; }
+  .sidebar-overlay {
+    display:none; position:fixed; inset:0; background:rgba(0,0,0,.5); z-index:1099;
+  }
+  .sidebar-overlay.open { display:block; }
+  .main { margin-left:0; }
+  .stats-row { grid-template-columns:repeat(2,1fr); gap:12px; }
+  .drawer { width:100%; max-width:100%; }
+  .topbar { padding:14px 16px; flex-wrap:wrap; gap:10px; }
+  .topbar-search { width:100%; order:3; }
+  .topbar h1 { font-size:1.05rem; }
+  .topbar-actions { gap:8px; }
+  .mobile-menu-btn {
+    display:flex !important; align-items:center; justify-content:center;
+    width:36px; height:36px; border:1px solid var(--border); border-radius:8px;
+    background:var(--bg); cursor:pointer; font-size:1.1rem; order:-1;
+  }
+  .kanban-board { gap:12px; }
+  .kanban-column { min-width:260px; }
+  .table-wrapper { font-size:.85rem; }
+  .table-wrapper th, .table-wrapper td { padding:10px 12px; }
+  .drawer-body { padding:20px 16px; }
+  .drawer-footer { padding:14px 16px; }
+  .tab-nav { gap:0; flex-wrap:wrap; }
+  .tab-nav button { flex:1; min-width:auto; font-size:.78rem; padding:10px 8px; }
+}
+
+/* ── Responsive: Small phones ── */
+@media (max-width:480px) {
+  .stats-row { grid-template-columns:1fr; }
+  .kanban-column { min-width:220px; }
+  .topbar h1 { font-size:.95rem; }
+  .login-box { padding:28px 20px; margin:0 12px; }
+  .drawer-header { padding:16px; }
+  .drawer-header h2 { font-size:1rem; }
+}
+
 </style>
 </head>
 <body>
@@ -399,7 +528,7 @@ tr { cursor:pointer; transition:background .1s; }
     <a href="#" onclick="setView('candidates')"><span class="icon">&#128100;</span> All Candidates <span id="newAppBadge" style="background:#ef4444;color:#fff;font-size:.65rem;padding:2px 7px;border-radius:10px;margin-left:auto;display:none"></span></a>
     <div class="section-label">Manage</div>
     <a href="#" onclick="setView('jobs')"><span class="icon">&#128188;</span> Jobs</a>
-    <a href="#"><span class="icon">&#128197;</span> Interviews</a>
+    <a href="#" onclick="setView('emails')"><span class="icon">&#9993;</span> Emails</a>
     <a href="#" onclick="exportCSV()"><span class="icon">&#128229;</span> Export CSV</a>
     <div class="section-label">Settings</div>
     <a href="#" onclick="toggleDemoData()"><span class="icon">&#128202;</span> <span id="demoToggleLabel">Hide Demo Data</span></a>
@@ -443,6 +572,18 @@ tr { cursor:pointer; transition:background .1s; }
   </div>
   <div class="drawer-body" id="drawerBody"></div>
   <div class="drawer-footer" id="drawerFooter"></div>
+</div>
+
+<!-- ═══════════ EMAIL PREVIEW MODAL ═══════════ -->
+<div class="email-overlay" id="emailOverlay" onclick="if(event.target===this)closeEmailModal()">
+  <div class="email-modal">
+    <div class="email-modal-header">
+      <h3>&#9993; <span id="emailModalTitle">Send Email</span></h3>
+      <button class="email-modal-close" onclick="closeEmailModal()">&times;</button>
+    </div>
+    <div class="email-modal-body" id="emailModalBody"></div>
+    <div class="email-modal-footer" id="emailModalFooter"></div>
+  </div>
 </div>
 
 <script>
@@ -519,11 +660,10 @@ function loadATSState() {
 }
 function saveATSState() {
   try {
-    // Save modifications for real candidates (status, rating, notes, timeline changes)
     const mods = {};
     candidates.forEach(c => {
       if (c._real) {
-        mods[c.id] = { status:c.status, rating:c.rating, notes:c.notes, timeline:c.timeline };
+        mods[c.id] = { status:c.status, rating:c.rating, notes:c.notes, timeline:c.timeline, _emails:c._emails||[] };
       }
     });
     localStorage.setItem(ATS_STORE_KEY, JSON.stringify(mods));
@@ -668,7 +808,7 @@ const pageSize = 20;
 function setView(view) {
   currentView = view;
   document.querySelectorAll('.sidebar-nav a').forEach(a => a.classList.remove('active'));
-  const labels = { dashboard:'Dashboard', pipeline:'Pipeline', candidates:'All Candidates', jobs:'Open Jobs' };
+  const labels = { dashboard:'Dashboard', pipeline:'Pipeline', candidates:'All Candidates', jobs:'Open Jobs', emails:'Email Notifications' };
   if(event && event.target) event.target.closest('a').classList.add('active');
   document.getElementById('pageTitle').textContent = labels[view] || 'Dashboard';
   statusFilter = '';
@@ -683,6 +823,7 @@ function render() {
   else if (currentView === 'pipeline') el.innerHTML = renderPipeline();
   else if (currentView === 'candidates') el.innerHTML = renderCandidateList();
   else if (currentView === 'jobs') el.innerHTML = renderJobsView();
+  else if (currentView === 'emails') el.innerHTML = renderEmailsView();
   bindEvents();
   updateNewBadge();
 }
@@ -1016,10 +1157,29 @@ function openDrawer(id) {
     </div>
   </div>`;
 
+  // Load email history
+  if (!c._emails) c._emails = loadEmailLog(c.id);
+
+  // Email history section
+  if (c._emails && c._emails.length > 0) {
+    body += `<div class="d-section">
+      <div class="d-section-title">&#9993; Emails Sent</div>
+      <div class="email-sent-list">`;
+    c._emails.sort((a,b) => new Date(b.date) - new Date(a.date)).forEach(e => {
+      body += `<div class="email-sent-item">
+        <div class="esi-icon">&#9993;</div>
+        <div class="esi-info"><strong>${e.stage}</strong><span>${e.subject} — ${formatDateTime(e.date)}</span></div>
+      </div>`;
+    });
+    body += '</div></div>';
+  }
+
   document.getElementById('drawerBody').innerHTML = body;
 
   // Footer actions
+  const emailTemplate = getEmailForStatus(c.status);
   let footer = `<button class="btn btn-secondary" onclick="closeDrawer()">Close</button>`;
+  if (emailTemplate) footer += `<button class="btn btn-secondary" onclick="openEmailModal('${c.id}','${emailTemplate}')" style="display:flex;align-items:center;gap:4px">&#9993; Send Email</button>`;
   if (c.status === 'new') footer += `<button class="btn btn-primary" onclick="updateStatus('${c.id}','reviewing');openDrawer('${c.id}')">Start Review</button>`;
   if (c.status === 'reviewing') footer += `<button class="btn btn-primary" onclick="updateStatus('${c.id}','interview');openDrawer('${c.id}')">Schedule Interview</button>`;
   if (c.status === 'interview') footer += `<button class="btn btn-success" onclick="updateStatus('${c.id}','offer');openDrawer('${c.id}')">Extend Offer</button>`;
@@ -1043,6 +1203,8 @@ function updateStatus(id, newStatus) {
   c.timeline.push({ action: `Status changed: ${statusLabels[oldStatus]} → ${statusLabels[newStatus]}`, date: new Date().toISOString() });
   saveATSState();
   render();
+  // Prompt to send email notification
+  promptEmailOnStatusChange(id, newStatus);
 }
 
 function updateRating(id, rating) {
@@ -1119,6 +1281,367 @@ function renderJobsView() {
     </tr>`;
   });
   html += '</tbody></table></div>';
+  return html;
+}
+
+// ═══════════ EMAIL NOTIFICATION SYSTEM ═══════════
+const EMAIL_TEMPLATES = {
+  application_received: {
+    subject: 'Application Received — {job}',
+    stage: 'Application Confirmation',
+    auto: true,
+    body: `Dear {firstName},
+
+Thank you for applying for the <strong>{job}</strong> position at Acquire Talent Partners.
+
+<div class="ep-highlight">
+<strong>Reference:</strong> {id}<br>
+<strong>Role:</strong> {job}<br>
+<strong>Location:</strong> {location}<br>
+<strong>Applied:</strong> {appliedDate}
+</div>
+
+Your application has been received and is now with our Talent Acquisition team. We carefully review every application — you can expect to hear from us within <strong>5 working days</strong>.
+
+In the meantime, you can learn more about life at Acquire Talent Partners on our <a href="#" style="color:#2563eb">careers page</a>.
+
+We appreciate your interest in joining our team.`
+  },
+  reviewing: {
+    subject: 'Your Application is Under Review — {job}',
+    stage: 'Under Review',
+    auto: true,
+    body: `Dear {firstName},
+
+Great news — your application for <strong>{job}</strong> is now being actively reviewed by our hiring team.
+
+<div class="ep-highlight">
+<strong>What happens next:</strong><br>
+A member of our talent team will assess your experience and qualifications against the role requirements. If your profile is a match, we'll reach out to schedule an initial conversation.
+</div>
+
+This stage typically takes <strong>3–5 working days</strong>. We'll keep you updated on your progress.
+
+If you have any questions in the meantime, feel free to reply to this email or reach out to our recruitment team.`
+  },
+  interview: {
+    subject: 'Interview Invitation — {job}',
+    stage: 'Interview Invite',
+    auto: true,
+    body: `Dear {firstName},
+
+We're pleased to let you know that your application for <strong>{job}</strong> has progressed to the interview stage. Congratulations!
+
+<div class="ep-highlight">
+<strong>Next step:</strong> We'd like to invite you for an interview with our team.<br><br>
+A member of our Talent Acquisition team will be in touch shortly to arrange a time that works for you. The initial conversation will be a <strong>30-minute call</strong> with your recruiter, followed by a technical or case interview specific to the role.
+</div>
+
+<strong>How to prepare:</strong>
+<ul style="margin:8px 0 8px 20px">
+<li>Review the role description and think about relevant examples from your experience</li>
+<li>Prepare questions about the team, projects, and company culture</li>
+<li>Have your CV to hand for reference</li>
+</ul>
+
+We provide feedback at every stage, and our entire process typically takes <strong>2–3 weeks</strong>.
+
+We look forward to meeting you!`
+  },
+  offer: {
+    subject: 'Congratulations — Offer for {job}',
+    stage: 'Offer Extended',
+    auto: true,
+    body: `Dear {firstName},
+
+On behalf of the entire team at Acquire Talent Partners, I'm thrilled to extend a <strong>formal offer</strong> for the position of <strong>{job}</strong>.
+
+<div class="ep-highlight">
+<strong>We chose you because:</strong><br>
+Your skills, experience, and values stood out throughout our process. We're confident you'll make a fantastic addition to the team.
+</div>
+
+Our People team will be sending your formal offer documentation within the next <strong>24 hours</strong>, which will include full details on:
+
+<ul style="margin:8px 0 8px 20px">
+<li>Compensation package (base salary, bonus, and equity)</li>
+<li>Benefits and perks overview</li>
+<li>Proposed start date</li>
+<li>Onboarding information</li>
+</ul>
+
+If you have any questions or would like to discuss the offer, please don't hesitate to reach out. We're here to help make this transition as smooth as possible.
+
+Congratulations again — we can't wait to welcome you aboard!`
+  },
+  rejected: {
+    subject: 'Update on Your Application — {job}',
+    stage: 'Application Update',
+    auto: true,
+    body: `Dear {firstName},
+
+Thank you for taking the time to apply for the <strong>{job}</strong> position and for your interest in Acquire Talent Partners.
+
+After careful consideration, we've decided not to progress your application for this particular role at this time. This was a highly competitive process, and while your profile had many strengths, we've chosen to move forward with candidates whose experience more closely aligns with our current needs.
+
+<div class="ep-highlight">
+<strong>This isn't the end of the road:</strong><br>
+We encourage you to apply for other roles that match your skills and experience. New positions are added regularly across all our divisions and locations.
+</div>
+
+We genuinely appreciate your interest in our company, and we wish you every success in your career.
+
+We'll keep your details on file, and if a more suitable opportunity arises, we may reach out to you directly.`
+  },
+  hired: {
+    subject: 'Welcome to Acquire Talent Partners — {job}',
+    stage: 'Welcome Aboard',
+    auto: true,
+    body: `Dear {firstName},
+
+It's official — welcome to <strong>Acquire Talent Partners</strong>!
+
+We're delighted that you've accepted our offer for <strong>{job}</strong>. The entire team is looking forward to working with you.
+
+<div class="ep-highlight">
+<strong>What happens now:</strong><br>
+Our People team will be in touch within the next <strong>48 hours</strong> with your onboarding pack, which includes:<br>
+&bull; IT equipment and access setup<br>
+&bull; Day 1 schedule and office information<br>
+&bull; Meet your buddy — a team member to help you settle in<br>
+&bull; Pre-reading and team introductions
+</div>
+
+If you have any questions before your start date, your hiring manager and our HR team are here to help.
+
+Welcome aboard — great things are ahead!`
+  }
+};
+
+// Email sending state
+let emailSendingForCandidate = null;
+let emailSendingTemplate = null;
+
+function getEmailForStatus(newStatus) {
+  const map = {
+    'new': 'application_received',
+    'reviewing': 'reviewing',
+    'interview': 'interview',
+    'offer': 'offer',
+    'hired': 'hired',
+    'rejected': 'rejected'
+  };
+  return map[newStatus] || null;
+}
+
+function populateEmailTemplate(templateKey, candidate) {
+  const tpl = EMAIL_TEMPLATES[templateKey];
+  if (!tpl) return null;
+  const replace = (str) => str
+    .replace(/\{firstName\}/g, candidate.firstName)
+    .replace(/\{lastName\}/g, candidate.lastName)
+    .replace(/\{job\}/g, candidate.job)
+    .replace(/\{id\}/g, candidate.id)
+    .replace(/\{location\}/g, candidate.location)
+    .replace(/\{appliedDate\}/g, formatDate(candidate.appliedDate))
+    .replace(/\{email\}/g, candidate.email);
+  return {
+    subject: replace(tpl.subject),
+    body: replace(tpl.body),
+    stage: tpl.stage,
+    to: candidate.email,
+    candidateId: candidate.id,
+    templateKey: templateKey
+  };
+}
+
+function openEmailModal(candidateId, templateKey) {
+  const c = candidates.find(x => x.id === candidateId);
+  if (!c) return;
+  emailSendingForCandidate = c;
+  emailSendingTemplate = templateKey;
+
+  const email = populateEmailTemplate(templateKey, c);
+  if (!email) return;
+
+  document.getElementById('emailModalTitle').textContent = 'Send: ' + EMAIL_TEMPLATES[templateKey].stage;
+
+  // Show toggle for preview vs edit
+  let body = `<div class="email-toggle">
+    <button class="email-toggle-btn active" onclick="showEmailPreview()">Preview</button>
+    <button class="email-toggle-btn" onclick="showEmailEdit()">Edit</button>
+  </div>`;
+
+  // Preview tab
+  body += `<div id="emailPreviewTab">
+    <div class="email-field">
+      <label>To</label>
+      <input class="email-to" value="${c.firstName} ${c.lastName} &lt;${c.email}&gt;" readonly>
+    </div>
+    <div class="email-field">
+      <label>Subject</label>
+      <input id="emailSubject" value="${email.subject}">
+    </div>
+    <div class="email-preview-box">
+      <div class="ep-logo">Acquire<span>TP</span></div>
+      <div class="ep-body" id="emailPreviewBody">${email.body}</div>
+      <div class="ep-footer">
+        Acquire Talent Partners &bull; Talent Acquisition Team<br>
+        London &bull; New York &bull; Singapore &bull; 48 countries worldwide<br>
+        <a href="#" style="color:#2563eb;text-decoration:none">acquiretalentpartners.com/careers</a>
+      </div>
+    </div>
+  </div>`;
+
+  // Edit tab (hidden)
+  body += `<div id="emailEditTab" style="display:none">
+    <div class="email-field">
+      <label>To</label>
+      <input class="email-to" value="${c.firstName} ${c.lastName} &lt;${c.email}&gt;" readonly>
+    </div>
+    <div class="email-field">
+      <label>Subject</label>
+      <input id="emailSubjectEdit" value="${email.subject}" onkeyup="document.getElementById('emailSubject').value=this.value">
+    </div>
+    <div class="email-field">
+      <label>Body (HTML supported)</label>
+      <textarea id="emailBodyEdit" rows="12">${email.body.replace(/<div class="ep-highlight">/g,'[HIGHLIGHT]').replace(/<\/div>/g,'[/HIGHLIGHT]').replace(/<br>/g,'\n').replace(/<\/?strong>/g,'**').replace(/<ul[^>]*>/g,'').replace(/<\/ul>/g,'').replace(/<li>/g,'• ').replace(/<\/li>/g,'\n').replace(/<[^>]+>/g,'').trim()}</textarea>
+    </div>
+  </div>`;
+
+  // Previously sent emails for this candidate
+  const sentEmails = (c._emails || []);
+  if (sentEmails.length > 0) {
+    body += `<div style="margin-top:20px"><label style="font-size:.75rem;font-weight:700;color:var(--text-light);text-transform:uppercase;letter-spacing:.6px">Previously Sent</label>
+    <div class="email-sent-list">`;
+    sentEmails.forEach(e => {
+      body += `<div class="email-sent-item">
+        <div class="esi-icon">&#9993;</div>
+        <div class="esi-info"><strong>${e.stage}</strong><span>${e.subject} — ${formatDateTime(e.date)}</span></div>
+      </div>`;
+    });
+    body += '</div></div>';
+  }
+
+  document.getElementById('emailModalBody').innerHTML = body;
+  document.getElementById('emailModalFooter').innerHTML = `
+    <div class="email-meta">&#128274; Email will be simulated (not actually sent)</div>
+    <div style="display:flex;gap:10px">
+      <button class="btn btn-secondary" onclick="closeEmailModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="sendEmail()">&#9993; Send Email</button>
+    </div>
+  `;
+
+  document.getElementById('emailOverlay').classList.add('open');
+}
+
+function showEmailPreview() {
+  document.getElementById('emailPreviewTab').style.display = '';
+  document.getElementById('emailEditTab').style.display = 'none';
+  document.querySelectorAll('.email-toggle-btn').forEach((b,i) => b.classList.toggle('active', i===0));
+}
+function showEmailEdit() {
+  document.getElementById('emailPreviewTab').style.display = 'none';
+  document.getElementById('emailEditTab').style.display = '';
+  document.querySelectorAll('.email-toggle-btn').forEach((b,i) => b.classList.toggle('active', i===1));
+}
+
+function closeEmailModal() {
+  document.getElementById('emailOverlay').classList.remove('open');
+  emailSendingForCandidate = null;
+  emailSendingTemplate = null;
+}
+
+function sendEmail() {
+  const c = emailSendingForCandidate;
+  if (!c) return;
+  const subject = document.getElementById('emailSubject').value;
+  const tpl = EMAIL_TEMPLATES[emailSendingTemplate];
+  const stage = tpl ? tpl.stage : 'Email';
+
+  // Log the email
+  if (!c._emails) c._emails = [];
+  c._emails.push({
+    stage: stage,
+    subject: subject,
+    date: new Date().toISOString(),
+    template: emailSendingTemplate
+  });
+  c.timeline.push({
+    action: `&#9993; Email sent: "${stage}" to ${c.email}`,
+    date: new Date().toISOString()
+  });
+
+  // Save to localStorage
+  saveATSState();
+  saveEmailLog(c.id, c._emails);
+
+  closeEmailModal();
+  showToast(`Email "${stage}" sent to ${c.firstName} ${c.lastName}`, 'success');
+
+  // Refresh drawer if open
+  if (document.getElementById('candidateDrawer').classList.contains('open')) {
+    openDrawer(c.id);
+  }
+  render();
+}
+
+function saveEmailLog(id, emails) {
+  try {
+    const logs = JSON.parse(localStorage.getItem('ats_email_log') || '{}');
+    logs[id] = emails;
+    localStorage.setItem('ats_email_log', JSON.stringify(logs));
+  } catch(e){}
+}
+
+function loadEmailLog(id) {
+  try {
+    const logs = JSON.parse(localStorage.getItem('ats_email_log') || '{}');
+    return logs[id] || [];
+  } catch(e) { return []; }
+}
+
+// Prompt email on status change
+function promptEmailOnStatusChange(candidateId, newStatus) {
+  const templateKey = getEmailForStatus(newStatus);
+  if (templateKey) {
+    // Short delay to let status update render
+    setTimeout(() => openEmailModal(candidateId, templateKey), 300);
+  }
+}
+
+// ═══════════ EMAIL VIEW ═══════════
+function renderEmailsView() {
+  // Aggregate all sent emails
+  let allEmails = [];
+  candidates.forEach(c => {
+    const emails = c._emails || loadEmailLog(c.id);
+    emails.forEach(e => {
+      allEmails.push({...e, candidateId: c.id, name: c.firstName + ' ' + c.lastName, job: c.job});
+    });
+  });
+  allEmails.sort((a,b) => new Date(b.date) - new Date(a.date));
+
+  let html = `<div style="display:flex;gap:12px;margin-bottom:20px;align-items:center">
+    <h2 style="font-size:1.1rem;font-weight:700;flex:1">Email Notifications Sent</h2>
+    <span style="font-size:.82rem;color:var(--text-light)">${allEmails.length} emails sent</span>
+  </div>`;
+
+  if (allEmails.length === 0) {
+    html += `<div class="empty-state"><div class="empty-icon">&#9993;</div><p>No emails sent yet. Emails are triggered when you change a candidate's status.</p></div>`;
+  } else {
+    html += '<div class="table-wrapper"><table><thead><tr><th>Candidate</th><th>Role</th><th>Email Type</th><th>Subject</th><th>Sent</th></tr></thead><tbody>';
+    allEmails.forEach(e => {
+      html += `<tr onclick="openDrawer('${e.candidateId}')" style="cursor:pointer">
+        <td style="font-weight:600">${e.name}</td>
+        <td style="font-size:.85rem">${e.job}</td>
+        <td><span class="status-badge status-offer">${e.stage}</span></td>
+        <td style="font-size:.82rem;color:var(--text-light)">${e.subject}</td>
+        <td style="font-size:.82rem;color:var(--text-light);white-space:nowrap">${formatDateTime(e.date)}</td>
+      </tr>`;
+    });
+    html += '</tbody></table></div>';
+  }
   return html;
 }
 
