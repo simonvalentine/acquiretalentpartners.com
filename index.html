@@ -711,6 +711,232 @@
   }
 
 
+
+  /* ── Voice Agent (ElevenLabs-inspired) ── */
+  .voice-overlay {
+    position: fixed; inset: 0; z-index: 1100;
+    background: rgba(5, 10, 20, 0.88);
+    backdrop-filter: blur(20px);
+    display: flex; align-items: center; justify-content: center;
+    opacity: 0; visibility: hidden; transition: all .4s cubic-bezier(.4,0,.2,1);
+  }
+  .voice-overlay.open { opacity: 1; visibility: visible; }
+
+  .voice-panel {
+    width: 440px; max-width: calc(100vw - 32px);
+    background: rgba(15, 23, 42, 0.85);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 28px;
+    box-shadow: 0 32px 80px rgba(0,0,0,.5), 0 0 0 1px rgba(255,255,255,.04) inset;
+    overflow: hidden;
+    transform: translateY(24px) scale(.94);
+    transition: transform .4s cubic-bezier(.4,0,.2,1);
+    display: flex; flex-direction: column;
+    max-height: 90vh;
+    backdrop-filter: blur(24px);
+  }
+  .voice-overlay.open .voice-panel { transform: none; }
+
+  .voice-panel-header {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 20px 24px 12px;
+  }
+  .voice-context-badge {
+    font-size: .75rem; color: rgba(255,255,255,.5); font-weight: 500;
+    display: flex; align-items: center; gap: 6px;
+    background: rgba(255,255,255,.06); padding: 6px 14px; border-radius: 20px;
+    max-width: 280px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  }
+  .voice-panel-close {
+    width: 36px; height: 36px; border-radius: 50%;
+    background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.08);
+    color: rgba(255,255,255,.5); font-size: 1.2rem;
+    cursor: pointer; display: flex; align-items: center; justify-content: center;
+    transition: all .2s; flex-shrink: 0;
+  }
+  .voice-panel-close:hover { background: rgba(255,255,255,.12); color: #fff; }
+
+  /* ── Orb ── */
+  .voice-orb-container {
+    display: flex; flex-direction: column; align-items: center;
+    padding: 32px 24px 20px; position: relative;
+  }
+  .voice-orb-wrapper {
+    position: relative; width: 140px; height: 140px;
+    cursor: pointer; display: flex; align-items: center; justify-content: center;
+  }
+  .voice-orb {
+    width: 100px; height: 100px; border-radius: 50%;
+    background: radial-gradient(circle at 35% 35%,
+      #60a5fa 0%, #3b82f6 25%, #2563eb 50%, #1d4ed8 75%, #1e40af 100%);
+    box-shadow:
+      0 0 40px rgba(37,99,235,.4),
+      0 0 80px rgba(37,99,235,.2),
+      0 0 120px rgba(37,99,235,.1),
+      inset 0 -4px 12px rgba(0,0,0,.2),
+      inset 0 4px 12px rgba(255,255,255,.15);
+    transition: all .5s cubic-bezier(.4,0,.2,1);
+    animation: orbIdle 4s ease-in-out infinite;
+    position: relative; z-index: 2;
+  }
+  @keyframes orbIdle {
+    0%, 100% { transform: scale(1); box-shadow: 0 0 40px rgba(37,99,235,.4), 0 0 80px rgba(37,99,235,.2); }
+    50% { transform: scale(1.04); box-shadow: 0 0 50px rgba(37,99,235,.5), 0 0 100px rgba(37,99,235,.25); }
+  }
+
+  /* Orb rings */
+  .voice-orb-ring {
+    position: absolute; border-radius: 50%; border: 1.5px solid rgba(96,165,250,.15);
+    top: 50%; left: 50%; transform: translate(-50%, -50%);
+    transition: all .5s cubic-bezier(.4,0,.2,1);
+    pointer-events: none;
+  }
+  .voice-orb-ring:nth-child(1) { width: 120px; height: 120px; }
+  .voice-orb-ring:nth-child(2) { width: 140px; height: 140px; border-color: rgba(96,165,250,.08); }
+
+  /* ── Listening state ── */
+  .voice-orb-wrapper.listening .voice-orb {
+    animation: orbListening 1.5s ease-in-out infinite;
+    background: radial-gradient(circle at 35% 35%,
+      #93c5fd 0%, #60a5fa 25%, #3b82f6 50%, #2563eb 75%, #1d4ed8 100%);
+    box-shadow:
+      0 0 60px rgba(59,130,246,.6),
+      0 0 120px rgba(59,130,246,.3);
+  }
+  @keyframes orbListening {
+    0%, 100% { transform: scale(1); }
+    25% { transform: scale(1.06); }
+    50% { transform: scale(0.97); }
+    75% { transform: scale(1.03); }
+  }
+  .voice-orb-wrapper.listening .voice-orb-ring:nth-child(1) {
+    animation: ringPulse1 1.8s ease-out infinite;
+    border-color: rgba(96,165,250,.35);
+  }
+  .voice-orb-wrapper.listening .voice-orb-ring:nth-child(2) {
+    animation: ringPulse2 1.8s ease-out infinite .3s;
+    border-color: rgba(96,165,250,.2);
+  }
+  @keyframes ringPulse1 {
+    0% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+    100% { transform: translate(-50%, -50%) scale(1.6); opacity: 0; }
+  }
+  @keyframes ringPulse2 {
+    0% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+    100% { transform: translate(-50%, -50%) scale(1.8); opacity: 0; }
+  }
+
+  /* ── Speaking state ── */
+  .voice-orb-wrapper.speaking .voice-orb {
+    animation: orbSpeaking 0.8s ease-in-out infinite alternate;
+    background: radial-gradient(circle at 40% 30%,
+      #a78bfa 0%, #8b5cf6 30%, #7c3aed 55%, #6d28d9 80%, #5b21b6 100%);
+    box-shadow:
+      0 0 60px rgba(139,92,246,.5),
+      0 0 120px rgba(139,92,246,.25);
+  }
+  @keyframes orbSpeaking {
+    0% { transform: scale(1) scaleX(1); border-radius: 50%; }
+    33% { transform: scale(1.08) scaleX(0.96); border-radius: 48% 52% 50% 50%; }
+    66% { transform: scale(0.95) scaleX(1.04); border-radius: 50% 48% 52% 50%; }
+    100% { transform: scale(1.05) scaleX(0.98); border-radius: 52% 50% 48% 50%; }
+  }
+  .voice-orb-wrapper.speaking .voice-orb-ring:nth-child(1) {
+    border-color: rgba(139,92,246,.3);
+    animation: ringBreath 1.2s ease-in-out infinite;
+  }
+  .voice-orb-wrapper.speaking .voice-orb-ring:nth-child(2) {
+    border-color: rgba(139,92,246,.15);
+    animation: ringBreath 1.2s ease-in-out infinite .2s;
+  }
+  @keyframes ringBreath {
+    0%, 100% { transform: translate(-50%, -50%) scale(1); }
+    50% { transform: translate(-50%, -50%) scale(1.12); }
+  }
+
+  /* ── Thinking state ── */
+  .voice-orb-wrapper.thinking .voice-orb {
+    animation: orbThinking 2s linear infinite;
+    box-shadow: 0 0 50px rgba(37,99,235,.5), 0 0 100px rgba(37,99,235,.2);
+  }
+  @keyframes orbThinking {
+    0% { transform: scale(1) rotate(0deg); }
+    50% { transform: scale(1.03) rotate(180deg); }
+    100% { transform: scale(1) rotate(360deg); }
+  }
+
+  /* ── Status text ── */
+  .voice-status-text {
+    color: rgba(255,255,255,.5); font-size: .85rem; font-weight: 500;
+    margin-top: 20px; text-align: center; transition: all .3s;
+    min-height: 24px;
+  }
+  .voice-orb-wrapper.listening ~ .voice-status-text { color: rgba(147,197,253,.9); }
+  .voice-orb-wrapper.speaking ~ .voice-status-text { color: rgba(167,139,250,.9); }
+  .voice-status-live {
+    font-size: .82rem; color: rgba(255,255,255,.4); margin-top: 6px;
+    min-height: 20px; text-align: center; max-width: 320px;
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  }
+
+  /* ── Transcript ── */
+  .voice-transcript {
+    max-height: 200px; overflow-y: auto; padding: 0 24px 8px;
+    display: flex; flex-direction: column; gap: 12px;
+    scrollbar-width: thin; scrollbar-color: rgba(255,255,255,.1) transparent;
+  }
+  .voice-transcript::-webkit-scrollbar { width: 4px; }
+  .voice-transcript::-webkit-scrollbar-thumb { background: rgba(255,255,255,.1); border-radius: 4px; }
+
+  .vt-msg { animation: vtIn .3s ease; }
+  @keyframes vtIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+
+  .vt-label {
+    font-size: .68rem; font-weight: 600; text-transform: uppercase; letter-spacing: .8px;
+    margin-bottom: 4px; color: rgba(255,255,255,.3);
+  }
+  .vt-label.user { color: rgba(96,165,250,.6); text-align: right; }
+
+  .vt-bubble {
+    padding: 10px 16px; border-radius: 14px; font-size: .85rem; line-height: 1.6;
+    background: rgba(255,255,255,.06); color: rgba(255,255,255,.8);
+    border: 1px solid rgba(255,255,255,.04);
+  }
+  .vt-bubble.user {
+    background: rgba(37,99,235,.15); color: rgba(147,197,253,.95);
+    border-color: rgba(37,99,235,.2); text-align: right;
+  }
+  .vt-bubble.bot {
+    background: rgba(255,255,255,.06); color: rgba(255,255,255,.8);
+  }
+
+  /* ── Hints ── */
+  .voice-hint {
+    padding: 12px 24px 20px; display: flex; flex-wrap: wrap; gap: 8px;
+    justify-content: center;
+  }
+  .voice-hint-pill {
+    padding: 8px 16px; border-radius: 20px;
+    background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.08);
+    color: rgba(255,255,255,.45); font-size: .78rem; cursor: pointer;
+    transition: all .2s; font-family: inherit;
+  }
+  .voice-hint-pill:hover {
+    background: rgba(37,99,235,.15); border-color: rgba(37,99,235,.3);
+    color: rgba(147,197,253,.9);
+  }
+
+  /* ── Footer ── */
+  .voice-footer {
+    padding: 12px 24px 16px; text-align: center;
+    border-top: 1px solid rgba(255,255,255,.04);
+  }
+  .voice-footer-text {
+    font-size: .7rem; color: rgba(255,255,255,.2);
+  }
+  .voice-footer-text span { color: rgba(96,165,250,.5); }
+
+
   /* ── Responsive: Tablet ── */
   @media (max-width: 1024px) {
     .services-grid, .locations-grid, .perks-grid { grid-template-columns: repeat(2, 1fr); }
@@ -807,9 +1033,19 @@
 
   /* ── Voice agent: mobile ── */
   @media (max-width: 768px) {
-    .voice-panel { width: calc(100vw - 24px); border-radius: 20px; }
-    .voice-mic-ring { width: 100px; height: 100px; }
-    .voice-mic-btn { width: 68px; height: 68px; font-size: 1.6rem; }
+    .voice-panel { width: calc(100vw - 20px); border-radius: 20px; max-height: 95vh; }
+    .voice-orb { width: 80px; height: 80px; }
+    .voice-orb-ring:nth-child(1) { width: 100px; height: 100px; }
+    .voice-orb-ring:nth-child(2) { width: 120px; height: 120px; }
+    .voice-orb-wrapper { width: 120px; height: 120px; }
+    .voice-orb-container { padding: 24px 20px 16px; }
+    .voice-transcript { max-height: 150px; }
+  }
+  @media (max-width: 480px) {
+    .voice-panel { width: 100%; max-width: 100%; border-radius: 0; max-height: 100vh; height: 100vh; }
+    .voice-panel-header { padding: 16px 16px 10px; }
+    .voice-hint-pill { font-size: .72rem; padding: 6px 12px; }
+    .voice-transcript { max-height: 120px; padding: 0 16px 8px; }
   }
 
 </style>
@@ -2585,27 +2821,36 @@ function processMessage(msg) {
 renderJobs(allJobs);
 </script>
 
-<!-- ═══════════ VOICE AGENT OVERLAY ═══════════ -->
+<!-- ═══════════ VOICE AGENT OVERLAY (ElevenLabs-inspired) ═══════════ -->
 <div class="voice-overlay" id="voiceOverlay" onclick="if(event.target===this)closeVoiceAgent()">
   <div class="voice-panel">
     <div class="voice-panel-header">
+      <div class="voice-context-badge" id="voiceJobLabel">
+        <span>&#127908;</span> <span id="voiceContextText">Voice Assistant</span>
+      </div>
       <button class="voice-panel-close" onclick="closeVoiceAgent()">&times;</button>
-      <div class="voice-panel-job" id="voiceJobLabel">&#128188; Asking about a role</div>
-      <h3 id="voiceJobTitle">Voice Assistant</h3>
-      <p>Ask anything about this role or the company</p>
     </div>
-    <div class="voice-body">
-      <div class="voice-wave" id="voiceWave">
-        <span></span><span></span><span></span><span></span><span></span><span></span><span></span>
+
+    <div class="voice-orb-container">
+      <div class="voice-orb-wrapper" id="voiceOrbWrapper" onclick="toggleVoiceListening()">
+        <div class="voice-orb-ring"></div>
+        <div class="voice-orb-ring"></div>
+        <div class="voice-orb" id="voiceOrb"></div>
       </div>
-      <div class="voice-mic-ring" id="voiceMicRing">
-        <button class="voice-mic-btn" id="voiceMicBtn" onclick="toggleVoiceListening()">&#127908;</button>
-      </div>
-      <div class="voice-status" id="voiceStatus">Tap the mic to start</div>
-      <div class="voice-transcript" id="voiceTranscript"></div>
-      <div class="voice-hint" id="voiceHint">
-        Try asking: <strong>"What does this role involve?"</strong>, <strong>"What's the salary?"</strong>, or <strong>"Tell me about benefits"</strong>
-      </div>
+      <div class="voice-status-text" id="voiceStatus">Tap the orb to start talking</div>
+      <div class="voice-status-live" id="voiceLiveText"></div>
+    </div>
+
+    <div class="voice-transcript" id="voiceTranscript"></div>
+
+    <div class="voice-hint" id="voiceHint">
+      <button class="voice-hint-pill" onclick="askHint('What does this role involve?')">What does this role involve?</button>
+      <button class="voice-hint-pill" onclick="askHint('What\'s the salary?')">What's the salary?</button>
+      <button class="voice-hint-pill" onclick="askHint('Tell me about benefits')">Tell me about benefits</button>
+    </div>
+
+    <div class="voice-footer">
+      <div class="voice-footer-text">Powered by <span>Acquire</span><span style="color:rgba(147,197,253,.5)">TP</span> AI</div>
     </div>
   </div>
 </div>
@@ -2642,28 +2887,31 @@ if (voiceSynth) {
 function openVoiceAgent(jobIdx) {
   voiceJob = (jobIdx !== undefined && jobIdx !== null) ? allJobs[jobIdx] : null;
   const overlay = document.getElementById('voiceOverlay');
-  const titleEl = document.getElementById('voiceJobTitle');
-  const labelEl = document.getElementById('voiceJobLabel');
+  const contextText = document.getElementById('voiceContextText');
   const transcript = document.getElementById('voiceTranscript');
   const hint = document.getElementById('voiceHint');
+  const orbWrapper = document.getElementById('voiceOrbWrapper');
 
   transcript.innerHTML = '';
-  document.getElementById('voiceStatus').textContent = 'Tap the mic to start';
-  document.getElementById('voiceStatus').className = 'voice-status';
-  document.getElementById('voiceMicBtn').className = 'voice-mic-btn';
-  document.getElementById('voiceMicRing').className = 'voice-mic-ring';
-  document.getElementById('voiceWave').className = 'voice-wave';
+  document.getElementById('voiceStatus').textContent = 'Tap the orb to start talking';
+  document.getElementById('voiceLiveText').textContent = '';
+  orbWrapper.className = 'voice-orb-wrapper';
 
   if (voiceJob) {
-    titleEl.textContent = voiceJob.title;
-    labelEl.innerHTML = `&#128188; ${voiceJob.dept.charAt(0).toUpperCase() + voiceJob.dept.slice(1)} &bull; ${voiceJob.locLabel}`;
-    hint.innerHTML = `Try: <strong>"What does this role involve?"</strong>, <strong>"What's the salary?"</strong>, <strong>"What skills do I need?"</strong>`;
+    contextText.textContent = voiceJob.title;
+    hint.innerHTML = `
+      <button class="voice-hint-pill" onclick="askHint('What does this role involve?')">What does this role involve?</button>
+      <button class="voice-hint-pill" onclick="askHint('What\'s the salary?')">What's the salary?</button>
+      <button class="voice-hint-pill" onclick="askHint('What skills do I need?')">What skills do I need?</button>`;
   } else {
-    titleEl.textContent = 'Acquire Talent Partners';
-    labelEl.innerHTML = '&#127758; Ask about any role or the company';
-    hint.innerHTML = `Try: <strong>"What jobs are available?"</strong>, <strong>"Tell me about benefits"</strong>, <strong>"What's the culture like?"</strong>`;
+    contextText.textContent = 'Acquire Talent Partners';
+    hint.innerHTML = `
+      <button class="voice-hint-pill" onclick="askHint('What jobs are available?')">What jobs are available?</button>
+      <button class="voice-hint-pill" onclick="askHint('Tell me about benefits')">Tell me about benefits</button>
+      <button class="voice-hint-pill" onclick="askHint('What\'s the culture like?')">What's the culture like?</button>`;
   }
 
+  hint.style.display = '';
   overlay.classList.add('open');
   document.body.style.overflow = 'hidden';
 
@@ -2682,7 +2930,14 @@ function closeVoiceAgent() {
   voiceSynth.cancel();
   voiceSpeaking = false;
   document.getElementById('voiceOverlay').classList.remove('open');
+  document.getElementById('voiceOrbWrapper').className = 'voice-orb-wrapper';
   document.body.style.overflow = '';
+}
+
+function askHint(text) {
+  document.getElementById('voiceHint').style.display = 'none';
+  addVoiceUserBubble(text);
+  processVoiceQuery(text);
 }
 
 function toggleVoiceListening() {
@@ -2728,7 +2983,8 @@ function startVoiceListening() {
         interim += e.results[i][0].transcript;
       }
     }
-    document.getElementById('voiceStatus').textContent = interim || finalTranscript || 'Listening...';
+    document.getElementById('voiceLiveText').textContent = interim || finalTranscript || '';
+    document.getElementById('voiceStatus').textContent = 'Listening...';
   };
 
   voiceRecognition.onend = () => {
@@ -2766,38 +3022,33 @@ function stopVoiceListening() {
 }
 
 function updateVoiceUI(state) {
-  const btn = document.getElementById('voiceMicBtn');
-  const ring = document.getElementById('voiceMicRing');
+  const orbWrapper = document.getElementById('voiceOrbWrapper');
   const status = document.getElementById('voiceStatus');
-  const wave = document.getElementById('voiceWave');
+  const liveText = document.getElementById('voiceLiveText');
 
-  btn.className = 'voice-mic-btn' + (state === 'listening' ? ' listening' : state === 'speaking' ? ' speaking' : '');
-  ring.className = 'voice-mic-ring' + (state === 'listening' ? ' listening' : state === 'speaking' ? ' speaking' : '');
-  wave.className = 'voice-wave' + (state !== 'idle' ? ' active' : '') + (state === 'speaking' ? ' speaking' : '');
-  status.className = 'voice-status' + (state === 'listening' ? ' listening' : state === 'speaking' ? ' speaking' : '');
+  orbWrapper.className = 'voice-orb-wrapper' + (state !== 'idle' ? ' ' + state : '');
 
   if (state === 'listening') {
     status.textContent = 'Listening...';
-    btn.innerHTML = '&#9899;'; // stop icon
   } else if (state === 'speaking') {
     status.textContent = 'Speaking...';
-    btn.innerHTML = '&#9723;'; // pause
+    liveText.textContent = '';
   } else {
-    status.textContent = 'Tap the mic to ask a question';
-    btn.innerHTML = '&#127908;';
+    status.textContent = 'Tap the orb to ask a question';
+    liveText.textContent = '';
   }
 }
 
 function addVoiceUserBubble(text) {
   const t = document.getElementById('voiceTranscript');
-  t.innerHTML += `<div class="vt-label user">You</div><div class="vt-bubble user">${text}</div>`;
+  t.innerHTML += `<div class="vt-msg"><div class="vt-label user">You</div><div class="vt-bubble user">${text}</div></div>`;
   t.scrollTop = t.scrollHeight;
   document.getElementById('voiceHint').style.display = 'none';
 }
 
 function addVoiceResponse(text) {
   const t = document.getElementById('voiceTranscript');
-  t.innerHTML += `<div class="vt-label">Ava</div><div class="vt-bubble bot">${text}</div>`;
+  t.innerHTML += `<div class="vt-msg"><div class="vt-label">Ava</div><div class="vt-bubble bot">${text}</div></div>`;
   t.scrollTop = t.scrollHeight;
 }
 
