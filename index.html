@@ -1644,25 +1644,25 @@
                 <input type="checkbox" name="commPref" value="Phone" id="cpfCheck_Phone" onchange="toggleCommRow(this)">
                 <span class="cpf-icon">&#128222;</span>
                 <span class="cpf-label">Phone</span>
-                <input type="text" class="cpf-input" id="commPhone" placeholder="e.g. +44 7700 900000" disabled>
+                <input type="text" class="cpf-input" id="commPhone" placeholder="e.g. +44 7700 900000" disabled oninput="markCommManual(this)">
               </div>
               <div class="comm-pref-row" id="cpfRow_SMS">
                 <input type="checkbox" name="commPref" value="Text/SMS" id="cpfCheck_SMS" onchange="toggleCommRow(this)">
                 <span class="cpf-icon">&#128172;</span>
                 <span class="cpf-label">Text / SMS</span>
-                <input type="text" class="cpf-input" id="commSMS" placeholder="e.g. +44 7700 900000" disabled>
+                <input type="text" class="cpf-input" id="commSMS" placeholder="e.g. +44 7700 900000" disabled oninput="markCommManual(this)">
               </div>
               <div class="comm-pref-row" id="cpfRow_Email">
                 <input type="checkbox" name="commPref" value="Email" id="cpfCheck_Email" onchange="toggleCommRow(this)">
                 <span class="cpf-icon">&#9993;</span>
                 <span class="cpf-label">Email</span>
-                <input type="text" class="cpf-input" id="commEmail" placeholder="e.g. you@email.com" disabled>
+                <input type="text" class="cpf-input" id="commEmail" placeholder="e.g. you@email.com" disabled oninput="markCommManual(this)">
               </div>
               <div class="comm-pref-row" id="cpfRow_WhatsApp">
                 <input type="checkbox" name="commPref" value="WhatsApp" id="cpfCheck_WhatsApp" onchange="toggleCommRow(this)">
                 <span class="cpf-icon">&#128241;</span>
                 <span class="cpf-label">WhatsApp</span>
-                <input type="text" class="cpf-input" id="commWhatsApp" placeholder="e.g. +44 7700 900000" disabled>
+                <input type="text" class="cpf-input" id="commWhatsApp" placeholder="e.g. +44 7700 900000" disabled oninput="markCommManual(this)">
               </div>
               <div class="comm-pref-row" id="cpfRow_Facebook">
                 <input type="checkbox" name="commPref" value="Facebook Messenger" id="cpfCheck_Facebook" onchange="toggleCommRow(this)">
@@ -2161,7 +2161,7 @@ function openApplyModal() {
   document.querySelectorAll('.comm-pref-row').forEach(row => {
     row.classList.remove('checked');
     const inp = row.querySelector('.cpf-input');
-    if (inp) { inp.value = ''; inp.disabled = true; }
+    if (inp) { inp.value = ''; inp.disabled = true; delete inp.dataset.synced; }
   });
 
   document.getElementById('applyJobTitle').textContent = currentJob.title;
@@ -2254,10 +2254,13 @@ function toggleCommRow(checkbox) {
   if (checkbox.checked) {
     row.classList.add('checked');
     input.disabled = false;
-    // Auto-fill from existing form field if the input is empty
+    // Pre-fill from the main form field if the comm input is still empty
     if (!input.value && cfg.prefill) {
       const src = document.getElementById(cfg.prefill);
-      if (src && src.value) input.value = src.value;
+      if (src && src.value) {
+        input.value = src.value;
+        input.dataset.synced = 'true'; // Mark as auto-filled so live sync keeps updating
+      }
     }
     input.focus();
   } else {
@@ -2265,6 +2268,38 @@ function toggleCommRow(checkbox) {
     input.disabled = true;
   }
 }
+
+// Sync main phone/email fields → any checked comm fields that share the same prefill source
+function syncCommFields(sourceId) {
+  const sourceVal = document.getElementById(sourceId).value;
+  Object.values(commFieldMap).forEach(cfg => {
+    if (cfg.prefill === sourceId) {
+      const input = document.getElementById(cfg.inputId);
+      const checkbox = document.querySelector(`input[name="commPref"][value="${Object.keys(commFieldMap).find(k => commFieldMap[k].inputId === cfg.inputId)}"]`);
+      // Only sync if checkbox is checked and the user hasn't typed something different
+      if (checkbox && checkbox.checked && input) {
+        // Update if the field is empty or still matches the previous phone/email value
+        if (!input.value || input.dataset.synced === 'true') {
+          input.value = sourceVal;
+          input.dataset.synced = 'true';
+        }
+      }
+    }
+  });
+}
+
+// Mark a comm field as manually edited so sync stops overwriting it
+function markCommManual(input) {
+  if (input.value) input.dataset.synced = 'false';
+}
+
+// Wire up live sync on the main phone and email fields
+document.addEventListener('DOMContentLoaded', function() {
+  const phoneField = document.getElementById('appPhone');
+  const emailField = document.getElementById('appEmail');
+  if (phoneField) phoneField.addEventListener('input', () => syncCommFields('appPhone'));
+  if (emailField) emailField.addEventListener('input', () => syncCommFields('appEmail'));
+});
 
 function getCommDetails() {
   const details = {};
