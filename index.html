@@ -443,47 +443,35 @@
   .form-group.has-error textarea { border-color: #dc2626; }
   .form-group.has-error .error-msg { display: block; }
 
-  /* Communication Preference Grid */
-  .comm-pref-grid {
-    display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px;
+  /* Communication Preference List */
+  .comm-pref-list {
+    display: flex; flex-direction: column; gap: 0;
+    border: 1px solid var(--border); border-radius: 10px; overflow: hidden;
   }
-  .comm-pref-option { cursor: pointer; }
-  .comm-pref-option input[type="checkbox"] { position: absolute; opacity: 0; pointer-events: none; }
-  .comm-pref-card {
-    display: flex; flex-direction: column; align-items: center; justify-content: center;
-    padding: 14px 8px; border-radius: 10px; border: 2px solid var(--border);
-    background: var(--card); transition: all .2s; text-align: center; min-height: 72px;
+  .comm-pref-row {
+    display: flex; align-items: center; gap: 12px;
+    padding: 12px 16px; border-bottom: 1px solid var(--border);
+    background: var(--card); transition: background .15s;
   }
-  .comm-pref-card:hover { border-color: var(--accent); background: #f0f4ff; }
-  .comm-pref-option input:checked + .comm-pref-card {
-    border-color: var(--accent); background: #eef2ff;
-    box-shadow: 0 0 0 2px var(--accent);
+  .comm-pref-row:last-child { border-bottom: none; }
+  .comm-pref-row:hover { background: #f8faff; }
+  .comm-pref-row.checked { background: #eef2ff; }
+  .comm-pref-row input[type="checkbox"] {
+    width: 18px; height: 18px; flex-shrink: 0; accent-color: var(--accent);
+    cursor: pointer; margin: 0;
   }
-  .comm-pref-icon { font-size: 1.3rem; margin-bottom: 4px; display: block; }
-  .comm-pref-label { font-size: .78rem; font-weight: 600; color: var(--text); line-height: 1.2; }
-
-  /* Communication Detail Fields */
-  .comm-detail-fields {
-    margin-top: 14px; display: flex; flex-direction: column; gap: 10px;
+  .comm-pref-row .cpf-icon { font-size: 1.15rem; flex-shrink: 0; width: 24px; text-align: center; }
+  .comm-pref-row .cpf-label {
+    font-size: .88rem; font-weight: 600; color: var(--text); min-width: 110px; flex-shrink: 0;
   }
-  .comm-detail-fields:empty { margin-top: 0; }
-  .comm-detail-row {
-    display: flex; align-items: center; gap: 10px;
-    background: var(--bg-alt); border: 1px solid var(--border); border-radius: 10px;
-    padding: 10px 14px; animation: commSlideIn .2s ease;
-  }
-  @keyframes commSlideIn { from { opacity: 0; transform: translateY(-6px); } to { opacity: 1; transform: none; } }
-  .comm-detail-row .comm-detail-icon { font-size: 1.1rem; flex-shrink: 0; width: 28px; text-align: center; }
-  .comm-detail-row .comm-detail-label {
-    font-size: .78rem; font-weight: 600; color: var(--text-light); min-width: 90px; flex-shrink: 0;
-  }
-  .comm-detail-row input {
+  .comm-pref-row .cpf-input {
     flex: 1; border: 1px solid var(--border); border-radius: 6px; padding: 8px 12px;
-    font-size: .88rem; background: #fff; color: var(--text); outline: none; transition: border .2s;
+    font-size: .86rem; background: #fff; color: var(--text); outline: none;
+    transition: border .2s, opacity .2s;
   }
-  .comm-detail-row input:focus { border-color: var(--accent); }
-  .comm-detail-row .comm-detail-hint {
-    font-size: .72rem; color: var(--text-light); flex-shrink: 0; opacity: .7;
+  .comm-pref-row .cpf-input:focus { border-color: var(--accent); }
+  .comm-pref-row .cpf-input:disabled {
+    background: var(--bg-alt); opacity: .4; cursor: not-allowed;
   }
 
   /* File Upload */
@@ -1037,10 +1025,8 @@
     .footer-bottom { flex-direction: column; text-align: center; gap: 12px; }
     .search-bar { flex-direction: column; }
     .search-bar input, .search-bar select { width: 100%; }
-    .comm-pref-grid { grid-template-columns: repeat(3, 1fr); gap: 8px; }
-    .comm-detail-row { flex-wrap: wrap; gap: 6px; }
-    .comm-detail-row .comm-detail-label { min-width: 80px; }
-    .comm-detail-row .comm-detail-hint { display: none; }
+    .comm-pref-row .cpf-label { min-width: 80px; font-size: .82rem; }
+    .comm-pref-row .cpf-input { font-size: .82rem; padding: 7px 10px; }
   }
 
   /* ── Responsive: Small phones ── */
@@ -1072,13 +1058,9 @@
     .cta-section p { font-size: .92rem; }
 
     .nav-inner { padding: 0 16px; }
-    .comm-pref-grid { grid-template-columns: repeat(2, 1fr); gap: 8px; }
-    .comm-pref-card { padding: 10px 6px; min-height: 60px; }
-    .comm-pref-icon { font-size: 1.1rem; }
-    .comm-pref-label { font-size: .72rem; }
-    .comm-detail-row { padding: 8px 10px; }
-    .comm-detail-row .comm-detail-label { min-width: unset; width: 100%; font-size: .72rem; }
-    .comm-detail-row input { width: 100%; font-size: .82rem; }
+    .comm-pref-row { flex-wrap: wrap; padding: 10px 12px; gap: 8px; }
+    .comm-pref-row .cpf-label { min-width: 70px; font-size: .78rem; }
+    .comm-pref-row .cpf-input { width: 100%; flex: unset; font-size: .8rem; padding: 7px 10px; }
   }
 
   /* ── Chat widget: tablet ── */
@@ -1656,61 +1638,52 @@
           </div>
           <div class="form-group full">
             <label>Preferred Communication Method <span class="req">*</span></label>
-            <p style="font-size:.8rem;color:var(--text-light);margin:-4px 0 10px">How would you like us to contact you? Select all that apply.</p>
-            <div class="comm-pref-grid">
-              <label class="comm-pref-option">
-                <input type="checkbox" name="commPref" value="Phone" onchange="toggleCommDetail(this)">
-                <span class="comm-pref-card">
-                  <span class="comm-pref-icon">&#128222;</span>
-                  <span class="comm-pref-label">Phone Call</span>
-                </span>
-              </label>
-              <label class="comm-pref-option">
-                <input type="checkbox" name="commPref" value="Text/SMS" onchange="toggleCommDetail(this)">
-                <span class="comm-pref-card">
-                  <span class="comm-pref-icon">&#128172;</span>
-                  <span class="comm-pref-label">Text / SMS</span>
-                </span>
-              </label>
-              <label class="comm-pref-option">
-                <input type="checkbox" name="commPref" value="Email" onchange="toggleCommDetail(this)">
-                <span class="comm-pref-card">
-                  <span class="comm-pref-icon">&#9993;</span>
-                  <span class="comm-pref-label">Email</span>
-                </span>
-              </label>
-              <label class="comm-pref-option">
-                <input type="checkbox" name="commPref" value="WhatsApp" onchange="toggleCommDetail(this)">
-                <span class="comm-pref-card">
-                  <span class="comm-pref-icon">&#128241;</span>
-                  <span class="comm-pref-label">WhatsApp</span>
-                </span>
-              </label>
-              <label class="comm-pref-option">
-                <input type="checkbox" name="commPref" value="Facebook Messenger" onchange="toggleCommDetail(this)">
-                <span class="comm-pref-card">
-                  <span class="comm-pref-icon">&#128172;</span>
-                  <span class="comm-pref-label">Facebook</span>
-                </span>
-              </label>
-              <label class="comm-pref-option">
-                <input type="checkbox" name="commPref" value="Instagram" onchange="toggleCommDetail(this)">
-                <span class="comm-pref-card">
-                  <span class="comm-pref-icon">&#128247;</span>
-                  <span class="comm-pref-label">Instagram</span>
-                </span>
-              </label>
-              <label class="comm-pref-option">
-                <input type="checkbox" name="commPref" value="WeChat" onchange="toggleCommDetail(this)">
-                <span class="comm-pref-card">
-                  <span class="comm-pref-icon">&#127760;</span>
-                  <span class="comm-pref-label">WeChat</span>
-                </span>
-              </label>
+            <p style="font-size:.8rem;color:var(--text-light);margin:-4px 0 10px">Tick the methods you'd like us to use and provide your details.</p>
+            <div class="comm-pref-list">
+              <div class="comm-pref-row" id="cpfRow_Phone">
+                <input type="checkbox" name="commPref" value="Phone" id="cpfCheck_Phone" onchange="toggleCommRow(this)">
+                <span class="cpf-icon">&#128222;</span>
+                <span class="cpf-label">Phone</span>
+                <input type="text" class="cpf-input" id="commPhone" placeholder="e.g. +44 7700 900000" disabled>
+              </div>
+              <div class="comm-pref-row" id="cpfRow_SMS">
+                <input type="checkbox" name="commPref" value="Text/SMS" id="cpfCheck_SMS" onchange="toggleCommRow(this)">
+                <span class="cpf-icon">&#128172;</span>
+                <span class="cpf-label">Text / SMS</span>
+                <input type="text" class="cpf-input" id="commSMS" placeholder="e.g. +44 7700 900000" disabled>
+              </div>
+              <div class="comm-pref-row" id="cpfRow_Email">
+                <input type="checkbox" name="commPref" value="Email" id="cpfCheck_Email" onchange="toggleCommRow(this)">
+                <span class="cpf-icon">&#9993;</span>
+                <span class="cpf-label">Email</span>
+                <input type="text" class="cpf-input" id="commEmail" placeholder="e.g. you@email.com" disabled>
+              </div>
+              <div class="comm-pref-row" id="cpfRow_WhatsApp">
+                <input type="checkbox" name="commPref" value="WhatsApp" id="cpfCheck_WhatsApp" onchange="toggleCommRow(this)">
+                <span class="cpf-icon">&#128241;</span>
+                <span class="cpf-label">WhatsApp</span>
+                <input type="text" class="cpf-input" id="commWhatsApp" placeholder="e.g. +44 7700 900000" disabled>
+              </div>
+              <div class="comm-pref-row" id="cpfRow_Facebook">
+                <input type="checkbox" name="commPref" value="Facebook Messenger" id="cpfCheck_Facebook" onchange="toggleCommRow(this)">
+                <span class="cpf-icon">&#128172;</span>
+                <span class="cpf-label">Facebook</span>
+                <input type="text" class="cpf-input" id="commFacebook" placeholder="e.g. facebook.com/yourname or username" disabled>
+              </div>
+              <div class="comm-pref-row" id="cpfRow_Instagram">
+                <input type="checkbox" name="commPref" value="Instagram" id="cpfCheck_Instagram" onchange="toggleCommRow(this)">
+                <span class="cpf-icon">&#128247;</span>
+                <span class="cpf-label">Instagram</span>
+                <input type="text" class="cpf-input" id="commInstagram" placeholder="e.g. @yourhandle" disabled>
+              </div>
+              <div class="comm-pref-row" id="cpfRow_WeChat">
+                <input type="checkbox" name="commPref" value="WeChat" id="cpfCheck_WeChat" onchange="toggleCommRow(this)">
+                <span class="cpf-icon">&#127760;</span>
+                <span class="cpf-label">WeChat</span>
+                <input type="text" class="cpf-input" id="commWeChat" placeholder="e.g. your_wechat_id" disabled>
+              </div>
             </div>
             <span class="error-msg" id="commPrefError" style="display:none">Please select at least one communication method</span>
-            <!-- Dynamic contact detail inputs -->
-            <div id="commDetailFields" class="comm-detail-fields"></div>
           </div>
         </div>
       </div>
@@ -2184,7 +2157,12 @@ function openApplyModal() {
   document.getElementById('cvError').style.display = 'none';
   document.getElementById('gdprError').style.display = 'none';
   document.getElementById('commPrefError').style.display = 'none';
-  document.getElementById('commDetailFields').innerHTML = '';
+  // Reset comm pref rows
+  document.querySelectorAll('.comm-pref-row').forEach(row => {
+    row.classList.remove('checked');
+    const inp = row.querySelector('.cpf-input');
+    if (inp) { inp.value = ''; inp.disabled = true; }
+  });
 
   document.getElementById('applyJobTitle').textContent = currentJob.title;
   document.getElementById('applyJobMeta').textContent = currentJob.locLabel + ' · ' + currentJob.salary + ' · ' + currentJob.type.charAt(0).toUpperCase() + currentJob.type.slice(1);
@@ -2256,54 +2234,44 @@ function getCommPrefs() {
   return [...document.querySelectorAll('input[name="commPref"]:checked')].map(cb => cb.value);
 }
 
-// Contact detail config for each comm method
-const commDetailConfig = {
-  'Phone':              { id: 'commPhone',     icon: '&#128222;', label: 'Phone Number',  placeholder: 'e.g. +44 7700 900000',           hint: 'Best number to reach you', prefill: 'appPhone' },
-  'Text/SMS':           { id: 'commSMS',       icon: '&#128172;', label: 'SMS Number',     placeholder: 'e.g. +44 7700 900000',           hint: 'Mobile number for texts',  prefill: 'appPhone' },
-  'Email':              { id: 'commEmail',      icon: '&#9993;',   label: 'Email Address',  placeholder: 'e.g. you@email.com',             hint: 'Preferred email',          prefill: 'appEmail' },
-  'WhatsApp':           { id: 'commWhatsApp',   icon: '&#128241;', label: 'WhatsApp Number', placeholder: 'e.g. +44 7700 900000',          hint: 'Include country code',     prefill: 'appPhone' },
-  'Facebook Messenger': { id: 'commFacebook',   icon: '&#128172;', label: 'Facebook Profile', placeholder: 'e.g. facebook.com/yourname or username', hint: 'Profile URL or username' },
-  'Instagram':          { id: 'commInstagram',  icon: '&#128247;', label: 'Instagram Handle', placeholder: 'e.g. @yourhandle',             hint: 'Your Instagram @' },
-  'WeChat':             { id: 'commWeChat',     icon: '&#127760;', label: 'WeChat ID',       placeholder: 'e.g. your_wechat_id',           hint: 'Your WeChat ID' }
+// Comm preference: map checkbox value → input field ID + optional prefill source
+const commFieldMap = {
+  'Phone':              { inputId: 'commPhone',     prefill: 'appPhone' },
+  'Text/SMS':           { inputId: 'commSMS',       prefill: 'appPhone' },
+  'Email':              { inputId: 'commEmail',      prefill: 'appEmail' },
+  'WhatsApp':           { inputId: 'commWhatsApp',   prefill: 'appPhone' },
+  'Facebook Messenger': { inputId: 'commFacebook' },
+  'Instagram':          { inputId: 'commInstagram' },
+  'WeChat':             { inputId: 'commWeChat' }
 };
 
-function toggleCommDetail(checkbox) {
-  const container = document.getElementById('commDetailFields');
-  const val = checkbox.value;
-  const config = commDetailConfig[val];
-  if (!config) return;
+function toggleCommRow(checkbox) {
+  const row = checkbox.closest('.comm-pref-row');
+  const cfg = commFieldMap[checkbox.value];
+  if (!cfg) return;
+  const input = document.getElementById(cfg.inputId);
 
   if (checkbox.checked) {
-    // Add input row
-    const row = document.createElement('div');
-    row.className = 'comm-detail-row';
-    row.id = 'commRow_' + config.id;
-    // Pre-fill from existing form fields where applicable
-    let prefillVal = '';
-    if (config.prefill) {
-      const src = document.getElementById(config.prefill);
-      if (src) prefillVal = src.value || '';
+    row.classList.add('checked');
+    input.disabled = false;
+    // Auto-fill from existing form field if the input is empty
+    if (!input.value && cfg.prefill) {
+      const src = document.getElementById(cfg.prefill);
+      if (src && src.value) input.value = src.value;
     }
-    row.innerHTML = `
-      <span class="comm-detail-icon">${config.icon}</span>
-      <span class="comm-detail-label">${config.label}</span>
-      <input type="text" id="${config.id}" placeholder="${config.placeholder}" value="${prefillVal}">
-      <span class="comm-detail-hint">${config.hint}</span>
-    `;
-    container.appendChild(row);
+    input.focus();
   } else {
-    // Remove input row
-    const row = document.getElementById('commRow_' + config.id);
-    if (row) row.remove();
+    row.classList.remove('checked');
+    input.disabled = true;
   }
 }
 
 function getCommDetails() {
   const details = {};
   getCommPrefs().forEach(method => {
-    const config = commDetailConfig[method];
-    if (config) {
-      const input = document.getElementById(config.id);
+    const cfg = commFieldMap[method];
+    if (cfg) {
+      const input = document.getElementById(cfg.inputId);
       details[method] = input ? input.value.trim() : '';
     }
   });
