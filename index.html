@@ -443,6 +443,25 @@
   .form-group.has-error textarea { border-color: #dc2626; }
   .form-group.has-error .error-msg { display: block; }
 
+  /* Communication Preference Grid */
+  .comm-pref-grid {
+    display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px;
+  }
+  .comm-pref-option { cursor: pointer; }
+  .comm-pref-option input[type="checkbox"] { position: absolute; opacity: 0; pointer-events: none; }
+  .comm-pref-card {
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    padding: 14px 8px; border-radius: 10px; border: 2px solid var(--border);
+    background: var(--card); transition: all .2s; text-align: center; min-height: 72px;
+  }
+  .comm-pref-card:hover { border-color: var(--accent); background: #f0f4ff; }
+  .comm-pref-option input:checked + .comm-pref-card {
+    border-color: var(--accent); background: #eef2ff;
+    box-shadow: 0 0 0 2px var(--accent);
+  }
+  .comm-pref-icon { font-size: 1.3rem; margin-bottom: 4px; display: block; }
+  .comm-pref-label { font-size: .78rem; font-weight: 600; color: var(--text); line-height: 1.2; }
+
   /* File Upload */
   .file-upload {
     border: 2px dashed var(--border); border-radius: 8px; padding: 24px;
@@ -994,6 +1013,7 @@
     .footer-bottom { flex-direction: column; text-align: center; gap: 12px; }
     .search-bar { flex-direction: column; }
     .search-bar input, .search-bar select { width: 100%; }
+    .comm-pref-grid { grid-template-columns: repeat(3, 1fr); gap: 8px; }
   }
 
   /* ── Responsive: Small phones ── */
@@ -1025,6 +1045,10 @@
     .cta-section p { font-size: .92rem; }
 
     .nav-inner { padding: 0 16px; }
+    .comm-pref-grid { grid-template-columns: repeat(2, 1fr); gap: 8px; }
+    .comm-pref-card { padding: 10px 6px; min-height: 60px; }
+    .comm-pref-icon { font-size: 1.1rem; }
+    .comm-pref-label { font-size: .72rem; }
   }
 
   /* ── Chat widget: tablet ── */
@@ -1600,6 +1624,62 @@
               <option>Other</option>
             </select>
           </div>
+          <div class="form-group full">
+            <label>Preferred Communication Method <span class="req">*</span></label>
+            <p style="font-size:.8rem;color:var(--text-light);margin:-4px 0 10px">How would you like us to contact you? Select all that apply.</p>
+            <div class="comm-pref-grid">
+              <label class="comm-pref-option">
+                <input type="checkbox" name="commPref" value="Phone">
+                <span class="comm-pref-card">
+                  <span class="comm-pref-icon">&#128222;</span>
+                  <span class="comm-pref-label">Phone Call</span>
+                </span>
+              </label>
+              <label class="comm-pref-option">
+                <input type="checkbox" name="commPref" value="Text/SMS">
+                <span class="comm-pref-card">
+                  <span class="comm-pref-icon">&#128172;</span>
+                  <span class="comm-pref-label">Text / SMS</span>
+                </span>
+              </label>
+              <label class="comm-pref-option">
+                <input type="checkbox" name="commPref" value="Email">
+                <span class="comm-pref-card">
+                  <span class="comm-pref-icon">&#9993;</span>
+                  <span class="comm-pref-label">Email</span>
+                </span>
+              </label>
+              <label class="comm-pref-option">
+                <input type="checkbox" name="commPref" value="WhatsApp">
+                <span class="comm-pref-card">
+                  <span class="comm-pref-icon">&#128241;</span>
+                  <span class="comm-pref-label">WhatsApp</span>
+                </span>
+              </label>
+              <label class="comm-pref-option">
+                <input type="checkbox" name="commPref" value="Facebook Messenger">
+                <span class="comm-pref-card">
+                  <span class="comm-pref-icon">&#128172;</span>
+                  <span class="comm-pref-label">Facebook</span>
+                </span>
+              </label>
+              <label class="comm-pref-option">
+                <input type="checkbox" name="commPref" value="Instagram">
+                <span class="comm-pref-card">
+                  <span class="comm-pref-icon">&#128247;</span>
+                  <span class="comm-pref-label">Instagram</span>
+                </span>
+              </label>
+              <label class="comm-pref-option">
+                <input type="checkbox" name="commPref" value="WeChat">
+                <span class="comm-pref-card">
+                  <span class="comm-pref-icon">&#127760;</span>
+                  <span class="comm-pref-label">WeChat</span>
+                </span>
+              </label>
+            </div>
+            <span class="error-msg" id="commPrefError" style="display:none">Please select at least one communication method</span>
+          </div>
         </div>
       </div>
 
@@ -2071,6 +2151,7 @@ function openApplyModal() {
   document.querySelectorAll('.file-name').forEach(f => { f.style.display = 'none'; f.textContent = ''; });
   document.getElementById('cvError').style.display = 'none';
   document.getElementById('gdprError').style.display = 'none';
+  document.getElementById('commPrefError').style.display = 'none';
 
   document.getElementById('applyJobTitle').textContent = currentJob.title;
   document.getElementById('applyJobMeta').textContent = currentJob.locLabel + ' · ' + currentJob.salary + ' · ' + currentJob.type.charAt(0).toUpperCase() + currentJob.type.slice(1);
@@ -2138,6 +2219,10 @@ function setError(id) {
   if (el) el.closest('.form-group').classList.add('has-error');
 }
 
+function getCommPrefs() {
+  return [...document.querySelectorAll('input[name="commPref"]:checked')].map(cb => cb.value);
+}
+
 function validateStep1() {
   clearErrors();
   let valid = true;
@@ -2149,6 +2234,13 @@ function validateStep1() {
   // Email format
   const email = document.getElementById('appEmail');
   if (email.value && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.value)) { setError('appEmail'); valid = false; }
+  // Communication preference — at least one required
+  const commErr = document.getElementById('commPrefError');
+  if (getCommPrefs().length === 0) {
+    commErr.style.display = 'block'; valid = false;
+  } else {
+    commErr.style.display = 'none';
+  }
   return valid;
 }
 
@@ -2210,6 +2302,7 @@ function buildReview() {
       <div><p style="font-size:.78rem;color:var(--text-light);margin-bottom:2px">Cover Letter</p><p style="font-weight:600;font-size:.92rem">${clName}</p></div>
       ${getValue('appLinkedIn') !== '—' ? '<div><p style="font-size:.78rem;color:var(--text-light);margin-bottom:2px">LinkedIn</p><p style="font-weight:600;font-size:.92rem">' + getValue('appLinkedIn') + '</p></div>' : ''}
       ${getValue('appSource') !== '—' ? '<div><p style="font-size:.78rem;color:var(--text-light);margin-bottom:2px">Source</p><p style="font-weight:600;font-size:.92rem">' + getValue('appSource') + '</p></div>' : ''}
+      <div><p style="font-size:.78rem;color:var(--text-light);margin-bottom:2px">Contact Preference</p><p style="font-weight:600;font-size:.92rem">${getCommPrefs().join(', ') || 'Not specified'}</p></div>
     </div>
     ${getValue('appMotivation') !== '—' ? '<div style="margin-top:16px"><p style="font-size:.78rem;color:var(--text-light);margin-bottom:2px">Motivation</p><p style="font-size:.88rem;color:var(--text);line-height:1.7;background:var(--bg-alt);padding:12px 16px;border-radius:8px;border:1px solid var(--border)">' + getValue('appMotivation') + '</p></div>' : ''}
     <p style="margin-top:20px;font-size:.82rem;color:var(--text-light);font-style:italic">Please review your details above. Click "Submit Application" to finalise, or go back to make changes.</p>
@@ -2233,6 +2326,7 @@ function submitApplication() {
       visa: document.getElementById('appVisa').value,
       motivation: document.getElementById('appMotivation').value.trim(),
       source: document.getElementById('appSource').value || 'Careers Site',
+      commPreference: getCommPrefs(),
       job: currentJob ? currentJob.title : 'General Application',
       department: currentJob ? currentJob.dept.charAt(0).toUpperCase() + currentJob.dept.slice(1) : 'General',
       appliedDate: new Date().toISOString(),
@@ -3111,7 +3205,22 @@ function speakText(text) {
   }
 }
 
-// ═══════════ VOICE KNOWLEDGE BASE ═══════════
+// ═══════════ VOICE KNOWLEDGE BASE (Conversational / Paradox-style) ═══════════
+// Warm openers to rotate through for natural feel
+const voiceOpeners = {
+  positive: ["Great question!", "Oh, good one!", "Glad you asked!", "Absolutely!", "Sure thing!"],
+  info: ["So,", "Well,", "Here's the thing —", "Good news —"],
+  followUp: [
+    "Want me to go into more detail on any of that?",
+    "Anything else you'd like to know?",
+    "What else can I help with?",
+    "Would you like to know more about that?",
+    "Shall I tell you about anything else?",
+    "Is there something specific you'd like to dig into?"
+  ]
+};
+function pickRandom(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
+
 function processVoiceQuery(query) {
   const m = query.toLowerCase();
   const job = voiceJob;
@@ -3124,120 +3233,124 @@ function processVoiceQuery(query) {
     // Role overview / what does it involve
     if (m.includes('role') || m.includes('involve') || m.includes('about') || m.includes('what is') || m.includes('describe') || m.includes('overview') || m.includes('do in this') || m.includes('day to day') || m.includes('what does')) {
       answer = desc.about
-        ? `${desc.about} As a ${job.title}, you'll be working from our ${job.locLabel} office${job.remote ? ', though this role is also available remotely' : ''}. It's a ${job.type} position.`
-        : `The ${job.title} is a ${job.type} role based in ${job.locLabel}${job.remote ? ', with remote working available' : ''}. The position sits within our ${job.dept} team and offers a salary of ${job.salary}.`;
+        ? `${pickRandom(voiceOpeners.positive)} ${desc.about.split('.').slice(0,2).join('.')}. It's based in ${job.locLabel}${job.remote ? ' and you can work remotely too' : ''}. Would you like to hear about the day-to-day responsibilities, or maybe the salary?`
+        : `${pickRandom(voiceOpeners.info)} the ${job.title} is a ${job.type} role in our ${job.dept} team, based in ${job.locLabel}${job.remote ? ' with remote options' : ''}. Would you like to know about the salary or what skills they're looking for?`;
     }
 
     // Salary
     else if (m.includes('salary') || m.includes('pay') || m.includes('compensation') || m.includes('how much') || m.includes('earn') || m.includes('money') || m.includes('package')) {
-      answer = `The salary range for the ${job.title} role is ${job.salary}. On top of base salary, you'll receive an annual performance bonus, equity participation, and our full benefits package including premium healthcare and a five thousand pound learning budget.`;
+      answer = `${pickRandom(voiceOpeners.positive)} The salary for this role is ${job.salary}. On top of that there's an annual bonus and equity too. Want me to tell you more about the full benefits package?`;
     }
 
     // Location
     else if (m.includes('location') || m.includes('where') || m.includes('office') || m.includes('based') || m.includes('remote') || m.includes('hybrid') || m.includes('work from home')) {
       answer = job.remote
-        ? `This role is remote-friendly, listed as ${job.locLabel}. We offer hybrid working with three days your choice and core hours only. You'll have access to our offices worldwide for collaboration.`
-        : `This role is based in ${job.locLabel}. We operate a hybrid model — three days your choice with core hours only. While this particular role is office-based, we offer flexible arrangements to support work-life balance.`;
+        ? `Good news — this one's remote-friendly! It's listed as ${job.locLabel}, but we offer hybrid working — three days your choice. Do you want to know more about how the hybrid setup works?`
+        : `This role is based in ${job.locLabel}. We do hybrid working though, so it's three days your choice with flexible core hours. Would you like to know anything else about the location or the team?`;
     }
 
     // Skills / requirements
     else if (m.includes('skill') || m.includes('require') || m.includes('need') || m.includes('qualif') || m.includes('experience') || m.includes('background') || m.includes('looking for')) {
       if (desc.requirements) {
-        answer = `For the ${job.title} role, we're looking for someone with: ${desc.requirements.join('. ')}. The key technical skills for this role include ${job.tags.join(', ')}.`;
+        const topReqs = desc.requirements.slice(0, 3).join(', ');
+        answer = `${pickRandom(voiceOpeners.info)} the main things we're looking for are ${topReqs}. Key tech skills include ${job.tags.slice(0, 3).join(', ')}. Does that match your background? I can tell you more about how to apply if you're interested!`;
       } else {
-        answer = `The key skills and technologies for this role include ${job.tags.join(', ')}. We value both technical ability and soft skills like communication and collaboration.`;
+        answer = `The core skills for this one are ${job.tags.slice(0, 4).join(', ')}. We also really value communication and teamwork. Does that sound like a good fit for you?`;
       }
     }
 
     // Responsibilities
     else if (m.includes('responsib') || m.includes('duties') || m.includes('tasks') || m.includes('what will i do') || m.includes('expect')) {
       if (desc.responsibilities) {
-        answer = `In this role, your main responsibilities will include: ${desc.responsibilities.join('. ')}.`;
+        const topResp = desc.responsibilities.slice(0, 2).join(', and ');
+        answer = `${pickRandom(voiceOpeners.positive)} Day to day, you'd be focused on ${topResp}. There's more to it of course — want me to go deeper, or would you rather hear about the team you'd be working with?`;
       } else {
-        answer = `As a ${job.title}, you'll be contributing to our ${job.dept} function, working on projects that align with your expertise in ${job.tags.join(', ')}.`;
+        answer = `You'd be working within our ${job.dept} team, tackling projects around ${job.tags.slice(0, 2).join(' and ')}. Want to know more about the team or how to apply?`;
       }
     }
 
     // Team / department
     else if (m.includes('team') || m.includes('department') || m.includes('division') || m.includes('who will i work with') || m.includes('report')) {
-      answer = desc.about || `You'll be part of our ${job.dept.charAt(0).toUpperCase() + job.dept.slice(1)} team. We have a collaborative culture where you'll work with talented colleagues across multiple functions and geographies.`;
+      const deptName = job.dept.charAt(0).toUpperCase() + job.dept.slice(1);
+      answer = `You'd be joining our ${deptName} team. It's a really collaborative group — you'll work with people across different functions and even different countries. ${pickRandom(voiceOpeners.followUp)}`;
     }
 
     // Urgent
     else if (m.includes('urgent') || m.includes('soon') || m.includes('quickly') || m.includes('fast track')) {
       answer = job.urgent
-        ? `Yes, this is an urgent hire — we're actively looking to fill this role as soon as possible. If you apply now, you could expect a faster interview timeline, typically within one to two weeks.`
-        : `This role is open for applications now. Our typical interview process takes two to three weeks from application to offer.`;
+        ? `Yes, this one's actually a priority hire! We're looking to move quickly — if you apply now, you could hear back within a week or two. Want me to walk you through the application process?`
+        : `This role is open now and we'd love to hear from you. The process usually takes two to three weeks, which is pretty quick. Shall I tell you what the interview stages look like?`;
     }
 
     // How to apply
     else if (m.includes('apply') || m.includes('application') || m.includes('submit') || m.includes('cv') || m.includes('resume')) {
-      answer = `You can apply for the ${job.title} role in three ways: use the Apply Now button on the careers page, apply through our chat assistant Ava, or submit via the application form. The process takes about two minutes and your application goes straight to our talent team.`;
+      answer = `It's really easy! Just hit the Apply Now button on this page and it takes about two minutes. Your application goes straight to our talent team — real people, not bots. Would you like any tips on making your application stand out?`;
     }
 
     // Contract type
     else if (m.includes('contract') || m.includes('full time') || m.includes('part time') || m.includes('permanent') || m.includes('temp') || m.includes('intern')) {
-      answer = `This is a ${job.type} position. ${job.type === 'full-time' ? 'You\'ll receive our full benefits package including annual bonus and equity.' : job.type === 'contract' ? 'Contract roles include competitive day rates and access to select benefits.' : 'Our internships are fully paid with dedicated mentorship and real project exposure.'}`;
+      answer = `This is a ${job.type} position. ${job.type === 'full-time' ? 'So you\'d get the full package — bonus, equity, all the benefits.' : job.type === 'contract' ? 'Contract roles come with competitive day rates and access to some benefits too.' : 'Our internships are fully paid with real project work and a dedicated mentor.'} ${pickRandom(voiceOpeners.followUp)}`;
     }
   }
 
   // General company questions (no job context or fallthrough)
   if (!answer) {
     if (m.includes('benefit') || m.includes('perk') || m.includes('wellness') || m.includes('health') || m.includes('insurance')) {
-      answer = "We offer an excellent benefits package. This includes premium medical, dental, and vision cover, a five thousand pound annual learning budget, twenty-six weeks paid parental leave for all parents, hybrid working with three days your choice, top-quartile pay with annual bonus and equity, global mobility programmes, five paid volunteer days, and ten percent innovation time.";
+      answer = `Oh, the benefits are really good here! You get premium healthcare, a five thousand pound learning budget each year, and twenty-six weeks paid parental leave. Plus hybrid working, annual bonus, and equity. Want me to tell you about the culture and work-life balance too?`;
     }
     else if (m.includes('culture') || m.includes('values') || m.includes('work life') || m.includes('environment') || m.includes('diverse') || m.includes('inclusion')) {
-      answer = "Our culture is built on four values: Innovation, Integrity, Inclusion, and Impact. We're proudly diverse — fifty-two percent of leadership roles are held by women, and our teams span over ninety nationalities. We have active employee resource groups, a dedicated Head of D.E.I., and we publish our diversity data annually. Work-life balance matters — hybrid working, core hours only, four wellness days, and logging off on time is the norm.";
+      answer = `${pickRandom(voiceOpeners.positive)} The culture here is really inclusive — fifty-two percent of leadership are women, and we've got over ninety nationalities across the company. It's hybrid working, core hours only, and logging off on time is genuinely the norm. Want to hear about the benefits package too?`;
     }
     else if (m.includes('interview') || m.includes('process') || m.includes('stage') || m.includes('assessment')) {
-      answer = "Our interview process respects your time. It starts with an application review within five working days, followed by a thirty-minute recruiter call, then a technical or case interview specific to the role, a sixty-minute panel interview to meet the team, and finally an offer — typically within forty-eight hours of the final interview. The whole process usually takes two to three weeks, and we provide feedback at every stage.";
+      answer = `${pickRandom(voiceOpeners.info)} the process is designed to be respectful of your time. It's usually a recruiter call first, then a technical or case interview, followed by a panel to meet the team. The whole thing takes about two to three weeks, and you get feedback at every stage. Would you like some tips on how to prepare?`;
     }
     else if (m.includes('salary') || m.includes('pay') || m.includes('compensation') || m.includes('how much')) {
-      answer = "Our compensation is benchmarked to the top quartile of the market in each location. All roles include base salary, annual performance bonus, and equity participation. We also have transparent pay bands at every level, so you'll always know what's available.";
+      answer = `We benchmark to top-quartile pay in every location. All roles include base salary, annual bonus, and equity. We also have transparent pay bands, so there are no surprises. Is there a specific role you're interested in? I can give you more detail!`;
     }
     else if ((m.includes('job') || m.includes('role') || m.includes('position') || m.includes('hiring') || m.includes('opening') || m.includes('available'))) {
-      answer = `We currently have ${allJobs.length} open positions across twelve departments in forty-eight countries. Roles span Engineering, Product, Sales, Consulting, Finance, H.R., Marketing, Operations, Legal, Healthcare Tech, Energy, and Security. You can browse all roles on our careers page or ask me about a specific department.`;
+      answer = `We've got ${allJobs.length} roles open right now across loads of teams — Engineering, Product, Consulting, and more, in forty-eight countries. Are you looking for something specific? I can help narrow it down!`;
     }
     else if (m.includes('about') || m.includes('company') || m.includes('who are') || m.includes('tell me about acquire') || m.includes('what do')) {
-      answer = "Acquire Talent Partners is a global technology and infrastructure company with a hundred and two thousand employees across forty-eight countries. Founded in nineteen eighty-seven, we're a Fortune fifty company with thirty-eight point two billion dollars in revenue. We operate across six divisions: Cloud and Digital, Advanced Manufacturing, Energy and Sustainability, Strategic Consulting, Healthcare Technology, and Defence and Security.";
+      answer = `${pickRandom(voiceOpeners.positive)} Acquire Talent Partners is a global tech and infrastructure company — over a hundred thousand people in forty-eight countries. We work across cloud, manufacturing, energy, consulting, healthcare, and security. Would you like to hear about what it's like to work here, or jump straight to the open roles?`;
     }
     else if (m.includes('location') || m.includes('office') || m.includes('where') || m.includes('country') || m.includes('countries')) {
-      answer = "We have offices in forty-eight countries. Major hubs include London as our Global H.Q. with eight thousand two hundred people, New York as Americas H.Q. with six thousand one hundred, Singapore as our Asia Pacific H.Q. with five thousand eight hundred, plus Frankfurt, Tokyo, Dubai, São Paulo, and Sydney. Many roles offer remote or hybrid working too.";
+      answer = `We're all over the world! Major hubs are London, New York, Singapore, Frankfurt, Tokyo, and Dubai. Many roles offer remote or hybrid working too. Are you based somewhere specific? I can check what's available near you!`;
     }
     else if (m.includes('visa') || m.includes('sponsor') || m.includes('relocation') || m.includes('relocate') || m.includes('right to work')) {
-      answer = "We sponsor visas for many roles depending on position and location. Our global mobility team supports international transfers with full relocation packages. Twelve percent of our workforce relocated internationally last year.";
+      answer = `We do sponsor visas for lots of roles, and our global mobility team handles full relocation packages. Actually, twelve percent of our people relocated internationally last year. Where are you based and where are you looking to work? I can check for you!`;
     }
     else if (m.includes('graduat') || m.includes('intern') || m.includes('early career') || m.includes('entry level') || m.includes('junior')) {
-      answer = "We run a competitive Graduate Programme with rotations, mentorship, and accelerated progression. We also offer paid Summer Internships of ten to twelve weeks in Engineering, Consulting, and Data Science. Applications typically open in September and close in January.";
+      answer = `We'd love to hear from early career talent! We run a Graduate Programme with rotations and mentorship, plus paid Summer Internships in Engineering, Consulting, and Data Science. Applications usually open in September. Want to know more about what the programmes involve?`;
     }
     else if (m.includes('notice') || m.includes('start date') || m.includes('when can i start') || m.includes('how soon')) {
-      answer = "We accommodate all notice periods — from immediately available to three months or more. We're generally flexible on start dates and happy to wait for the right person.";
+      answer = `We're really flexible on that — whether you can start tomorrow or need three months, we'll work with you. The right person is worth waiting for! Is there anything else on your mind?`;
     }
     else if (m.includes('tip') || m.includes('advice') || m.includes('stand out') || m.includes('improve') || m.includes('best chance')) {
-      answer = "Here are my top tips for applying. Tailor your C.V. to the specific role. Add a cover letter — it's optional but we read every one. Use the motivation box to explain why this role excites you. Include your LinkedIn profile. Be specific about achievements with numbers. And remember, our recruiters review every application personally — no A.I. screening.";
+      answer = `Ooh, love that you're asking! My top tips: tailor your C.V. to the role, add a cover letter — we actually read them! — and be specific with numbers on your achievements. Every application is reviewed by a real person on our team. Want to go ahead and apply?`;
     }
     else if (m.includes('engineering') || m.includes('developer') || m.includes('software')) {
       const engJobs = allJobs.filter(j => j.dept === 'engineering');
-      answer = `We have ${engJobs.length} engineering roles open right now, including positions in cloud platform, machine learning, frontend, backend, data engineering, and site reliability. Locations include London, New York, Singapore, Frankfurt, Bangalore, and remote.`;
+      answer = `We've got ${engJobs.length} engineering roles open right now! Everything from cloud platform to machine learning, frontend to site reliability. What area of engineering are you most interested in?`;
     }
     else if (m.includes('consulting') || m.includes('consultant')) {
-      answer = "Our consulting practice is hiring across London, Dubai, and Sydney. Roles include Management Consultant for Digital Transformation, Senior Strategy Consultant, and Principal Consultant for Change Management. These are client-facing roles working with C-suite leaders.";
+      answer = `Our consulting team is growing! We're hiring in London, Dubai, and Sydney — roles like Digital Transformation, Strategy, and Change Management. These are client-facing, working with senior leaders. Sound interesting? I can share more details!`;
     }
     else if (m.includes('thank') || m.includes('cheers') || m.includes('great') || m.includes('helpful') || m.includes('awesome')) {
-      answer = "You're very welcome! Is there anything else you'd like to know about the role or the company? Just tap the mic whenever you're ready.";
+      const thanks = ["You're so welcome!", "Happy to help!", "Anytime!", "My pleasure!"];
+      answer = `${pickRandom(thanks)} If you think of anything else, I'm right here. Good luck with everything!`;
     }
     else if (m.includes('hello') || m.includes('hi ') || m.includes('hey') || m.includes('good morning') || m.includes('good afternoon')) {
       answer = voiceJob
-        ? `Hello! I'm here to answer any questions about the ${voiceJob.title} role. What would you like to know?`
-        : "Hello! Welcome to Acquire Talent Partners. I can tell you about our open roles, benefits, culture, interview process, and more. What would you like to know?";
+        ? `Hey there! Welcome! I'm here to chat about the ${voiceJob.title} role. What would you like to know — the salary, the team, what the job involves? Just ask away!`
+        : "Hey! Welcome to Acquire Talent Partners. I'm here to help you find your next role. You can ask me about open positions, what it's like to work here, benefits — whatever's on your mind!";
     }
   }
 
   // Final fallback
   if (!answer) {
     answer = voiceJob
-      ? `I'm best at answering questions about the ${voiceJob.title} role — things like responsibilities, salary, requirements, and the team. I can also tell you about our benefits, culture, and interview process. What would you like to know?`
-      : "I can help with questions about our open roles, the application process, benefits, interview stages, company culture, and locations. What would you like to know?";
+      ? `Hmm, I might not have the perfect answer for that one! But I can definitely help with things like the salary, responsibilities, requirements, or how to apply for the ${voiceJob.title} role. What would you like to know?`
+      : "I'm not sure I caught that! I'm great with questions about open roles, the application process, benefits, interviews, and company culture. What can I help you with?";
   }
 
   addVoiceResponse(answer);

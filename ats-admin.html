@@ -731,6 +731,7 @@ storedApps.forEach((app, i) => {
     experience: app.experience || '',
     visa: app.visa || '',
     motivation: app.motivation || '',
+    commPreference: app.commPreference || ['Email'],
     notes: app.notes || [],
     timeline: [{ action: 'Applied via Careers Site', date: new Date(app.appliedDate || Date.now()) }]
   });
@@ -784,6 +785,7 @@ for (let i = 0; i < 85; i++) {
     notice: randomItem(['Immediately','1 week','2 weeks','1 month','2 months','3 months']),
     experience: randomItem(['< 1 year','1–2 years','3–5 years','6–10 years','10–15 years','15+ years']),
     visa: randomItem(['Yes — right to work','Yes — with sponsorship','Requires sponsorship']),
+    commPreference: (() => { const opts = ['Phone','Text/SMS','Email','WhatsApp','Facebook Messenger','Instagram','WeChat']; const n = 1 + Math.floor(Math.random() * 3); const shuffled = opts.sort(() => .5 - Math.random()); return shuffled.slice(0, n); })(),
     motivation: '',
     notes: notes,
     timeline: timeline
@@ -1061,6 +1063,7 @@ function openDrawer(id) {
       <div class="d-field"><label>Experience</label><p>${c.experience || 'Not specified'}</p></div>
       <div class="d-field"><label>Salary Expectation</label><p>${c.salary || 'Not specified'}</p></div>
       <div class="d-field"><label>Right to Work</label><p>${c.visa || 'Not specified'}</p></div>
+      <div class="d-field"><label>Contact Preference</label><p>${c.commPreference ? (Array.isArray(c.commPreference) ? c.commPreference.join(', ') : c.commPreference) : 'Not specified'}</p></div>
     </div>
     ${c.motivation ? `<div style="margin-top:12px"><label style="font-size:.72rem;color:var(--text-xs);display:block;margin-bottom:4px">Motivation</label><p style="font-size:.88rem;line-height:1.7;background:var(--bg);padding:12px;border-radius:8px;border:1px solid var(--border)">${c.motivation}</p></div>` : ''}
   </div>`;
