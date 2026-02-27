@@ -488,6 +488,12 @@ tr { cursor:pointer; transition:background .1s; }
 }
 
 </style>
+<script>
+  // ══════════════════════════════════════════════════════════════
+  // Email Server URL — Update this after deploying to Render.com
+  // ══════════════════════════════════════════════════════════════
+  const EMAIL_SERVER_URL = 'https://acquiretalentpartners-com.onrender.com';
+</script>
 </head>
 <body>
 
@@ -1568,10 +1574,10 @@ async function sendEmail() {
   // Show sending state
   sendBtn.disabled = true;
   sendBtn.innerHTML = '&#9203; Sending...';
-  statusEl.innerHTML = '&#9203; Connecting to email server...';
+  statusEl.innerHTML = '&#9203; Sending email...';
 
   try {
-    const res = await fetch('http://localhost:3001/send-email', {
+    const res = await fetch(EMAIL_SERVER_URL + '/send-email', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -1620,7 +1626,7 @@ async function sendEmail() {
     }
   } catch (err) {
     console.error('Email send error:', err);
-    statusEl.innerHTML = `<span style="color:#ef4444">&#10060; ${err.message.includes('fetch') ? 'Email server not running. Start it with: node email-server.js' : 'Error: ' + err.message}</span>`;
+    statusEl.innerHTML = `<span style="color:#ef4444">&#10060; ${err.message && err.message.includes('fetch') ? 'Cannot reach email server — check EMAIL_SERVER_URL is set' : 'Error: ' + (err.message || 'Unknown')}</span>`;
     sendBtn.disabled = false;
     sendBtn.innerHTML = '&#9993; Retry Send';
   }

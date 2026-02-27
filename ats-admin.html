@@ -500,6 +500,12 @@ tr { cursor:pointer; transition:background .1s; }
 }
 
 </style>
+<script>
+  // ══════════════════════════════════════════════════════════════
+  // Email Server URL — Update this after deploying to Render.com
+  // ══════════════════════════════════════════════════════════════
+  const EMAIL_SERVER_URL = 'https://acquiretalentpartners-com.onrender.com';
+</script>
 </head>
 <body>
 
@@ -1610,7 +1616,7 @@ async function sendEmail(templateId, candidateId) {
   }
 
   try {
-    const res = await fetch('http://localhost:3001/send-email', {
+    const res = await fetch(EMAIL_SERVER_URL + '/send-email', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -1654,8 +1660,8 @@ async function sendEmail(templateId, candidateId) {
   } catch (err) {
     console.error('Email send error:', err);
     if (modalFooter) {
-      modalFooter.innerHTML = '<span style="color:#dc2626;font-weight:600;">❌ Failed to send: ' + err.message + '</span>' +
-        '<br><span style="font-size:.82rem;color:var(--text-light);margin-top:4px;display:inline-block;">Make sure email-server.js is running on port 3001</span>' +
+      modalFooter.innerHTML = '<span style="color:#dc2626;font-weight:600;">❌ Failed to send: ' + (err.message || 'Unknown error') + '</span>' +
+        '<br><span style="font-size:.82rem;color:var(--text-light);margin-top:4px;display:inline-block;">Check that your email server is deployed and EMAIL_SERVER_URL is set correctly</span>' +
         '<button onclick="sendEmail(\'' + templateId + '\',\'' + candidateId + '\')" style="margin-left:12px;margin-top:8px;padding:6px 16px;background:var(--accent);color:#fff;border:none;border-radius:6px;cursor:pointer;font-weight:600;">Retry</button>';
     }
   }
