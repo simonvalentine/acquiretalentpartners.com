@@ -732,6 +732,7 @@ storedApps.forEach((app, i) => {
     visa: app.visa || '',
     motivation: app.motivation || '',
     commPreference: app.commPreference || ['Email'],
+    commDetails: app.commDetails || {},
     notes: app.notes || [],
     timeline: [{ action: 'Applied via Careers Site', date: new Date(app.appliedDate || Date.now()) }]
   });
@@ -786,6 +787,18 @@ for (let i = 0; i < 85; i++) {
     experience: randomItem(['< 1 year','1–2 years','3–5 years','6–10 years','10–15 years','15+ years']),
     visa: randomItem(['Yes — right to work','Yes — with sponsorship','Requires sponsorship']),
     commPreference: (() => { const opts = ['Phone','Text/SMS','Email','WhatsApp','Facebook Messenger','Instagram','WeChat']; const n = 1 + Math.floor(Math.random() * 3); const shuffled = opts.sort(() => .5 - Math.random()); return shuffled.slice(0, n); })(),
+    commDetails: (() => {
+      const d = {}; const email = first.toLowerCase() + '.' + last.toLowerCase() + '@email.com';
+      const phone = '+' + (Math.floor(Math.random() * 80) + 1) + ' ' + Math.floor(1000000000 + Math.random() * 9000000000);
+      const handle = first.toLowerCase() + last.toLowerCase().charAt(0);
+      if (Math.random() > .3) d['Phone'] = phone;
+      if (Math.random() > .5) d['Email'] = email;
+      if (Math.random() > .6) d['WhatsApp'] = phone;
+      if (Math.random() > .7) d['Instagram'] = '@' + handle;
+      if (Math.random() > .8) d['Facebook Messenger'] = 'facebook.com/' + handle;
+      if (Math.random() > .9) d['WeChat'] = handle + '_wc';
+      return d;
+    })(),
     motivation: '',
     notes: notes,
     timeline: timeline
@@ -1065,6 +1078,13 @@ function openDrawer(id) {
       <div class="d-field"><label>Right to Work</label><p>${c.visa || 'Not specified'}</p></div>
       <div class="d-field"><label>Contact Preference</label><p>${c.commPreference ? (Array.isArray(c.commPreference) ? c.commPreference.join(', ') : c.commPreference) : 'Not specified'}</p></div>
     </div>
+    ${c.commDetails && Object.keys(c.commDetails).length ? `
+    <div style="margin-top:12px;background:var(--bg);padding:12px;border-radius:8px;border:1px solid var(--border)">
+      <label style="font-size:.72rem;color:var(--text-xs);display:block;margin-bottom:8px;font-weight:600">Contact Details</label>
+      <div class="d-grid">
+        ${Object.entries(c.commDetails).map(([method, value]) => `<div class="d-field"><label>${method}</label><p>${value || 'Not provided'}</p></div>`).join('')}
+      </div>
+    </div>` : ''}
     ${c.motivation ? `<div style="margin-top:12px"><label style="font-size:.72rem;color:var(--text-xs);display:block;margin-bottom:4px">Motivation</label><p style="font-size:.88rem;line-height:1.7;background:var(--bg);padding:12px;border-radius:8px;border:1px solid var(--border)">${c.motivation}</p></div>` : ''}
   </div>`;
 

@@ -462,6 +462,30 @@
   .comm-pref-icon { font-size: 1.3rem; margin-bottom: 4px; display: block; }
   .comm-pref-label { font-size: .78rem; font-weight: 600; color: var(--text); line-height: 1.2; }
 
+  /* Communication Detail Fields */
+  .comm-detail-fields {
+    margin-top: 14px; display: flex; flex-direction: column; gap: 10px;
+  }
+  .comm-detail-fields:empty { margin-top: 0; }
+  .comm-detail-row {
+    display: flex; align-items: center; gap: 10px;
+    background: var(--bg-alt); border: 1px solid var(--border); border-radius: 10px;
+    padding: 10px 14px; animation: commSlideIn .2s ease;
+  }
+  @keyframes commSlideIn { from { opacity: 0; transform: translateY(-6px); } to { opacity: 1; transform: none; } }
+  .comm-detail-row .comm-detail-icon { font-size: 1.1rem; flex-shrink: 0; width: 28px; text-align: center; }
+  .comm-detail-row .comm-detail-label {
+    font-size: .78rem; font-weight: 600; color: var(--text-light); min-width: 90px; flex-shrink: 0;
+  }
+  .comm-detail-row input {
+    flex: 1; border: 1px solid var(--border); border-radius: 6px; padding: 8px 12px;
+    font-size: .88rem; background: #fff; color: var(--text); outline: none; transition: border .2s;
+  }
+  .comm-detail-row input:focus { border-color: var(--accent); }
+  .comm-detail-row .comm-detail-hint {
+    font-size: .72rem; color: var(--text-light); flex-shrink: 0; opacity: .7;
+  }
+
   /* File Upload */
   .file-upload {
     border: 2px dashed var(--border); border-radius: 8px; padding: 24px;
@@ -1014,6 +1038,9 @@
     .search-bar { flex-direction: column; }
     .search-bar input, .search-bar select { width: 100%; }
     .comm-pref-grid { grid-template-columns: repeat(3, 1fr); gap: 8px; }
+    .comm-detail-row { flex-wrap: wrap; gap: 6px; }
+    .comm-detail-row .comm-detail-label { min-width: 80px; }
+    .comm-detail-row .comm-detail-hint { display: none; }
   }
 
   /* ── Responsive: Small phones ── */
@@ -1049,6 +1076,9 @@
     .comm-pref-card { padding: 10px 6px; min-height: 60px; }
     .comm-pref-icon { font-size: 1.1rem; }
     .comm-pref-label { font-size: .72rem; }
+    .comm-detail-row { padding: 8px 10px; }
+    .comm-detail-row .comm-detail-label { min-width: unset; width: 100%; font-size: .72rem; }
+    .comm-detail-row input { width: 100%; font-size: .82rem; }
   }
 
   /* ── Chat widget: tablet ── */
@@ -1629,49 +1659,49 @@
             <p style="font-size:.8rem;color:var(--text-light);margin:-4px 0 10px">How would you like us to contact you? Select all that apply.</p>
             <div class="comm-pref-grid">
               <label class="comm-pref-option">
-                <input type="checkbox" name="commPref" value="Phone">
+                <input type="checkbox" name="commPref" value="Phone" onchange="toggleCommDetail(this)">
                 <span class="comm-pref-card">
                   <span class="comm-pref-icon">&#128222;</span>
                   <span class="comm-pref-label">Phone Call</span>
                 </span>
               </label>
               <label class="comm-pref-option">
-                <input type="checkbox" name="commPref" value="Text/SMS">
+                <input type="checkbox" name="commPref" value="Text/SMS" onchange="toggleCommDetail(this)">
                 <span class="comm-pref-card">
                   <span class="comm-pref-icon">&#128172;</span>
                   <span class="comm-pref-label">Text / SMS</span>
                 </span>
               </label>
               <label class="comm-pref-option">
-                <input type="checkbox" name="commPref" value="Email">
+                <input type="checkbox" name="commPref" value="Email" onchange="toggleCommDetail(this)">
                 <span class="comm-pref-card">
                   <span class="comm-pref-icon">&#9993;</span>
                   <span class="comm-pref-label">Email</span>
                 </span>
               </label>
               <label class="comm-pref-option">
-                <input type="checkbox" name="commPref" value="WhatsApp">
+                <input type="checkbox" name="commPref" value="WhatsApp" onchange="toggleCommDetail(this)">
                 <span class="comm-pref-card">
                   <span class="comm-pref-icon">&#128241;</span>
                   <span class="comm-pref-label">WhatsApp</span>
                 </span>
               </label>
               <label class="comm-pref-option">
-                <input type="checkbox" name="commPref" value="Facebook Messenger">
+                <input type="checkbox" name="commPref" value="Facebook Messenger" onchange="toggleCommDetail(this)">
                 <span class="comm-pref-card">
                   <span class="comm-pref-icon">&#128172;</span>
                   <span class="comm-pref-label">Facebook</span>
                 </span>
               </label>
               <label class="comm-pref-option">
-                <input type="checkbox" name="commPref" value="Instagram">
+                <input type="checkbox" name="commPref" value="Instagram" onchange="toggleCommDetail(this)">
                 <span class="comm-pref-card">
                   <span class="comm-pref-icon">&#128247;</span>
                   <span class="comm-pref-label">Instagram</span>
                 </span>
               </label>
               <label class="comm-pref-option">
-                <input type="checkbox" name="commPref" value="WeChat">
+                <input type="checkbox" name="commPref" value="WeChat" onchange="toggleCommDetail(this)">
                 <span class="comm-pref-card">
                   <span class="comm-pref-icon">&#127760;</span>
                   <span class="comm-pref-label">WeChat</span>
@@ -1679,6 +1709,8 @@
               </label>
             </div>
             <span class="error-msg" id="commPrefError" style="display:none">Please select at least one communication method</span>
+            <!-- Dynamic contact detail inputs -->
+            <div id="commDetailFields" class="comm-detail-fields"></div>
           </div>
         </div>
       </div>
@@ -2152,6 +2184,7 @@ function openApplyModal() {
   document.getElementById('cvError').style.display = 'none';
   document.getElementById('gdprError').style.display = 'none';
   document.getElementById('commPrefError').style.display = 'none';
+  document.getElementById('commDetailFields').innerHTML = '';
 
   document.getElementById('applyJobTitle').textContent = currentJob.title;
   document.getElementById('applyJobMeta').textContent = currentJob.locLabel + ' · ' + currentJob.salary + ' · ' + currentJob.type.charAt(0).toUpperCase() + currentJob.type.slice(1);
@@ -2221,6 +2254,60 @@ function setError(id) {
 
 function getCommPrefs() {
   return [...document.querySelectorAll('input[name="commPref"]:checked')].map(cb => cb.value);
+}
+
+// Contact detail config for each comm method
+const commDetailConfig = {
+  'Phone':              { id: 'commPhone',     icon: '&#128222;', label: 'Phone Number',  placeholder: 'e.g. +44 7700 900000',           hint: 'Best number to reach you', prefill: 'appPhone' },
+  'Text/SMS':           { id: 'commSMS',       icon: '&#128172;', label: 'SMS Number',     placeholder: 'e.g. +44 7700 900000',           hint: 'Mobile number for texts',  prefill: 'appPhone' },
+  'Email':              { id: 'commEmail',      icon: '&#9993;',   label: 'Email Address',  placeholder: 'e.g. you@email.com',             hint: 'Preferred email',          prefill: 'appEmail' },
+  'WhatsApp':           { id: 'commWhatsApp',   icon: '&#128241;', label: 'WhatsApp Number', placeholder: 'e.g. +44 7700 900000',          hint: 'Include country code',     prefill: 'appPhone' },
+  'Facebook Messenger': { id: 'commFacebook',   icon: '&#128172;', label: 'Facebook Profile', placeholder: 'e.g. facebook.com/yourname or username', hint: 'Profile URL or username' },
+  'Instagram':          { id: 'commInstagram',  icon: '&#128247;', label: 'Instagram Handle', placeholder: 'e.g. @yourhandle',             hint: 'Your Instagram @' },
+  'WeChat':             { id: 'commWeChat',     icon: '&#127760;', label: 'WeChat ID',       placeholder: 'e.g. your_wechat_id',           hint: 'Your WeChat ID' }
+};
+
+function toggleCommDetail(checkbox) {
+  const container = document.getElementById('commDetailFields');
+  const val = checkbox.value;
+  const config = commDetailConfig[val];
+  if (!config) return;
+
+  if (checkbox.checked) {
+    // Add input row
+    const row = document.createElement('div');
+    row.className = 'comm-detail-row';
+    row.id = 'commRow_' + config.id;
+    // Pre-fill from existing form fields where applicable
+    let prefillVal = '';
+    if (config.prefill) {
+      const src = document.getElementById(config.prefill);
+      if (src) prefillVal = src.value || '';
+    }
+    row.innerHTML = `
+      <span class="comm-detail-icon">${config.icon}</span>
+      <span class="comm-detail-label">${config.label}</span>
+      <input type="text" id="${config.id}" placeholder="${config.placeholder}" value="${prefillVal}">
+      <span class="comm-detail-hint">${config.hint}</span>
+    `;
+    container.appendChild(row);
+  } else {
+    // Remove input row
+    const row = document.getElementById('commRow_' + config.id);
+    if (row) row.remove();
+  }
+}
+
+function getCommDetails() {
+  const details = {};
+  getCommPrefs().forEach(method => {
+    const config = commDetailConfig[method];
+    if (config) {
+      const input = document.getElementById(config.id);
+      details[method] = input ? input.value.trim() : '';
+    }
+  });
+  return details;
 }
 
 function validateStep1() {
@@ -2304,6 +2391,16 @@ function buildReview() {
       ${getValue('appSource') !== '—' ? '<div><p style="font-size:.78rem;color:var(--text-light);margin-bottom:2px">Source</p><p style="font-weight:600;font-size:.92rem">' + getValue('appSource') + '</p></div>' : ''}
       <div><p style="font-size:.78rem;color:var(--text-light);margin-bottom:2px">Contact Preference</p><p style="font-weight:600;font-size:.92rem">${getCommPrefs().join(', ') || 'Not specified'}</p></div>
     </div>
+    ${(() => {
+      const details = getCommDetails();
+      const entries = Object.entries(details).filter(([k,v]) => v);
+      if (!entries.length) return '';
+      return '<div style="margin-top:16px;background:var(--bg-alt);border-radius:10px;padding:16px 20px;border:1px solid var(--border)">' +
+        '<p style="font-size:.78rem;color:var(--text-light);margin-bottom:8px;font-weight:600">Contact Details</p>' +
+        '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">' +
+        entries.map(([method, value]) => '<div><p style="font-size:.72rem;color:var(--text-light);margin-bottom:1px">' + method + '</p><p style="font-weight:600;font-size:.88rem">' + value + '</p></div>').join('') +
+        '</div></div>';
+    })()}
     ${getValue('appMotivation') !== '—' ? '<div style="margin-top:16px"><p style="font-size:.78rem;color:var(--text-light);margin-bottom:2px">Motivation</p><p style="font-size:.88rem;color:var(--text);line-height:1.7;background:var(--bg-alt);padding:12px 16px;border-radius:8px;border:1px solid var(--border)">' + getValue('appMotivation') + '</p></div>' : ''}
     <p style="margin-top:20px;font-size:.82rem;color:var(--text-light);font-style:italic">Please review your details above. Click "Submit Application" to finalise, or go back to make changes.</p>
   `;
@@ -2327,6 +2424,7 @@ function submitApplication() {
       motivation: document.getElementById('appMotivation').value.trim(),
       source: document.getElementById('appSource').value || 'Careers Site',
       commPreference: getCommPrefs(),
+      commDetails: getCommDetails(),
       job: currentJob ? currentJob.title : 'General Application',
       department: currentJob ? currentJob.dept.charAt(0).toUpperCase() + currentJob.dept.slice(1) : 'General',
       appliedDate: new Date().toISOString(),
