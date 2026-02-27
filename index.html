@@ -275,12 +275,14 @@
   }
   .job-tag.urgent { background: #fef2f2; color: #dc2626; }
   .job-tag.remote { background: #f0fdf4; color: #16a34a; }
-  .job-apply {
-    padding: 10px 24px; background: var(--accent); color: #fff;
-    border: none; border-radius: 8px; font-weight: 600; font-size: .88rem;
-    cursor: pointer; transition: all .2s; white-space: nowrap;
+  .job-apply, .job-voice-btn {
+    padding: 10px 24px; border-radius: 8px; font-weight: 600; font-size: .88rem;
+    cursor: pointer; transition: all .2s; white-space: nowrap; border: 2px solid var(--accent);
   }
-  .job-apply:hover { background: var(--accent-light); transform: translateY(-1px); }
+  .job-apply { background: var(--accent); color: #fff; }
+  .job-apply:hover { background: var(--accent-light); border-color: var(--accent-light); transform: translateY(-1px); }
+  .job-voice-btn { background: transparent; color: var(--accent); }
+  .job-voice-btn:hover { background: var(--accent); color: #fff; transform: translateY(-1px); }
 
   /* Categories */
   .dept-filter {
@@ -1978,7 +1980,7 @@ function renderJobs(jobs) {
           <div class="job-tags">${tagsHtml}</div>
         </div>
         <div style="display:flex;gap:8px;align-items:center;flex-shrink:0">
-          <button class="job-voice-btn" onclick="event.stopPropagation(); openVoiceAgent(${jobIndex})" title="Ask about this role">&#127908; Ask</button>
+          <button class="job-voice-btn" onclick="event.stopPropagation(); openVoiceAgent(${jobIndex})" title="Ask about this role">&#127908; Ask a Question</button>
           <button class="job-apply" onclick="event.stopPropagation(); currentJob = allJobs[${jobIndex}]; openApplyModal()">Apply Now</button>
         </div>
       </div>`;
