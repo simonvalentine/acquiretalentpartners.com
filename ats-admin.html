@@ -458,8 +458,8 @@ tr { cursor:pointer; transition:background .1s; }
 
 /* ── Responsive: Mobile ── */
 @media (max-width:768px) {
-  .sidebar { 
-    display:none; 
+  .sidebar {
+    display:none;
     position:fixed; top:0; left:0; bottom:0; z-index:1100;
   }
   .sidebar.mobile-open { display:flex; }
@@ -481,12 +481,33 @@ tr { cursor:pointer; transition:background .1s; }
   }
   .kanban-board { gap:12px; }
   .kanban-column { min-width:260px; }
-  .table-wrapper { font-size:.85rem; }
-  .table-wrapper th, .table-wrapper td { padding:10px 12px; }
+  .table-wrapper { font-size:.85rem; overflow-x:auto; -webkit-overflow-scrolling:touch; }
+  .table-wrapper th, .table-wrapper td { padding:10px 12px; white-space:nowrap; }
   .drawer-body { padding:20px 16px; }
-  .drawer-footer { padding:14px 16px; }
+  .drawer-footer { padding:14px 16px; flex-wrap:wrap; }
   .tab-nav { gap:0; flex-wrap:wrap; }
   .tab-nav button { flex:1; min-width:auto; font-size:.78rem; padding:10px 8px; }
+
+  /* Email modal — mobile */
+  .email-modal { width:100%; max-width:100%; max-height:100vh; border-radius:0; margin:0; }
+  .email-modal-overlay.open { align-items:stretch; }
+  .email-modal-header { padding:16px; }
+  .email-modal-header h3 { font-size:.92rem; }
+  .email-modal-body { padding:0; }
+  .email-modal-body iframe { height:360px; }
+  .email-modal-meta { padding:12px 16px; }
+  .email-meta-row { flex-wrap:wrap; font-size:.8rem; }
+  .email-modal-footer { padding:12px 16px; flex-wrap:wrap; gap:8px; font-size:.85rem; }
+
+  /* Email templates grid — mobile */
+  .email-templates-grid { grid-template-columns:1fr; }
+
+  /* Email log items — mobile */
+  .email-log-item { padding:8px 10px; gap:8px; }
+  .email-log-icon { width:28px; height:28px; font-size:.8rem; }
+
+  /* Send email dropdown in drawer — mobile */
+  .send-email-option { padding:8px 10px; }
 }
 
 /* ── Responsive: Small phones ── */
@@ -497,6 +518,11 @@ tr { cursor:pointer; transition:background .1s; }
   .login-box { padding:28px 20px; margin:0 12px; }
   .drawer-header { padding:16px; }
   .drawer-header h2 { font-size:1rem; }
+  .drawer-body { padding:16px 12px; }
+  .email-modal-body iframe { height:280px; }
+  .email-modal-footer { flex-direction:column; text-align:center; }
+  .kanban-board { padding-bottom:80px; }
+  .table-wrapper th, .table-wrapper td { padding:8px; font-size:.8rem; }
 }
 
 </style>

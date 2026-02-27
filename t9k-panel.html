@@ -446,8 +446,8 @@ tr { cursor:pointer; transition:background .1s; }
 
 /* ── Responsive: Mobile ── */
 @media (max-width:768px) {
-  .sidebar { 
-    display:none; 
+  .sidebar {
+    display:none;
     position:fixed; top:0; left:0; bottom:0; z-index:1100;
   }
   .sidebar.mobile-open { display:flex; }
@@ -469,12 +469,26 @@ tr { cursor:pointer; transition:background .1s; }
   }
   .kanban-board { gap:12px; }
   .kanban-column { min-width:260px; }
-  .table-wrapper { font-size:.85rem; }
-  .table-wrapper th, .table-wrapper td { padding:10px 12px; }
+  .table-wrapper { font-size:.85rem; overflow-x:auto; -webkit-overflow-scrolling:touch; }
+  .table-wrapper th, .table-wrapper td { padding:10px 12px; white-space:nowrap; }
   .drawer-body { padding:20px 16px; }
-  .drawer-footer { padding:14px 16px; }
+  .drawer-footer { padding:14px 16px; flex-wrap:wrap; }
   .tab-nav { gap:0; flex-wrap:wrap; }
   .tab-nav button { flex:1; min-width:auto; font-size:.78rem; padding:10px 8px; }
+
+  /* Email modal — mobile */
+  .email-modal { width:100%; max-width:100%; max-height:100vh; border-radius:0; }
+  .email-overlay.open { align-items:stretch; }
+  .email-modal-header { padding:16px; }
+  .email-modal-header h3 { font-size:.92rem; }
+  .email-modal-body { padding:16px; }
+  .email-modal-footer { padding:12px 16px; flex-wrap:wrap; gap:8px; }
+  .email-field textarea { min-height:120px; }
+  .email-preview-box { padding:16px; font-size:.84rem; }
+  .email-toggle-btn { padding:6px 12px; font-size:.78rem; }
+
+  /* Email sent list in drawer — mobile */
+  .email-sent-list { font-size:.82rem; }
 }
 
 /* ── Responsive: Small phones ── */
@@ -485,6 +499,11 @@ tr { cursor:pointer; transition:background .1s; }
   .login-box { padding:28px 20px; margin:0 12px; }
   .drawer-header { padding:16px; }
   .drawer-header h2 { font-size:1rem; }
+  .drawer-body { padding:16px 12px; }
+  .email-modal-body { padding:12px; }
+  .email-modal-footer { flex-direction:column; text-align:center; }
+  .kanban-board { padding-bottom:80px; }
+  .table-wrapper th, .table-wrapper td { padding:8px; font-size:.8rem; }
 }
 
 </style>

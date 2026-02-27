@@ -557,6 +557,23 @@
     .footer-bottom { flex-direction: column; text-align: center; gap: 12px; }
     .search-bar { flex-direction: column; }
     .search-bar input, .search-bar select { width: 100%; }
+
+    /* Modals — mobile */
+    .modal-overlay { padding: 0; }
+    .modal { max-width: 100%; max-height: 100vh; border-radius: 0; }
+    .modal-header { padding: 20px 16px 16px; }
+    .modal-header h2 { font-size: 1.1rem; }
+    .modal-body { padding: 20px 16px; }
+    .modal-footer { padding: 16px; flex-wrap: wrap; gap: 8px; }
+    .modal-footer .btn { flex: 1; min-width: 120px; text-align: center; }
+
+    /* Form grid — single column on mobile */
+    .form-grid { grid-template-columns: 1fr; }
+    .form-group.full { grid-column: auto; }
+
+    /* Job detail meta — wrap nicely */
+    .job-detail-meta { gap: 8px; }
+    .job-detail-meta span { font-size: .78rem; padding: 4px 10px; }
   }
 
   /* ── Responsive: Small phones ── */
@@ -588,6 +605,12 @@
     .cta-section p { font-size: .92rem; }
 
     .nav-inner { padding: 0 16px; }
+
+    /* Modal — full screen on small phones */
+    .modal-header h2 { font-size: 1rem; }
+    .modal-body { padding: 16px 12px; }
+    .modal-footer { flex-direction: column; }
+    .modal-footer .btn { width: 100%; }
   }
 
 </style>
