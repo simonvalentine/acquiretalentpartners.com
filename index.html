@@ -493,23 +493,50 @@
   }
 
   /* Progress Steps */
-  .form-steps {
-    display: flex; justify-content: center; gap: 0; margin-bottom: 28px;
+  /* ── Resume Parse Banner ── */
+  .resume-parse-banner {
+    display: flex; align-items: center; gap: 16px;
+    background: linear-gradient(135deg, #eef2ff 0%, #f0f7ff 100%);
+    border: 1.5px dashed var(--accent); border-radius: 12px;
+    padding: 20px 24px; margin-bottom: 24px;
+    transition: opacity .3s, transform .3s;
   }
-  .form-step {
-    display: flex; align-items: center; gap: 8px; font-size: .82rem;
-    color: var(--text-light); font-weight: 500;
+  .resume-parse-banner.parsed {
+    background: linear-gradient(135deg, #eefff4 0%, #f0fff7 100%);
+    border-color: var(--success); border-style: solid;
   }
-  .form-step .step-num {
-    width: 28px; height: 28px; border-radius: 50%; display: flex;
-    align-items: center; justify-content: center; font-weight: 700;
-    font-size: .78rem; border: 2px solid var(--border); background: #fff;
-    transition: all .3s;
+  .rpb-icon { font-size: 2rem; flex-shrink: 0; }
+  .rpb-content { flex: 1; }
+  .rpb-title { font-weight: 700; font-size: .95rem; color: var(--primary); margin-bottom: 2px; }
+  .rpb-subtitle { font-size: .82rem; color: var(--text-light); line-height: 1.5; }
+  .rpb-btn { flex-shrink: 0; cursor: pointer; font-size: .85rem; padding: 10px 24px; }
+
+  /* ── Parse Status ── */
+  .parse-status {
+    display: flex; align-items: center; gap: 10px;
+    padding: 10px 14px; margin-top: 8px;
+    background: #f0f7ff; border-radius: 8px; font-size: .84rem; color: var(--accent);
   }
-  .form-step.active .step-num { background: var(--accent); color: #fff; border-color: var(--accent); }
-  .form-step.done .step-num { background: var(--success); color: #fff; border-color: var(--success); }
-  .step-line { width: 40px; height: 2px; background: var(--border); margin: 0 8px; }
-  .step-line.active { background: var(--accent); }
+  .parse-spinner {
+    width: 18px; height: 18px; border: 2.5px solid var(--border);
+    border-top-color: var(--accent); border-radius: 50%;
+    animation: spin .7s linear infinite; flex-shrink: 0;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .parse-result {
+    padding: 10px 14px; margin-top: 8px;
+    background: #eefff4; border-radius: 8px; font-size: .84rem;
+    color: var(--success); font-weight: 600;
+  }
+  .parse-result.error { background: #fff0f0; color: #c62828; }
+
+  /* ── Section Labels ── */
+  .form-section-label {
+    font-size: .78rem; font-weight: 700; text-transform: uppercase;
+    letter-spacing: .06em; color: var(--accent); margin: 20px 0 12px;
+    padding-bottom: 6px; border-bottom: 1.5px solid #eef2ff;
+  }
+  .form-section-label:first-of-type { margin-top: 0; }
 
   /* Checkbox */
   .checkbox-group { display: flex; align-items: flex-start; gap: 10px; margin-top: 8px; }
@@ -1027,6 +1054,9 @@
     .search-bar input, .search-bar select { width: 100%; }
     .comm-pref-row .cpf-label { min-width: 80px; font-size: .82rem; }
     .comm-pref-row .cpf-input { font-size: .82rem; padding: 7px 10px; }
+    .resume-parse-banner { flex-direction: column; text-align: center; gap: 12px; padding: 16px; }
+    .rpb-btn { width: 100%; }
+    .form-section-label { font-size: .74rem; }
   }
 
   /* ── Responsive: Small phones ── */
@@ -1562,18 +1592,51 @@
       </div>
       <button class="modal-close" onclick="closeModal('applyModal')">&times;</button>
     </div>
-    <div class="modal-body">
-      <!-- Progress Steps -->
-      <div class="form-steps">
-        <div class="form-step active" id="fs1"><span class="step-num">1</span> Your Details</div>
-        <div class="step-line" id="sl1"></div>
-        <div class="form-step" id="fs2"><span class="step-num">2</span> Experience</div>
-        <div class="step-line" id="sl2"></div>
-        <div class="form-step" id="fs3"><span class="step-num">3</span> Review</div>
+    <div class="modal-body" id="applyFormBody">
+
+      <!-- ── Resume Parse Banner ── -->
+      <div class="resume-parse-banner" id="resumeParseBanner">
+        <div class="rpb-icon">&#128196;</div>
+        <div class="rpb-content">
+          <p class="rpb-title">Speed up your application</p>
+          <p class="rpb-subtitle">Upload your CV / Resume and we'll fill in as many fields as we can for you.</p>
+        </div>
+        <label class="btn btn-blue rpb-btn" for="cvFile">Upload CV</label>
       </div>
 
-      <!-- Step 1: Personal Details -->
-      <div id="step1">
+      <!-- ── Single-Page Application Form ── -->
+      <div id="appFormFields">
+        <div class="form-section-label">CV / Resume &amp; Documents</div>
+        <div class="form-grid">
+          <div class="form-group full">
+            <label>Upload CV / Resume <span class="req">*</span></label>
+            <div class="file-upload" id="cvUploadZone">
+              <div class="upload-icon">&#128196;</div>
+              <div class="upload-text">Drag & drop or <strong>click to browse</strong></div>
+              <div class="upload-text" style="font-size:.78rem;margin-top:4px;">PDF, DOCX, or DOC (max 5MB)</div>
+              <div class="file-name" id="cvFileName"></div>
+              <input type="file" accept=".pdf,.doc,.docx" id="cvFile" onchange="handleCvUpload(this)">
+            </div>
+            <div class="parse-status" id="parseStatus" style="display:none">
+              <span class="parse-spinner"></span>
+              <span class="parse-text">Extracting details from your CV...</span>
+            </div>
+            <div class="parse-result" id="parseResult" style="display:none"></div>
+            <span class="error-msg" id="cvError" style="display:none">Please upload your CV</span>
+          </div>
+          <div class="form-group full">
+            <label>Cover Letter (optional)</label>
+            <div class="file-upload" id="clUploadZone">
+              <div class="upload-icon">&#128221;</div>
+              <div class="upload-text">Drag & drop or <strong>click to browse</strong></div>
+              <div class="upload-text" style="font-size:.78rem;margin-top:4px;">PDF, DOCX, or DOC (max 5MB)</div>
+              <div class="file-name" id="clFileName"></div>
+              <input type="file" accept=".pdf,.doc,.docx" id="clFile" onchange="handleFileUpload(this, 'clFileName')">
+            </div>
+          </div>
+        </div>
+
+        <div class="form-section-label">Your Details</div>
         <div class="form-grid">
           <div class="form-group">
             <label>First Name <span class="req">*</span></label>
@@ -1604,6 +1667,23 @@
             <label>LinkedIn Profile</label>
             <input type="url" id="appLinkedIn" placeholder="https://linkedin.com/in/yourprofile">
           </div>
+        </div>
+
+        <div class="form-section-label">Experience &amp; Availability</div>
+        <div class="form-grid">
+          <div class="form-group">
+            <label>Years of Relevant Experience <span class="req">*</span></label>
+            <select id="appExperience">
+              <option value="">Select...</option>
+              <option>Less than 1 year</option>
+              <option>1 – 2 years</option>
+              <option>3 – 5 years</option>
+              <option>6 – 10 years</option>
+              <option>10 – 15 years</option>
+              <option>15+ years</option>
+            </select>
+            <span class="error-msg">Please select your experience level</span>
+          </div>
           <div class="form-group">
             <label>Notice Period <span class="req">*</span></label>
             <select id="appNotice">
@@ -1617,6 +1697,16 @@
               <option>3+ months</option>
             </select>
             <span class="error-msg">Please select a notice period</span>
+          </div>
+          <div class="form-group">
+            <label>Right to Work <span class="req">*</span></label>
+            <select id="appVisa">
+              <option value="">Select...</option>
+              <option>Yes — I have the right to work in this location</option>
+              <option>Yes — with visa sponsorship</option>
+              <option>No — I require sponsorship</option>
+            </select>
+            <span class="error-msg">Please confirm your work authorisation status</span>
           </div>
           <div class="form-group">
             <label>Salary Expectation</label>
@@ -1636,6 +1726,14 @@
               <option>Other</option>
             </select>
           </div>
+          <div class="form-group full">
+            <label>Why are you interested in this role?</label>
+            <textarea id="appMotivation" placeholder="Tell us what excites you about this opportunity and what you'd bring to the team..." rows="4"></textarea>
+          </div>
+        </div>
+
+        <div class="form-section-label">Communication Preferences</div>
+        <div class="form-grid">
           <div class="form-group full">
             <label>Preferred Communication Method <span class="req">*</span></label>
             <p style="font-size:.8rem;color:var(--text-light);margin:-4px 0 10px">Tick the methods you'd like us to use and provide your details.</p>
@@ -1664,17 +1762,11 @@
                 <span class="cpf-label">WhatsApp</span>
                 <input type="text" class="cpf-input" id="commWhatsApp" placeholder="e.g. +44 7700 900000" disabled oninput="markCommManual(this)">
               </div>
-              <div class="comm-pref-row" id="cpfRow_Facebook">
-                <input type="checkbox" name="commPref" value="Facebook Messenger" id="cpfCheck_Facebook" onchange="toggleCommRow(this)">
-                <span class="cpf-icon">&#128172;</span>
-                <span class="cpf-label">Facebook</span>
-                <input type="text" class="cpf-input" id="commFacebook" placeholder="e.g. facebook.com/yourname or username" disabled>
-              </div>
-              <div class="comm-pref-row" id="cpfRow_Instagram">
-                <input type="checkbox" name="commPref" value="Instagram" id="cpfCheck_Instagram" onchange="toggleCommRow(this)">
-                <span class="cpf-icon">&#128247;</span>
-                <span class="cpf-label">Instagram</span>
-                <input type="text" class="cpf-input" id="commInstagram" placeholder="e.g. @yourhandle" disabled>
+              <div class="comm-pref-row" id="cpfRow_LinkedIn">
+                <input type="checkbox" name="commPref" value="LinkedIn Messages" id="cpfCheck_LinkedIn" onchange="toggleCommRow(this)">
+                <span class="cpf-icon">&#128101;</span>
+                <span class="cpf-label">LinkedIn</span>
+                <input type="text" class="cpf-input" id="commLinkedIn" placeholder="e.g. linkedin.com/in/yourprofile" disabled oninput="markCommManual(this)">
               </div>
               <div class="comm-pref-row" id="cpfRow_WeChat">
                 <input type="checkbox" name="commPref" value="WeChat" id="cpfCheck_WeChat" onchange="toggleCommRow(this)">
@@ -1686,60 +1778,10 @@
             <span class="error-msg" id="commPrefError" style="display:none">Please select at least one communication method</span>
           </div>
         </div>
-      </div>
 
-      <!-- Step 2: Experience & Documents -->
-      <div id="step2" style="display:none">
+        <div class="form-section-label" style="margin-top:8px">Consent</div>
         <div class="form-grid">
-          <div class="form-group full">
-            <label>Upload CV / Resume <span class="req">*</span></label>
-            <div class="file-upload" id="cvUploadZone">
-              <div class="upload-icon">&#128196;</div>
-              <div class="upload-text">Drag & drop or <strong>click to browse</strong></div>
-              <div class="upload-text" style="font-size:.78rem;margin-top:4px;">PDF, DOCX, or DOC (max 5MB)</div>
-              <div class="file-name" id="cvFileName"></div>
-              <input type="file" accept=".pdf,.doc,.docx" id="cvFile" onchange="handleFileUpload(this, 'cvFileName')">
-            </div>
-            <span class="error-msg" id="cvError" style="display:none">Please upload your CV</span>
-          </div>
-          <div class="form-group full">
-            <label>Cover Letter (optional)</label>
-            <div class="file-upload" id="clUploadZone">
-              <div class="upload-icon">&#128221;</div>
-              <div class="upload-text">Drag & drop or <strong>click to browse</strong></div>
-              <div class="upload-text" style="font-size:.78rem;margin-top:4px;">PDF, DOCX, or DOC (max 5MB)</div>
-              <div class="file-name" id="clFileName"></div>
-              <input type="file" accept=".pdf,.doc,.docx" id="clFile" onchange="handleFileUpload(this, 'clFileName')">
-            </div>
-          </div>
-          <div class="form-group full">
-            <label>Years of Relevant Experience <span class="req">*</span></label>
-            <select id="appExperience">
-              <option value="">Select...</option>
-              <option>Less than 1 year</option>
-              <option>1 – 2 years</option>
-              <option>3 – 5 years</option>
-              <option>6 – 10 years</option>
-              <option>10 – 15 years</option>
-              <option>15+ years</option>
-            </select>
-            <span class="error-msg">Please select your experience level</span>
-          </div>
-          <div class="form-group full">
-            <label>Right to Work <span class="req">*</span></label>
-            <select id="appVisa">
-              <option value="">Select...</option>
-              <option>Yes — I have the right to work in this location</option>
-              <option>Yes — with visa sponsorship</option>
-              <option>No — I require sponsorship</option>
-            </select>
-            <span class="error-msg">Please confirm your work authorisation status</span>
-          </div>
-          <div class="form-group full">
-            <label>Why are you interested in this role?</label>
-            <textarea id="appMotivation" placeholder="Tell us what excites you about this opportunity and what you'd bring to the team..." rows="4"></textarea>
-          </div>
-          <div class="form-group full">
+          <div class="form-group full" style="margin-bottom:0">
             <div class="checkbox-group">
               <input type="checkbox" id="appGDPR">
               <label for="appGDPR">I consent to Acquire Talent Partners processing my personal data for the purpose of this application, in accordance with the <a href="#" style="color:var(--accent)">Privacy Policy</a>. <span class="req">*</span></label>
@@ -1747,11 +1789,6 @@
             <span class="error-msg" id="gdprError" style="display:none">You must consent to data processing to submit your application</span>
           </div>
         </div>
-      </div>
-
-      <!-- Step 3: Review -->
-      <div id="step3" style="display:none">
-        <div id="reviewContent"></div>
       </div>
 
       <!-- Success -->
@@ -1766,8 +1803,7 @@
       </div>
     </div>
     <div class="modal-footer" id="applyFooter">
-      <button class="btn btn-outline" id="applyBackBtn" onclick="applyBack()" style="display:none">Back</button>
-      <button class="btn btn-blue" id="applyNextBtn" onclick="applyNext()">Continue</button>
+      <button class="btn btn-blue" id="applySubmitBtn" onclick="submitAndFinish()" style="width:100%">Submit Application</button>
     </div>
   </div>
 </div>
@@ -1839,7 +1875,6 @@ const allJobs = [
 
 let visibleCount = 15;
 let currentJob = null;
-let applyStep = 1;
 
 // ── Job descriptions (auto-generated per role) ──
 const jobDescriptions = {};
@@ -2145,7 +2180,6 @@ function openJobDetail(idx) {
 // ── Application Form ──
 function openApplyModal() {
   if (!currentJob) return;
-  applyStep = 1;
   // Reset form
   document.querySelectorAll('#applyModal input, #applyModal select, #applyModal textarea').forEach(el => {
     if (el.type === 'checkbox') el.checked = false;
@@ -2157,65 +2191,43 @@ function openApplyModal() {
   document.getElementById('cvError').style.display = 'none';
   document.getElementById('gdprError').style.display = 'none';
   document.getElementById('commPrefError').style.display = 'none';
+  document.getElementById('parseStatus').style.display = 'none';
+  document.getElementById('parseResult').style.display = 'none';
+  // Reset resume parse banner
+  const rpb = document.getElementById('resumeParseBanner');
+  rpb.classList.remove('parsed');
+  rpb.querySelector('.rpb-icon').innerHTML = '&#128196;';
+  rpb.querySelector('.rpb-title').textContent = 'Speed up your application';
+  rpb.querySelector('.rpb-subtitle').textContent = "Upload your CV / Resume and we'll fill in as many fields as we can for you.";
+  rpb.style.display = 'flex';
   // Reset comm pref rows
   document.querySelectorAll('.comm-pref-row').forEach(row => {
     row.classList.remove('checked');
     const inp = row.querySelector('.cpf-input');
     if (inp) { inp.value = ''; inp.disabled = true; delete inp.dataset.synced; }
   });
+  // Show form, hide success
+  document.getElementById('appFormFields').style.display = 'block';
+  document.getElementById('stepSuccess').style.display = 'none';
+  document.getElementById('applyFooter').style.display = 'flex';
 
   document.getElementById('applyJobTitle').textContent = currentJob.title;
   document.getElementById('applyJobMeta').textContent = currentJob.locLabel + ' · ' + currentJob.salary + ' · ' + currentJob.type.charAt(0).toUpperCase() + currentJob.type.slice(1);
 
-  updateApplyStep();
   openModal('applyModal');
 }
 
-function updateApplyStep() {
-  ['step1','step2','step3','stepSuccess'].forEach(s => document.getElementById(s).style.display = 'none');
-  document.getElementById('applyFooter').style.display = 'flex';
-  document.getElementById('applyBackBtn').style.display = applyStep > 1 ? 'inline-block' : 'none';
-
-  // Update step indicators
-  for (let i = 1; i <= 3; i++) {
-    const fs = document.getElementById('fs' + i);
-    fs.classList.remove('active', 'done');
-    if (i < applyStep) fs.classList.add('done');
-    else if (i === applyStep) fs.classList.add('active');
-  }
-  for (let i = 1; i <= 2; i++) {
-    document.getElementById('sl' + i).classList.toggle('active', i < applyStep);
-  }
-
-  if (applyStep === 1) {
-    document.getElementById('step1').style.display = 'block';
-    document.getElementById('applyNextBtn').textContent = 'Continue';
-  } else if (applyStep === 2) {
-    document.getElementById('step2').style.display = 'block';
-    document.getElementById('applyNextBtn').textContent = 'Review Application';
-  } else if (applyStep === 3) {
-    document.getElementById('step3').style.display = 'block';
-    document.getElementById('applyNextBtn').textContent = 'Submit Application';
-    buildReview();
-  } else if (applyStep === 4) {
-    document.getElementById('stepSuccess').style.display = 'block';
-    document.getElementById('applyFooter').style.display = 'none';
-    document.getElementById('appRef').textContent = 'REF-ATP-' + Date.now().toString(36).toUpperCase();
-  }
-}
-
-function applyNext() {
-  if (applyStep === 1 && !validateStep1()) return;
-  if (applyStep === 2 && !validateStep2()) return;
-  if (applyStep === 3) { submitApplication(); applyStep = 4; updateApplyStep(); return; }
-  applyStep++;
-  updateApplyStep();
-  // Scroll modal to top
+// ── Submit & Finish (single-page) ──
+async function submitAndFinish() {
+  if (!validateForm()) return;
+  await submitApplication();
+  // Show success
+  document.getElementById('appFormFields').style.display = 'none';
+  document.getElementById('resumeParseBanner').style.display = 'none';
+  document.getElementById('stepSuccess').style.display = 'block';
+  document.getElementById('applyFooter').style.display = 'none';
+  document.getElementById('appRef').textContent = 'REF-ATP-' + Date.now().toString(36).toUpperCase();
   document.querySelector('#applyModal .modal').scrollTop = 0;
-}
-
-function applyBack() {
-  if (applyStep > 1) { applyStep--; updateApplyStep(); }
 }
 
 // ── Validation ──
@@ -2240,8 +2252,7 @@ const commFieldMap = {
   'Text/SMS':           { inputId: 'commSMS',       prefill: 'appPhone' },
   'Email':              { inputId: 'commEmail',      prefill: 'appEmail' },
   'WhatsApp':           { inputId: 'commWhatsApp',   prefill: 'appPhone' },
-  'Facebook Messenger': { inputId: 'commFacebook' },
-  'Instagram':          { inputId: 'commInstagram' },
+  'LinkedIn Messages':  { inputId: 'commLinkedIn',   prefill: 'appLinkedIn' },
   'WeChat':             { inputId: 'commWeChat' }
 };
 
@@ -2313,37 +2324,41 @@ function getCommDetails() {
   return details;
 }
 
-function validateStep1() {
+function validateForm() {
   clearErrors();
   let valid = true;
-  const fields = ['appFirstName','appLastName','appEmail','appPhone','appLocation','appNotice'];
+  let firstError = null;
+
+  // Required text/select fields
+  const fields = ['appFirstName','appLastName','appEmail','appPhone','appLocation','appNotice','appExperience','appVisa'];
   fields.forEach(id => {
     const el = document.getElementById(id);
-    if (!el.value.trim()) { setError(id); valid = false; }
+    if (!el.value.trim()) { setError(id); valid = false; if (!firstError) firstError = el; }
   });
   // Email format
   const email = document.getElementById('appEmail');
-  if (email.value && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.value)) { setError('appEmail'); valid = false; }
+  if (email.value && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.value)) { setError('appEmail'); valid = false; if (!firstError) firstError = email; }
+  // CV required
+  if (!document.getElementById('cvFile').files.length) {
+    document.getElementById('cvError').style.display = 'block'; valid = false;
+    if (!firstError) firstError = document.getElementById('cvUploadZone');
+  }
   // Communication preference — at least one required
   const commErr = document.getElementById('commPrefError');
   if (getCommPrefs().length === 0) {
     commErr.style.display = 'block'; valid = false;
+    if (!firstError) firstError = commErr;
   } else {
     commErr.style.display = 'none';
   }
-  return valid;
-}
-
-function validateStep2() {
-  clearErrors();
-  let valid = true;
-  if (!document.getElementById('cvFile').files.length) {
-    document.getElementById('cvError').style.display = 'block'; valid = false;
-  }
-  if (!document.getElementById('appExperience').value) { setError('appExperience'); valid = false; }
-  if (!document.getElementById('appVisa').value) { setError('appVisa'); valid = false; }
+  // GDPR consent
   if (!document.getElementById('appGDPR').checked) {
     document.getElementById('gdprError').style.display = 'block'; valid = false;
+    if (!firstError) firstError = document.getElementById('gdprError');
+  }
+  // Scroll to first error
+  if (firstError) {
+    firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
   }
   return valid;
 }
@@ -2362,56 +2377,263 @@ function handleFileUpload(input, nameId) {
     nameEl.textContent = '&#10003; ' + file.name + ' (' + (file.size / 1024).toFixed(0) + ' KB)';
     nameEl.innerHTML = nameEl.textContent;
     nameEl.style.display = 'block';
-    document.getElementById('cvError').style.display = 'none';
   } else {
     nameEl.style.display = 'none';
   }
 }
 
-// ── Review ──
-function buildReview() {
-  const getValue = id => document.getElementById(id).value || '—';
-  const cvName = document.getElementById('cvFile').files.length ? document.getElementById('cvFile').files[0].name : '—';
-  const clName = document.getElementById('clFile').files.length ? document.getElementById('clFile').files[0].name : 'Not provided';
+// ── CV Upload with Resume Parsing ──
+function handleCvUpload(input) {
+  handleFileUpload(input, 'cvFileName');
+  document.getElementById('cvError').style.display = 'none';
+  if (input.files.length) {
+    parseResume(input.files[0]);
+  }
+}
 
-  document.getElementById('reviewContent').innerHTML = `
-    <div style="background:var(--bg-alt);border-radius:12px;padding:24px;margin-bottom:20px;border:1px solid var(--border)">
-      <h4 style="font-size:1rem;font-weight:700;color:var(--primary);margin-bottom:4px">${currentJob.title}</h4>
-      <p style="font-size:.88rem;color:var(--text-light)">${currentJob.locLabel} &middot; ${currentJob.salary} &middot; ${currentJob.type}</p>
-    </div>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
-      <div><p style="font-size:.78rem;color:var(--text-light);margin-bottom:2px">Name</p><p style="font-weight:600;font-size:.92rem">${getValue('appFirstName')} ${getValue('appLastName')}</p></div>
-      <div><p style="font-size:.78rem;color:var(--text-light);margin-bottom:2px">Email</p><p style="font-weight:600;font-size:.92rem">${getValue('appEmail')}</p></div>
-      <div><p style="font-size:.78rem;color:var(--text-light);margin-bottom:2px">Phone</p><p style="font-weight:600;font-size:.92rem">${getValue('appPhone')}</p></div>
-      <div><p style="font-size:.78rem;color:var(--text-light);margin-bottom:2px">Location</p><p style="font-weight:600;font-size:.92rem">${getValue('appLocation')}</p></div>
-      <div><p style="font-size:.78rem;color:var(--text-light);margin-bottom:2px">Notice Period</p><p style="font-weight:600;font-size:.92rem">${getValue('appNotice')}</p></div>
-      <div><p style="font-size:.78rem;color:var(--text-light);margin-bottom:2px">Experience</p><p style="font-weight:600;font-size:.92rem">${getValue('appExperience')}</p></div>
-      <div><p style="font-size:.78rem;color:var(--text-light);margin-bottom:2px">Salary Expectation</p><p style="font-weight:600;font-size:.92rem">${getValue('appSalary') || 'Not specified'}</p></div>
-      <div><p style="font-size:.78rem;color:var(--text-light);margin-bottom:2px">Right to Work</p><p style="font-weight:600;font-size:.92rem">${getValue('appVisa')}</p></div>
-      <div><p style="font-size:.78rem;color:var(--text-light);margin-bottom:2px">CV / Resume</p><p style="font-weight:600;font-size:.92rem">${cvName}</p></div>
-      <div><p style="font-size:.78rem;color:var(--text-light);margin-bottom:2px">Cover Letter</p><p style="font-weight:600;font-size:.92rem">${clName}</p></div>
-      ${getValue('appLinkedIn') !== '—' ? '<div><p style="font-size:.78rem;color:var(--text-light);margin-bottom:2px">LinkedIn</p><p style="font-weight:600;font-size:.92rem">' + getValue('appLinkedIn') + '</p></div>' : ''}
-      ${getValue('appSource') !== '—' ? '<div><p style="font-size:.78rem;color:var(--text-light);margin-bottom:2px">Source</p><p style="font-weight:600;font-size:.92rem">' + getValue('appSource') + '</p></div>' : ''}
-      <div><p style="font-size:.78rem;color:var(--text-light);margin-bottom:2px">Contact Preference</p><p style="font-weight:600;font-size:.92rem">${getCommPrefs().join(', ') || 'Not specified'}</p></div>
-    </div>
-    ${(() => {
-      const details = getCommDetails();
-      const entries = Object.entries(details).filter(([k,v]) => v);
-      if (!entries.length) return '';
-      return '<div style="margin-top:16px;background:var(--bg-alt);border-radius:10px;padding:16px 20px;border:1px solid var(--border)">' +
-        '<p style="font-size:.78rem;color:var(--text-light);margin-bottom:8px;font-weight:600">Contact Details</p>' +
-        '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">' +
-        entries.map(([method, value]) => '<div><p style="font-size:.72rem;color:var(--text-light);margin-bottom:1px">' + method + '</p><p style="font-weight:600;font-size:.88rem">' + value + '</p></div>').join('') +
-        '</div></div>';
-    })()}
-    ${getValue('appMotivation') !== '—' ? '<div style="margin-top:16px"><p style="font-size:.78rem;color:var(--text-light);margin-bottom:2px">Motivation</p><p style="font-size:.88rem;color:var(--text);line-height:1.7;background:var(--bg-alt);padding:12px 16px;border-radius:8px;border:1px solid var(--border)">' + getValue('appMotivation') + '</p></div>' : ''}
-    <p style="margin-top:20px;font-size:.82rem;color:var(--text-light);font-style:italic">Please review your details above. Click "Submit Application" to finalise, or go back to make changes.</p>
-  `;
+async function parseResume(file) {
+  const parseStatus = document.getElementById('parseStatus');
+  const parseResult = document.getElementById('parseResult');
+  const rpb = document.getElementById('resumeParseBanner');
+  parseStatus.style.display = 'flex';
+  parseResult.style.display = 'none';
+
+  try {
+    const text = await extractTextFromFile(file);
+    if (!text || text.trim().length < 20) {
+      parseStatus.style.display = 'none';
+      parseResult.className = 'parse-result error';
+      parseResult.innerHTML = '&#9888; Could not extract text from this file. Please fill in the fields manually.';
+      parseResult.style.display = 'block';
+      return;
+    }
+
+    const parsed = extractFieldsFromText(text);
+    let filled = 0;
+
+    // Populate fields only if they're currently empty
+    const fillField = (id, value) => {
+      if (value) {
+        const el = document.getElementById(id);
+        if (el && !el.value.trim()) { el.value = value; filled++; }
+      }
+    };
+
+    fillField('appFirstName', parsed.firstName);
+    fillField('appLastName', parsed.lastName);
+    fillField('appEmail', parsed.email);
+    fillField('appPhone', parsed.phone);
+    fillField('appLocation', parsed.location);
+    fillField('appLinkedIn', parsed.linkedin);
+
+    // Trigger comm field sync after populating phone/email
+    if (parsed.phone) syncCommFields('appPhone');
+    if (parsed.email) syncCommFields('appEmail');
+
+    parseStatus.style.display = 'none';
+
+    if (filled > 0) {
+      parseResult.className = 'parse-result';
+      parseResult.innerHTML = '&#10003; Filled ' + filled + ' field' + (filled > 1 ? 's' : '') + ' from your CV. Please review and complete any remaining fields.';
+      parseResult.style.display = 'block';
+      // Update banner to success state
+      rpb.classList.add('parsed');
+      rpb.querySelector('.rpb-icon').innerHTML = '&#10003;';
+      rpb.querySelector('.rpb-title').textContent = 'CV uploaded & parsed';
+      rpb.querySelector('.rpb-subtitle').textContent = filled + ' field' + (filled > 1 ? 's' : '') + ' auto-filled. Review below and complete any remaining details.';
+    } else {
+      parseResult.className = 'parse-result';
+      parseResult.innerHTML = '&#128196; CV uploaded. No additional fields could be auto-filled — please fill in the form below.';
+      parseResult.style.display = 'block';
+      rpb.classList.add('parsed');
+      rpb.querySelector('.rpb-icon').innerHTML = '&#128196;';
+      rpb.querySelector('.rpb-title').textContent = 'CV uploaded';
+      rpb.querySelector('.rpb-subtitle').textContent = 'Please fill in the fields below manually.';
+    }
+  } catch (e) {
+    parseStatus.style.display = 'none';
+    parseResult.className = 'parse-result error';
+    parseResult.innerHTML = '&#9888; Error reading file. Please fill in the fields manually.';
+    parseResult.style.display = 'block';
+    console.log('Resume parse error:', e);
+  }
+}
+
+// Extract raw text from PDF or DOCX
+function extractTextFromFile(file) {
+  return new Promise((resolve) => {
+    const reader = new FileReader();
+    if (file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf')) {
+      // PDF: extract text between stream markers (basic approach)
+      reader.onload = () => {
+        try {
+          const bytes = new Uint8Array(reader.result);
+          let text = '';
+          // Decode the binary to find readable text runs
+          const decoder = new TextDecoder('utf-8', { fatal: false });
+          const raw = decoder.decode(bytes);
+          // Extract text from PDF text objects (Tj/TJ operators and between BT/ET)
+          const textParts = [];
+          // Method 1: Pull text between parentheses in Tj operations
+          const tjMatches = raw.match(/\(([^)]{2,})\)\s*Tj/g);
+          if (tjMatches) {
+            tjMatches.forEach(m => {
+              const inner = m.match(/\(([^)]+)\)/);
+              if (inner) textParts.push(inner[1]);
+            });
+          }
+          // Method 2: Pull from TJ arrays
+          const tjArrayMatches = raw.match(/\[([^\]]*)\]\s*TJ/gi);
+          if (tjArrayMatches) {
+            tjArrayMatches.forEach(m => {
+              const strings = m.match(/\(([^)]*)\)/g);
+              if (strings) strings.forEach(s => {
+                const inner = s.slice(1, -1);
+                if (inner.length > 0) textParts.push(inner);
+              });
+            });
+          }
+          // Method 3: If PDF uses streams, try to find readable blocks
+          if (textParts.length < 3) {
+            // Fallback: find long runs of readable ASCII text
+            const readable = raw.match(/[A-Za-z0-9@.+\-_ ,;:()\/]{10,}/g);
+            if (readable) textParts.push(...readable);
+          }
+          text = textParts.join(' ');
+          // Unescape PDF escape sequences
+          text = text.replace(/\\n/g, '\n').replace(/\\r/g, '').replace(/\\t/g, ' ').replace(/\\\(/g, '(').replace(/\\\)/g, ')');
+          resolve(text);
+        } catch (e) { resolve(''); }
+      };
+      reader.onerror = () => resolve('');
+      reader.readAsArrayBuffer(file);
+    } else {
+      // DOCX: extract text from word/document.xml
+      reader.onload = async () => {
+        try {
+          if (typeof JSZip === 'undefined') {
+            // Fallback: basic XML extraction from arraybuffer
+            const decoder = new TextDecoder('utf-8', { fatal: false });
+            const raw = decoder.decode(new Uint8Array(reader.result));
+            // Pull text from <w:t> tags
+            const wt = raw.match(/<w:t[^>]*>([^<]*)<\/w:t>/gi);
+            if (wt) {
+              const text = wt.map(t => {
+                const inner = t.match(/>([^<]*)</);
+                return inner ? inner[1] : '';
+              }).join(' ');
+              resolve(text);
+            } else {
+              // Just extract readable text blocks
+              const blocks = raw.match(/[A-Za-z0-9@.+\-_ ,;:()\/]{10,}/g);
+              resolve(blocks ? blocks.join(' ') : '');
+            }
+          }
+        } catch (e) { resolve(''); }
+      };
+      reader.onerror = () => resolve('');
+      reader.readAsArrayBuffer(file);
+    }
+  });
+}
+
+// Extract structured fields from raw text
+function extractFieldsFromText(text) {
+  const result = { firstName: '', lastName: '', email: '', phone: '', location: '', linkedin: '' };
+
+  // Email — most reliable
+  const emailMatch = text.match(/[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}/);
+  if (emailMatch) result.email = emailMatch[0].toLowerCase();
+
+  // Phone — international formats
+  const phonePatterns = [
+    /(?:\+\d{1,3}[\s\-.]?)?\(?\d{2,4}\)?[\s\-.]?\d{3,4}[\s\-.]?\d{3,4}/,
+    /\+\d[\d\s\-().]{8,}/,
+    /(?:0\d{4}|\d{5})[\s\-]?\d{5,6}/,
+    /\d{3}[\s\-.]?\d{3}[\s\-.]?\d{4}/
+  ];
+  for (const pattern of phonePatterns) {
+    const m = text.match(pattern);
+    if (m && m[0].replace(/\D/g, '').length >= 7) {
+      result.phone = m[0].trim();
+      break;
+    }
+  }
+
+  // LinkedIn
+  const linkedinMatch = text.match(/(?:https?:\/\/)?(?:www\.)?linkedin\.com\/in\/[a-zA-Z0-9\-_%]+/i);
+  if (linkedinMatch) {
+    let url = linkedinMatch[0];
+    if (!url.startsWith('http')) url = 'https://' + url;
+    result.linkedin = url;
+  }
+
+  // Location — common patterns
+  const locationPatterns = [
+    /(?:based\s+in|located?\s+in|location\s*:\s*|address\s*:\s*)([A-Z][a-zA-Z\s]+,\s*[A-Z][a-zA-Z\s]+)/i,
+    /([A-Z][a-z]+(?:\s[A-Z][a-z]+)?,\s*(?:UK|US|USA|United Kingdom|United States|Canada|Australia|Germany|France|India|Singapore|UAE|Dubai|Ireland|Netherlands|Spain|Italy|Japan|Hong Kong|China))/,
+    /([A-Z][a-z]+,\s*[A-Z]{2}\s*\d{4,5})/  // City, STATE ZIP
+  ];
+  for (const pattern of locationPatterns) {
+    const m = text.match(pattern);
+    if (m) {
+      result.location = (m[1] || m[0]).trim();
+      break;
+    }
+  }
+
+  // Name — try to extract from the beginning of text (most CVs start with the name)
+  // Look for the first substantial text that looks like a name (1-3 words, capitalized)
+  const lines = text.split(/[\n\r]+/).map(l => l.trim()).filter(l => l.length > 1 && l.length < 60);
+  for (const line of lines.slice(0, 8)) {
+    // Skip lines that look like headers, emails, phone numbers, URLs
+    if (/@|http|www\.|linkedin|phone|tel:|email:|address:|profile/i.test(line)) continue;
+    if (/^\d/.test(line)) continue;
+    if (/curriculum|resume|cv|objective|summary|experience|education|skills/i.test(line)) continue;
+    // Check if it looks like a name (2-4 words, each starting with uppercase)
+    const words = line.split(/\s+/).filter(w => w.length > 1);
+    if (words.length >= 2 && words.length <= 4) {
+      const allCap = words.every(w => /^[A-Z]/.test(w));
+      if (allCap) {
+        result.firstName = words[0];
+        result.lastName = words.slice(1).join(' ');
+        break;
+      }
+    }
+  }
+
+  // If name not found above, try to extract from email prefix
+  if (!result.firstName && result.email) {
+    const prefix = result.email.split('@')[0];
+    const parts = prefix.split(/[._\-]+/).filter(p => p.length > 1);
+    if (parts.length >= 2) {
+      result.firstName = parts[0].charAt(0).toUpperCase() + parts[0].slice(1);
+      result.lastName = parts[1].charAt(0).toUpperCase() + parts[1].slice(1);
+    }
+  }
+
+  return result;
 }
 
 // ── Submit to ATS (localStorage) ──
-function submitApplication() {
+// Read a file input as base64 data URL
+function readFileAsDataURL(fileInput) {
+  return new Promise((resolve) => {
+    if (!fileInput.files || !fileInput.files.length) { resolve(null); return; }
+    const file = fileInput.files[0];
+    const reader = new FileReader();
+    reader.onload = () => resolve({ name: file.name, size: file.size, type: file.type, dataUrl: reader.result });
+    reader.onerror = () => resolve(null);
+    reader.readAsDataURL(file);
+  });
+}
+
+async function submitApplication() {
   try {
+    // Read CV and cover letter files as base64
+    const cvData = await readFileAsDataURL(document.getElementById('cvFile'));
+    const clData = await readFileAsDataURL(document.getElementById('clFile'));
+
     const apps = JSON.parse(localStorage.getItem('atp_applications') || '[]');
     apps.push({
       firstName: document.getElementById('appFirstName').value.trim(),
@@ -2428,6 +2650,8 @@ function submitApplication() {
       source: document.getElementById('appSource').value || 'Careers Site',
       commPreference: getCommPrefs(),
       commDetails: getCommDetails(),
+      cvFile: cvData,
+      coverLetterFile: clData,
       job: currentJob ? currentJob.title : 'General Application',
       department: currentJob ? currentJob.dept.charAt(0).toUpperCase() + currentJob.dept.slice(1) : 'General',
       appliedDate: new Date().toISOString(),

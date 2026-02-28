@@ -733,6 +733,8 @@ storedApps.forEach((app, i) => {
     motivation: app.motivation || '',
     commPreference: app.commPreference || ['Email'],
     commDetails: app.commDetails || {},
+    cvFile: app.cvFile || null,
+    coverLetterFile: app.coverLetterFile || null,
     notes: app.notes || [],
     timeline: [{ action: 'Applied via Careers Site', date: new Date(app.appliedDate || Date.now()) }]
   });
@@ -786,7 +788,7 @@ for (let i = 0; i < 85; i++) {
     notice: randomItem(['Immediately','1 week','2 weeks','1 month','2 months','3 months']),
     experience: randomItem(['< 1 year','1–2 years','3–5 years','6–10 years','10–15 years','15+ years']),
     visa: randomItem(['Yes — right to work','Yes — with sponsorship','Requires sponsorship']),
-    commPreference: (() => { const opts = ['Phone','Text/SMS','Email','WhatsApp','Facebook Messenger','Instagram','WeChat']; const n = 1 + Math.floor(Math.random() * 3); const shuffled = opts.sort(() => .5 - Math.random()); return shuffled.slice(0, n); })(),
+    commPreference: (() => { const opts = ['Phone','Text/SMS','Email','WhatsApp','LinkedIn Messages','WeChat']; const n = 1 + Math.floor(Math.random() * 3); const shuffled = opts.sort(() => .5 - Math.random()); return shuffled.slice(0, n); })(),
     commDetails: (() => {
       const d = {}; const email = first.toLowerCase() + '.' + last.toLowerCase() + '@email.com';
       const phone = '+' + (Math.floor(Math.random() * 80) + 1) + ' ' + Math.floor(1000000000 + Math.random() * 9000000000);
@@ -794,8 +796,7 @@ for (let i = 0; i < 85; i++) {
       if (Math.random() > .3) d['Phone'] = phone;
       if (Math.random() > .5) d['Email'] = email;
       if (Math.random() > .6) d['WhatsApp'] = phone;
-      if (Math.random() > .7) d['Instagram'] = '@' + handle;
-      if (Math.random() > .8) d['Facebook Messenger'] = 'facebook.com/' + handle;
+      if (Math.random() > .7) d['LinkedIn Messages'] = 'linkedin.com/in/' + handle;
       if (Math.random() > .9) d['WeChat'] = handle + '_wc';
       return d;
     })(),
@@ -1088,6 +1089,41 @@ function openDrawer(id) {
     ${c.motivation ? `<div style="margin-top:12px"><label style="font-size:.72rem;color:var(--text-xs);display:block;margin-bottom:4px">Motivation</label><p style="font-size:.88rem;line-height:1.7;background:var(--bg);padding:12px;border-radius:8px;border:1px solid var(--border)">${c.motivation}</p></div>` : ''}
   </div>`;
 
+  // Documents (CV / Cover Letter)
+  body += `<div class="d-section">
+    <div class="d-section-title">Documents</div>
+    <div style="display:flex;flex-direction:column;gap:10px">
+      ${c.cvFile ? `
+      <div style="display:flex;align-items:center;gap:12px;background:var(--bg);padding:12px 16px;border-radius:8px;border:1px solid var(--border)">
+        <span style="font-size:1.4rem">&#128196;</span>
+        <div style="flex:1;min-width:0">
+          <p style="font-weight:600;font-size:.88rem;margin-bottom:2px">${c.cvFile.name}</p>
+          <p style="font-size:.72rem;color:var(--text-xs)">${(c.cvFile.size / 1024).toFixed(0)} KB &middot; CV / Resume</p>
+        </div>
+        <a href="${c.cvFile.dataUrl}" download="${c.cvFile.name}" style="padding:6px 14px;border-radius:6px;background:var(--accent);color:#fff;font-size:.78rem;font-weight:600;text-decoration:none;white-space:nowrap">Download</a>
+        ${c.cvFile.type === 'application/pdf' ? `<button onclick="previewDocument('${c.id}','cv')" style="padding:6px 14px;border-radius:6px;background:transparent;border:1px solid var(--accent);color:var(--accent);font-size:.78rem;font-weight:600;cursor:pointer;white-space:nowrap">Preview</button>` : ''}
+      </div>` : `
+      <div style="display:flex;align-items:center;gap:12px;background:var(--bg);padding:12px 16px;border-radius:8px;border:1px solid var(--border)">
+        <span style="font-size:1.4rem;opacity:.4">&#128196;</span>
+        <div style="flex:1"><p style="font-size:.88rem;color:var(--text-xs)">No CV / Resume uploaded</p></div>
+      </div>`}
+      ${c.coverLetterFile ? `
+      <div style="display:flex;align-items:center;gap:12px;background:var(--bg);padding:12px 16px;border-radius:8px;border:1px solid var(--border)">
+        <span style="font-size:1.4rem">&#128221;</span>
+        <div style="flex:1;min-width:0">
+          <p style="font-weight:600;font-size:.88rem;margin-bottom:2px">${c.coverLetterFile.name}</p>
+          <p style="font-size:.72rem;color:var(--text-xs)">${(c.coverLetterFile.size / 1024).toFixed(0)} KB &middot; Cover Letter</p>
+        </div>
+        <a href="${c.coverLetterFile.dataUrl}" download="${c.coverLetterFile.name}" style="padding:6px 14px;border-radius:6px;background:var(--accent);color:#fff;font-size:.78rem;font-weight:600;text-decoration:none;white-space:nowrap">Download</a>
+        ${c.coverLetterFile.type === 'application/pdf' ? `<button onclick="previewDocument('${c.id}','cl')" style="padding:6px 14px;border-radius:6px;background:transparent;border:1px solid var(--accent);color:var(--accent);font-size:.78rem;font-weight:600;cursor:pointer;white-space:nowrap">Preview</button>` : ''}
+      </div>` : `
+      <div style="display:flex;align-items:center;gap:12px;background:var(--bg);padding:12px 16px;border-radius:8px;border:1px solid var(--border)">
+        <span style="font-size:1.4rem;opacity:.4">&#128221;</span>
+        <div style="flex:1"><p style="font-size:.88rem;color:var(--text-xs)">No cover letter uploaded</p></div>
+      </div>`}
+    </div>
+  </div>`;
+
   // Activity Timeline
   body += `<div class="d-section">
     <div class="d-section-title">Activity Timeline</div>
@@ -1186,6 +1222,21 @@ function updateRating(id, rating) {
   c.rating = rating;
   openDrawer(id);
   render();
+}
+
+function previewDocument(id, type) {
+  const c = candidates.find(x => x.id === id);
+  if (!c) return;
+  const file = type === 'cv' ? c.cvFile : c.coverLetterFile;
+  if (!file || !file.dataUrl) return;
+  // Open PDF in a new window/tab for preview
+  const win = window.open('', '_blank');
+  if (win) {
+    win.document.write(`<!DOCTYPE html><html><head><title>${file.name}</title><style>body{margin:0;background:#1a1a2e;}</style></head><body>
+      <iframe src="${file.dataUrl}" style="width:100%;height:100vh;border:none;"></iframe>
+    </body></html>`);
+    win.document.close();
+  }
 }
 
 function addNote(id) {
