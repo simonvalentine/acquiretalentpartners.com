@@ -493,23 +493,19 @@
   }
 
   /* Progress Steps */
-  /* ── Resume Parse Banner ── */
-  .resume-parse-banner {
-    display: flex; align-items: center; gap: 16px;
-    background: linear-gradient(135deg, #eef2ff 0%, #f0f7ff 100%);
-    border: 1.5px dashed var(--accent); border-radius: 12px;
-    padding: 20px 24px; margin-bottom: 24px;
-    transition: opacity .3s, transform .3s;
+  /* ── CV Parse Zone ── */
+  .cv-parse-zone { margin-bottom: 8px; }
+  .cv-parse-zone .file-upload {
+    background: linear-gradient(135deg, #f0f4ff 0%, #f8faff 100%);
+    border: 2px dashed var(--accent); border-radius: 12px;
+    text-align: center; padding: 28px 20px; cursor: pointer;
+    transition: background .2s, border-color .2s;
   }
-  .resume-parse-banner.parsed {
-    background: linear-gradient(135deg, #eefff4 0%, #f0fff7 100%);
-    border-color: var(--success); border-style: solid;
+  .cv-parse-zone .file-upload:hover {
+    background: linear-gradient(135deg, #e8eeff 0%, #f0f4ff 100%);
+    border-color: var(--primary);
   }
-  .rpb-icon { font-size: 2rem; flex-shrink: 0; }
-  .rpb-content { flex: 1; }
-  .rpb-title { font-weight: 700; font-size: .95rem; color: var(--primary); margin-bottom: 2px; }
-  .rpb-subtitle { font-size: .82rem; color: var(--text-light); line-height: 1.5; }
-  .rpb-btn { flex-shrink: 0; cursor: pointer; font-size: .85rem; padding: 10px 24px; }
+  .cv-parse-zone .upload-icon { font-size: 2rem; margin-bottom: 6px; }
 
   /* ── Parse Status ── */
   .parse-status {
@@ -1054,9 +1050,8 @@
     .search-bar input, .search-bar select { width: 100%; }
     .comm-pref-row .cpf-label { min-width: 80px; font-size: .82rem; }
     .comm-pref-row .cpf-input { font-size: .82rem; padding: 7px 10px; }
-    .resume-parse-banner { flex-direction: column; text-align: center; gap: 12px; padding: 16px; }
-    .rpb-btn { width: 100%; }
     .form-section-label { font-size: .74rem; }
+    .cv-parse-zone .file-upload { padding: 20px 16px; }
   }
 
   /* ── Responsive: Small phones ── */
@@ -1594,46 +1589,23 @@
     </div>
     <div class="modal-body" id="applyFormBody">
 
-      <!-- ── Resume Parse Banner ── -->
-      <div class="resume-parse-banner" id="resumeParseBanner">
-        <div class="rpb-icon">&#128196;</div>
-        <div class="rpb-content">
-          <p class="rpb-title">Speed up your application</p>
-          <p class="rpb-subtitle">Upload your CV / Resume and we'll fill in as many fields as we can for you.</p>
-        </div>
-        <label class="btn btn-blue rpb-btn" for="cvFile">Upload CV</label>
-      </div>
-
       <!-- ── Single-Page Application Form ── -->
       <div id="appFormFields">
-        <div class="form-section-label">CV / Resume &amp; Documents</div>
-        <div class="form-grid">
-          <div class="form-group full">
-            <label>Upload CV / Resume <span class="req">*</span></label>
-            <div class="file-upload" id="cvUploadZone">
-              <div class="upload-icon">&#128196;</div>
-              <div class="upload-text">Drag & drop or <strong>click to browse</strong></div>
-              <div class="upload-text" style="font-size:.78rem;margin-top:4px;">PDF, DOCX, or DOC (max 5MB)</div>
-              <div class="file-name" id="cvFileName"></div>
-              <input type="file" accept=".pdf,.doc,.docx" id="cvFile" onchange="handleCvUpload(this)">
-            </div>
-            <div class="parse-status" id="parseStatus" style="display:none">
-              <span class="parse-spinner"></span>
-              <span class="parse-text">Extracting details from your CV...</span>
-            </div>
-            <div class="parse-result" id="parseResult" style="display:none"></div>
-            <span class="error-msg" id="cvError" style="display:none">Please upload your CV</span>
+        <div class="form-section-label" style="margin-top:0">Upload Your CV / Resume</div>
+        <div class="cv-parse-zone" id="cvParseZone">
+          <div class="file-upload" id="cvUploadZone">
+            <div class="upload-icon">&#128196;</div>
+            <div class="upload-text"><strong>Upload your CV to auto-fill the form below</strong></div>
+            <div class="upload-text" style="font-size:.78rem;margin-top:4px;color:var(--text-light)">PDF, DOCX, or DOC (max 5MB) — we'll extract your name, email, phone &amp; more</div>
+            <div class="file-name" id="cvFileName"></div>
+            <input type="file" accept=".pdf,.doc,.docx" id="cvFile" onchange="handleCvUpload(this)">
           </div>
-          <div class="form-group full">
-            <label>Cover Letter (optional)</label>
-            <div class="file-upload" id="clUploadZone">
-              <div class="upload-icon">&#128221;</div>
-              <div class="upload-text">Drag & drop or <strong>click to browse</strong></div>
-              <div class="upload-text" style="font-size:.78rem;margin-top:4px;">PDF, DOCX, or DOC (max 5MB)</div>
-              <div class="file-name" id="clFileName"></div>
-              <input type="file" accept=".pdf,.doc,.docx" id="clFile" onchange="handleFileUpload(this, 'clFileName')">
-            </div>
+          <div class="parse-status" id="parseStatus" style="display:none">
+            <span class="parse-spinner"></span>
+            <span class="parse-text">Extracting details from your CV...</span>
           </div>
+          <div class="parse-result" id="parseResult" style="display:none"></div>
+          <span class="error-msg" id="cvError" style="display:none">Please upload your CV</span>
         </div>
 
         <div class="form-section-label">Your Details</div>
@@ -1776,6 +1748,19 @@
               </div>
             </div>
             <span class="error-msg" id="commPrefError" style="display:none">Please select at least one communication method</span>
+          </div>
+        </div>
+
+        <div class="form-section-label" style="margin-top:8px">Additional Documents</div>
+        <div class="form-grid">
+          <div class="form-group full">
+            <label>Cover Letter (optional)</label>
+            <div class="file-upload" id="clUploadZone" style="padding:16px">
+              <div class="upload-icon" style="font-size:1.2rem">&#128221;</div>
+              <div class="upload-text" style="font-size:.82rem">Drag & drop or <strong>click to browse</strong> — PDF, DOCX, or DOC (max 5MB)</div>
+              <div class="file-name" id="clFileName"></div>
+              <input type="file" accept=".pdf,.doc,.docx" id="clFile" onchange="handleFileUpload(this, 'clFileName')">
+            </div>
           </div>
         </div>
 
@@ -2193,13 +2178,6 @@ function openApplyModal() {
   document.getElementById('commPrefError').style.display = 'none';
   document.getElementById('parseStatus').style.display = 'none';
   document.getElementById('parseResult').style.display = 'none';
-  // Reset resume parse banner
-  const rpb = document.getElementById('resumeParseBanner');
-  rpb.classList.remove('parsed');
-  rpb.querySelector('.rpb-icon').innerHTML = '&#128196;';
-  rpb.querySelector('.rpb-title').textContent = 'Speed up your application';
-  rpb.querySelector('.rpb-subtitle').textContent = "Upload your CV / Resume and we'll fill in as many fields as we can for you.";
-  rpb.style.display = 'flex';
   // Reset comm pref rows
   document.querySelectorAll('.comm-pref-row').forEach(row => {
     row.classList.remove('checked');
@@ -2223,7 +2201,6 @@ async function submitAndFinish() {
   await submitApplication();
   // Show success
   document.getElementById('appFormFields').style.display = 'none';
-  document.getElementById('resumeParseBanner').style.display = 'none';
   document.getElementById('stepSuccess').style.display = 'block';
   document.getElementById('applyFooter').style.display = 'none';
   document.getElementById('appRef').textContent = 'REF-ATP-' + Date.now().toString(36).toUpperCase();
@@ -2394,7 +2371,6 @@ function handleCvUpload(input) {
 async function parseResume(file) {
   const parseStatus = document.getElementById('parseStatus');
   const parseResult = document.getElementById('parseResult');
-  const rpb = document.getElementById('resumeParseBanner');
   parseStatus.style.display = 'flex';
   parseResult.style.display = 'none';
 
@@ -2434,21 +2410,12 @@ async function parseResume(file) {
 
     if (filled > 0) {
       parseResult.className = 'parse-result';
-      parseResult.innerHTML = '&#10003; Filled ' + filled + ' field' + (filled > 1 ? 's' : '') + ' from your CV. Please review and complete any remaining fields.';
+      parseResult.innerHTML = '&#10003; Filled ' + filled + ' field' + (filled > 1 ? 's' : '') + ' from your CV. Please review and complete any remaining fields below.';
       parseResult.style.display = 'block';
-      // Update banner to success state
-      rpb.classList.add('parsed');
-      rpb.querySelector('.rpb-icon').innerHTML = '&#10003;';
-      rpb.querySelector('.rpb-title').textContent = 'CV uploaded & parsed';
-      rpb.querySelector('.rpb-subtitle').textContent = filled + ' field' + (filled > 1 ? 's' : '') + ' auto-filled. Review below and complete any remaining details.';
     } else {
       parseResult.className = 'parse-result';
-      parseResult.innerHTML = '&#128196; CV uploaded. No additional fields could be auto-filled — please fill in the form below.';
+      parseResult.innerHTML = '&#128196; CV uploaded successfully. Please complete the fields below.';
       parseResult.style.display = 'block';
-      rpb.classList.add('parsed');
-      rpb.querySelector('.rpb-icon').innerHTML = '&#128196;';
-      rpb.querySelector('.rpb-title').textContent = 'CV uploaded';
-      rpb.querySelector('.rpb-subtitle').textContent = 'Please fill in the fields below manually.';
     }
   } catch (e) {
     parseStatus.style.display = 'none';
