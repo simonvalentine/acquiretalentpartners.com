@@ -1120,6 +1120,10 @@
   }
 
 </style>
+<!-- PDF.js for resume parsing -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<!-- JSZip for DOCX parsing -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 </head>
 <body>
 
@@ -2426,82 +2430,90 @@ async function parseResume(file) {
   }
 }
 
-// Extract raw text from PDF or DOCX
-function extractTextFromFile(file) {
-  return new Promise((resolve) => {
-    const reader = new FileReader();
-    if (file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf')) {
-      // PDF: extract text between stream markers (basic approach)
-      reader.onload = () => {
-        try {
-          const bytes = new Uint8Array(reader.result);
-          let text = '';
-          // Decode the binary to find readable text runs
-          const decoder = new TextDecoder('utf-8', { fatal: false });
-          const raw = decoder.decode(bytes);
-          // Extract text from PDF text objects (Tj/TJ operators and between BT/ET)
-          const textParts = [];
-          // Method 1: Pull text between parentheses in Tj operations
-          const tjMatches = raw.match(/\(([^)]{2,})\)\s*Tj/g);
-          if (tjMatches) {
-            tjMatches.forEach(m => {
-              const inner = m.match(/\(([^)]+)\)/);
-              if (inner) textParts.push(inner[1]);
-            });
-          }
-          // Method 2: Pull from TJ arrays
-          const tjArrayMatches = raw.match(/\[([^\]]*)\]\s*TJ/gi);
-          if (tjArrayMatches) {
-            tjArrayMatches.forEach(m => {
-              const strings = m.match(/\(([^)]*)\)/g);
-              if (strings) strings.forEach(s => {
-                const inner = s.slice(1, -1);
-                if (inner.length > 0) textParts.push(inner);
-              });
-            });
-          }
-          // Method 3: If PDF uses streams, try to find readable blocks
-          if (textParts.length < 3) {
-            // Fallback: find long runs of readable ASCII text
-            const readable = raw.match(/[A-Za-z0-9@.+\-_ ,;:()\/]{10,}/g);
-            if (readable) textParts.push(...readable);
-          }
-          text = textParts.join(' ');
-          // Unescape PDF escape sequences
-          text = text.replace(/\\n/g, '\n').replace(/\\r/g, '').replace(/\\t/g, ' ').replace(/\\\(/g, '(').replace(/\\\)/g, ')');
-          resolve(text);
-        } catch (e) { resolve(''); }
-      };
-      reader.onerror = () => resolve('');
-      reader.readAsArrayBuffer(file);
-    } else {
-      // DOCX: extract text from word/document.xml
-      reader.onload = async () => {
-        try {
-          if (typeof JSZip === 'undefined') {
-            // Fallback: basic XML extraction from arraybuffer
-            const decoder = new TextDecoder('utf-8', { fatal: false });
-            const raw = decoder.decode(new Uint8Array(reader.result));
-            // Pull text from <w:t> tags
-            const wt = raw.match(/<w:t[^>]*>([^<]*)<\/w:t>/gi);
-            if (wt) {
-              const text = wt.map(t => {
-                const inner = t.match(/>([^<]*)</);
-                return inner ? inner[1] : '';
-              }).join(' ');
-              resolve(text);
-            } else {
-              // Just extract readable text blocks
-              const blocks = raw.match(/[A-Za-z0-9@.+\-_ ,;:()\/]{10,}/g);
-              resolve(blocks ? blocks.join(' ') : '');
-            }
-          }
-        } catch (e) { resolve(''); }
-      };
-      reader.onerror = () => resolve('');
-      reader.readAsArrayBuffer(file);
+// Extract raw text from PDF or DOCX using proper libraries
+async function extractTextFromFile(file) {
+  const isPdf = file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf');
+  const isDocx = file.name.toLowerCase().endsWith('.docx') || file.name.toLowerCase().endsWith('.doc') ||
+                 file.type === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
+
+  const arrayBuffer = await file.arrayBuffer();
+
+  if (isPdf) {
+    return await extractTextFromPdf(arrayBuffer);
+  } else if (isDocx) {
+    return await extractTextFromDocx(arrayBuffer);
+  }
+  return '';
+}
+
+// PDF extraction using pdf.js
+async function extractTextFromPdf(arrayBuffer) {
+  try {
+    // Set worker source for pdf.js
+    if (window.pdfjsLib) {
+      pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+      const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+      const textParts = [];
+      const maxPages = Math.min(pdf.numPages, 5); // Only parse first 5 pages for speed
+      for (let i = 1; i <= maxPages; i++) {
+        const page = await pdf.getPage(i);
+        const content = await page.getTextContent();
+        const pageText = content.items.map(item => item.str).join(' ');
+        textParts.push(pageText);
+      }
+      return textParts.join('\n');
     }
-  });
+  } catch (e) {
+    console.log('pdf.js extraction failed:', e);
+  }
+  // Fallback: basic binary text extraction
+  try {
+    const decoder = new TextDecoder('utf-8', { fatal: false });
+    const raw = decoder.decode(new Uint8Array(arrayBuffer));
+    const textParts = [];
+    // Pull text from Tj/TJ PDF operators
+    const tjMatches = raw.match(/\(([^)]{2,})\)\s*Tj/g);
+    if (tjMatches) tjMatches.forEach(m => { const inner = m.match(/\(([^)]+)\)/); if (inner) textParts.push(inner[1]); });
+    const tjArrayMatches = raw.match(/\[([^\]]*)\]\s*TJ/gi);
+    if (tjArrayMatches) tjArrayMatches.forEach(m => { const strings = m.match(/\(([^)]*)\)/g); if (strings) strings.forEach(s => { const inner = s.slice(1, -1); if (inner.length > 0) textParts.push(inner); }); });
+    if (textParts.length < 3) { const readable = raw.match(/[A-Za-z0-9@.+\-_ ,;:()\/]{10,}/g); if (readable) textParts.push(...readable); }
+    return textParts.join(' ').replace(/\\n/g, '\n').replace(/\\r/g, '').replace(/\\t/g, ' ');
+  } catch (e) { return ''; }
+}
+
+// DOCX extraction using JSZip
+async function extractTextFromDocx(arrayBuffer) {
+  try {
+    if (window.JSZip) {
+      const zip = await JSZip.loadAsync(arrayBuffer);
+      const docXml = await zip.file('word/document.xml').async('text');
+      // Parse the XML and extract text from <w:t> tags
+      const parser = new DOMParser();
+      const xmlDoc = parser.parseFromString(docXml, 'application/xml');
+      const textNodes = xmlDoc.getElementsByTagName('w:t');
+      const paragraphs = xmlDoc.getElementsByTagName('w:p');
+      const textParts = [];
+      for (let i = 0; i < paragraphs.length; i++) {
+        const pTexts = paragraphs[i].getElementsByTagName('w:t');
+        const pContent = [];
+        for (let j = 0; j < pTexts.length; j++) {
+          pContent.push(pTexts[j].textContent);
+        }
+        if (pContent.length) textParts.push(pContent.join(''));
+      }
+      return textParts.join('\n');
+    }
+  } catch (e) {
+    console.log('JSZip extraction failed:', e);
+  }
+  // Fallback: try raw text extraction
+  try {
+    const decoder = new TextDecoder('utf-8', { fatal: false });
+    const raw = decoder.decode(new Uint8Array(arrayBuffer));
+    const wt = raw.match(/<w:t[^>]*>([^<]*)<\/w:t>/gi);
+    if (wt) return wt.map(t => { const inner = t.match(/>([^<]*)</); return inner ? inner[1] : ''; }).join(' ');
+  } catch (e) {}
+  return '';
 }
 
 // Extract structured fields from raw text
