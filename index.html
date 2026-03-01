@@ -1121,9 +1121,16 @@
 
 </style>
 <!-- PDF.js for resume parsing -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<script>
+  // Verify libraries loaded
+  window.addEventListener('load', function() {
+    console.log('[Libs] pdfjsLib loaded:', typeof window.pdfjsLib !== 'undefined');
+    console.log('[Libs] JSZip loaded:', typeof window.JSZip !== 'undefined');
+  });
+</script>
 <!-- JSZip for DOCX parsing -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 </head>
 <body>
 
@@ -2377,10 +2384,14 @@ async function parseResume(file) {
   const parseResult = document.getElementById('parseResult');
   parseStatus.style.display = 'flex';
   parseResult.style.display = 'none';
+  console.log('[CV Parse] Starting parse for:', file.name, file.type, file.size + ' bytes');
 
   try {
     const text = await extractTextFromFile(file);
-    if (!text || text.trim().length < 20) {
+    console.log('[CV Parse] Extracted text length:', text ? text.length : 0);
+    console.log('[CV Parse] First 500 chars:', text ? text.substring(0, 500) : '(empty)');
+
+    if (!text || text.trim().length < 10) {
       parseStatus.style.display = 'none';
       parseResult.className = 'parse-result error';
       parseResult.innerHTML = '&#9888; Could not extract text from this file. Please fill in the fields manually.';
@@ -2389,13 +2400,13 @@ async function parseResume(file) {
     }
 
     const parsed = extractFieldsFromText(text);
+    console.log('[CV Parse] Extracted fields:', JSON.stringify(parsed));
     let filled = 0;
 
-    // Populate fields only if they're currently empty
     const fillField = (id, value) => {
       if (value) {
         const el = document.getElementById(id);
-        if (el && !el.value.trim()) { el.value = value; filled++; }
+        if (el && !el.value.trim()) { el.value = value; filled++; console.log('[CV Parse] Filled', id, '=', value); }
       }
     };
 
@@ -2406,11 +2417,11 @@ async function parseResume(file) {
     fillField('appLocation', parsed.location);
     fillField('appLinkedIn', parsed.linkedin);
 
-    // Trigger comm field sync after populating phone/email
     if (parsed.phone) syncCommFields('appPhone');
     if (parsed.email) syncCommFields('appEmail');
 
     parseStatus.style.display = 'none';
+    console.log('[CV Parse] Total fields filled:', filled);
 
     if (filled > 0) {
       parseResult.className = 'parse-result';
@@ -2418,128 +2429,171 @@ async function parseResume(file) {
       parseResult.style.display = 'block';
     } else {
       parseResult.className = 'parse-result';
-      parseResult.innerHTML = '&#128196; CV uploaded successfully. Please complete the fields below.';
+      parseResult.innerHTML = '&#128196; CV uploaded. We couldn\'t auto-detect fields — please fill in the form below.';
       parseResult.style.display = 'block';
     }
   } catch (e) {
     parseStatus.style.display = 'none';
     parseResult.className = 'parse-result error';
-    parseResult.innerHTML = '&#9888; Error reading file. Please fill in the fields manually.';
+    parseResult.innerHTML = '&#9888; Error reading file: ' + e.message + '. Please fill in the fields manually.';
     parseResult.style.display = 'block';
-    console.log('Resume parse error:', e);
+    console.error('[CV Parse] Error:', e);
   }
 }
 
-// Extract raw text from PDF or DOCX using proper libraries
+// ═══ TEXT EXTRACTION ═══
 async function extractTextFromFile(file) {
-  const isPdf = file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf');
-  const isDocx = file.name.toLowerCase().endsWith('.docx') || file.name.toLowerCase().endsWith('.doc') ||
-                 file.type === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
-
+  const name = file.name.toLowerCase();
   const arrayBuffer = await file.arrayBuffer();
+  console.log('[Extract] File type:', file.type, 'Name:', name, 'Buffer size:', arrayBuffer.byteLength);
 
-  if (isPdf) {
+  if (name.endsWith('.pdf') || file.type === 'application/pdf') {
     return await extractTextFromPdf(arrayBuffer);
-  } else if (isDocx) {
+  } else if (name.endsWith('.docx') || file.type.includes('openxmlformats')) {
     return await extractTextFromDocx(arrayBuffer);
+  } else if (name.endsWith('.doc')) {
+    return extractTextFromDoc(arrayBuffer);
   }
   return '';
 }
 
-// PDF extraction using pdf.js
-async function extractTextFromPdf(arrayBuffer) {
-  try {
-    // Set worker source for pdf.js
-    if (window.pdfjsLib) {
+// ── PDF: use pdf.js library ──
+async function extractTextFromPdf(buf) {
+  // Method 1: pdf.js (loaded via CDN)
+  console.log('[PDF] pdfjsLib available?', typeof window.pdfjsLib !== 'undefined');
+  if (typeof window.pdfjsLib !== 'undefined') {
+    try {
       pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
-      const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
-      const textParts = [];
-      const maxPages = Math.min(pdf.numPages, 5); // Only parse first 5 pages for speed
-      for (let i = 1; i <= maxPages; i++) {
+      const loadingTask = pdfjsLib.getDocument({ data: new Uint8Array(buf) });
+      const pdf = await loadingTask.promise;
+      console.log('[PDF] pdf.js loaded, pages:', pdf.numPages);
+      const parts = [];
+      for (let i = 1; i <= Math.min(pdf.numPages, 5); i++) {
         const page = await pdf.getPage(i);
-        const content = await page.getTextContent();
-        const pageText = content.items.map(item => item.str).join(' ');
-        textParts.push(pageText);
+        const tc = await page.getTextContent();
+        const pageText = tc.items.map(item => item.str).join(' ');
+        parts.push(pageText);
+        console.log('[PDF] Page', i, 'text length:', pageText.length);
       }
-      return textParts.join('\n');
+      const result = parts.join('\n');
+      if (result.trim().length > 10) return result;
+      console.log('[PDF] pdf.js returned empty, trying fallback');
+    } catch (e) {
+      console.warn('[PDF] pdf.js failed:', e.message);
     }
-  } catch (e) {
-    console.log('pdf.js extraction failed:', e);
   }
-  // Fallback: basic binary text extraction
+
+  // Method 2: Manual binary extraction fallback
+  console.log('[PDF] Using binary fallback');
   try {
-    const decoder = new TextDecoder('utf-8', { fatal: false });
-    const raw = decoder.decode(new Uint8Array(arrayBuffer));
-    const textParts = [];
-    // Pull text from Tj/TJ PDF operators
-    const tjMatches = raw.match(/\(([^)]{2,})\)\s*Tj/g);
-    if (tjMatches) tjMatches.forEach(m => { const inner = m.match(/\(([^)]+)\)/); if (inner) textParts.push(inner[1]); });
-    const tjArrayMatches = raw.match(/\[([^\]]*)\]\s*TJ/gi);
-    if (tjArrayMatches) tjArrayMatches.forEach(m => { const strings = m.match(/\(([^)]*)\)/g); if (strings) strings.forEach(s => { const inner = s.slice(1, -1); if (inner.length > 0) textParts.push(inner); }); });
-    if (textParts.length < 3) { const readable = raw.match(/[A-Za-z0-9@.+\-_ ,;:()\/]{10,}/g); if (readable) textParts.push(...readable); }
-    return textParts.join(' ').replace(/\\n/g, '\n').replace(/\\r/g, '').replace(/\\t/g, ' ');
-  } catch (e) { return ''; }
+    const bytes = new Uint8Array(buf);
+    const decoder = new TextDecoder('latin1');
+    const raw = decoder.decode(bytes);
+    const parts = [];
+
+    // Look for text in Tj operators
+    const re1 = /\(([^\\)]{1,500})\)\s*Tj/g;
+    let m;
+    while ((m = re1.exec(raw)) !== null) parts.push(m[1]);
+
+    // Look for text in TJ arrays
+    const re2 = /\[([^\]]{1,2000})\]\s*TJ/gi;
+    while ((m = re2.exec(raw)) !== null) {
+      const inner = m[1].match(/\(([^)]*)\)/g);
+      if (inner) inner.forEach(s => parts.push(s.slice(1, -1)));
+    }
+
+    console.log('[PDF] Binary fallback found', parts.length, 'text fragments');
+    if (parts.length > 0) return parts.join(' ');
+
+    // Method 3: just grab any readable text blocks
+    const readable = raw.match(/[\x20-\x7E]{15,}/g);
+    console.log('[PDF] Readable blocks found:', readable ? readable.length : 0);
+    if (readable) return readable.join(' ');
+  } catch(e) { console.warn('[PDF] Binary fallback error:', e); }
+  return '';
 }
 
-// DOCX extraction using JSZip
-async function extractTextFromDocx(arrayBuffer) {
-  try {
-    if (window.JSZip) {
-      const zip = await JSZip.loadAsync(arrayBuffer);
-      const docXml = await zip.file('word/document.xml').async('text');
-      // Parse the XML and extract text from <w:t> tags
-      const parser = new DOMParser();
-      const xmlDoc = parser.parseFromString(docXml, 'application/xml');
-      const textNodes = xmlDoc.getElementsByTagName('w:t');
-      const paragraphs = xmlDoc.getElementsByTagName('w:p');
-      const textParts = [];
-      for (let i = 0; i < paragraphs.length; i++) {
-        const pTexts = paragraphs[i].getElementsByTagName('w:t');
-        const pContent = [];
-        for (let j = 0; j < pTexts.length; j++) {
-          pContent.push(pTexts[j].textContent);
-        }
-        if (pContent.length) textParts.push(pContent.join(''));
+// ── DOCX: use JSZip library ──
+async function extractTextFromDocx(buf) {
+  console.log('[DOCX] JSZip available?', typeof window.JSZip !== 'undefined');
+  if (typeof window.JSZip !== 'undefined') {
+    try {
+      const zip = await JSZip.loadAsync(buf);
+      const files = Object.keys(zip.files);
+      console.log('[DOCX] Zip contains:', files.length, 'files');
+      const docFile = zip.file('word/document.xml');
+      if (!docFile) { console.warn('[DOCX] No word/document.xml found'); return ''; }
+      const xml = await docFile.async('text');
+      console.log('[DOCX] document.xml length:', xml.length);
+      // Use regex to extract text from <w:t> tags (more reliable than DOMParser for namespaced XML)
+      const matches = xml.match(/<w:t[^>]*>([^<]*)<\/w:t>/gi);
+      if (matches) {
+        const texts = matches.map(m => { const inner = m.match(/>([^<]*)<\//); return inner ? inner[1] : ''; });
+        const result = texts.join(' ');
+        console.log('[DOCX] Extracted text length:', result.length);
+        return result;
       }
-      return textParts.join('\n');
+      console.warn('[DOCX] No w:t tags found in document.xml');
+    } catch (e) {
+      console.warn('[DOCX] JSZip extraction failed:', e.message);
     }
-  } catch (e) {
-    console.log('JSZip extraction failed:', e);
   }
-  // Fallback: try raw text extraction
+
+  // Fallback: raw binary scan for w:t tags (DOCX is a ZIP so this rarely works, but try)
+  console.log('[DOCX] Using raw fallback');
   try {
     const decoder = new TextDecoder('utf-8', { fatal: false });
-    const raw = decoder.decode(new Uint8Array(arrayBuffer));
-    const wt = raw.match(/<w:t[^>]*>([^<]*)<\/w:t>/gi);
-    if (wt) return wt.map(t => { const inner = t.match(/>([^<]*)</); return inner ? inner[1] : ''; }).join(' ');
+    const raw = decoder.decode(new Uint8Array(buf));
+    const matches = raw.match(/<w:t[^>]*>([^<]*)<\/w:t>/gi);
+    if (matches) {
+      return matches.map(m => { const inner = m.match(/>([^<]*)<\//); return inner ? inner[1] : ''; }).join(' ');
+    }
   } catch (e) {}
   return '';
 }
 
-// Extract structured fields from raw text
+// ── Legacy .doc format: best-effort text extraction ──
+function extractTextFromDoc(buf) {
+  console.log('[DOC] Attempting legacy .doc extraction');
+  try {
+    const decoder = new TextDecoder('latin1');
+    const raw = decoder.decode(new Uint8Array(buf));
+    // .doc files have readable ASCII text interspersed with binary
+    const readable = raw.match(/[\x20-\x7E]{15,}/g);
+    if (readable) return readable.join(' ');
+  } catch (e) {}
+  return '';
+}
+
+// ═══ FIELD EXTRACTION FROM TEXT ═══
 function extractFieldsFromText(text) {
   const result = { firstName: '', lastName: '', email: '', phone: '', location: '', linkedin: '' };
 
-  // Email — most reliable
+  // Email — most reliable pattern
   const emailMatch = text.match(/[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}/);
   if (emailMatch) result.email = emailMatch[0].toLowerCase();
 
-  // Phone — international formats
+  // Phone — international formats (try several patterns)
   const phonePatterns = [
-    /(?:\+\d{1,3}[\s\-.]?)?\(?\d{2,4}\)?[\s\-.]?\d{3,4}[\s\-.]?\d{3,4}/,
-    /\+\d[\d\s\-().]{8,}/,
-    /(?:0\d{4}|\d{5})[\s\-]?\d{5,6}/,
-    /\d{3}[\s\-.]?\d{3}[\s\-.]?\d{4}/
+    /\+\d{1,3}[\s\-.]?\(?\d{1,4}\)?[\s\-.]?\d{2,4}[\s\-.]?\d{2,4}[\s\-.]?\d{0,4}/,
+    /\+\d[\d\s\-().]{7,16}/,
+    /(?:07\d{3}|\(0\d{3,4}\))\s?\d{3}\s?\d{3,4}/,
+    /0\d{2,4}[\s\-]?\d{3,4}[\s\-]?\d{3,4}/,
+    /\(?\d{3}\)?[\s\-.]?\d{3}[\s\-.]?\d{4}/
   ];
   for (const pattern of phonePatterns) {
     const m = text.match(pattern);
-    if (m && m[0].replace(/\D/g, '').length >= 7) {
-      result.phone = m[0].trim();
-      break;
+    if (m) {
+      const digits = m[0].replace(/\D/g, '');
+      if (digits.length >= 7 && digits.length <= 15) {
+        result.phone = m[0].trim();
+        break;
+      }
     }
   }
 
-  // LinkedIn
+  // LinkedIn URL
   const linkedinMatch = text.match(/(?:https?:\/\/)?(?:www\.)?linkedin\.com\/in\/[a-zA-Z0-9\-_%]+/i);
   if (linkedinMatch) {
     let url = linkedinMatch[0];
@@ -2547,11 +2601,11 @@ function extractFieldsFromText(text) {
     result.linkedin = url;
   }
 
-  // Location — common patterns
+  // Location — look for city + country patterns
   const locationPatterns = [
-    /(?:based\s+in|located?\s+in|location\s*:\s*|address\s*:\s*)([A-Z][a-zA-Z\s]+,\s*[A-Z][a-zA-Z\s]+)/i,
-    /([A-Z][a-z]+(?:\s[A-Z][a-z]+)?,\s*(?:UK|US|USA|United Kingdom|United States|Canada|Australia|Germany|France|India|Singapore|UAE|Dubai|Ireland|Netherlands|Spain|Italy|Japan|Hong Kong|China))/,
-    /([A-Z][a-z]+,\s*[A-Z]{2}\s*\d{4,5})/  // City, STATE ZIP
+    /(?:location|address|based in|located in)\s*:?\s*([A-Z][a-zA-Z\s]+,\s*[A-Za-z\s]+)/i,
+    /([A-Z][a-z]+(?:\s[A-Z][a-z]+)?\s*,\s*(?:UK|US|USA|United Kingdom|United States|Canada|Australia|Germany|France|India|Singapore|UAE|Dubai|Ireland|Netherlands|Spain|Italy|Japan|Hong Kong|China|Brazil|Sweden|Norway|Denmark|Belgium|Switzerland|Austria|Poland|Portugal|Czech Republic|New Zealand|South Africa|Mexico|Argentina|Colombia|Chile|Thailand|Vietnam|Malaysia|Philippines|Indonesia|South Korea|Taiwan|Scotland|Wales|England|Northern Ireland))/i,
+    /([A-Z][a-z]+,\s*[A-Z]{2}\s*\d{4,5})/
   ];
   for (const pattern of locationPatterns) {
     const m = text.match(pattern);
@@ -2561,36 +2615,41 @@ function extractFieldsFromText(text) {
     }
   }
 
-  // Name — try to extract from the beginning of text (most CVs start with the name)
-  // Look for the first substantial text that looks like a name (1-3 words, capitalized)
-  const lines = text.split(/[\n\r]+/).map(l => l.trim()).filter(l => l.length > 1 && l.length < 60);
-  for (const line of lines.slice(0, 8)) {
-    // Skip lines that look like headers, emails, phone numbers, URLs
-    if (/@|http|www\.|linkedin|phone|tel:|email:|address:|profile/i.test(line)) continue;
+  // Name — try first few lines of text for a name-like pattern
+  const lines = text.split(/[\n\r]+/).map(l => l.trim()).filter(l => l.length > 1 && l.length < 80);
+  for (const line of lines.slice(0, 12)) {
+    // Skip lines that are clearly not names
+    if (/@|http|www\.|linkedin|phone|tel:|email:|address:|profile|objective|summary|experience|education|skills|curriculum|resume|cv\b/i.test(line)) continue;
     if (/^\d/.test(line)) continue;
-    if (/curriculum|resume|cv|objective|summary|experience|education|skills/i.test(line)) continue;
-    // Check if it looks like a name (2-4 words, each starting with uppercase)
-    const words = line.split(/\s+/).filter(w => w.length > 1);
-    if (words.length >= 2 && words.length <= 4) {
-      const allCap = words.every(w => /^[A-Z]/.test(w));
-      if (allCap) {
-        result.firstName = words[0];
-        result.lastName = words.slice(1).join(' ');
+    if (/^(jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec|january|february)/i.test(line)) continue;
+
+    // Clean the line — remove common prefixes
+    let clean = line.replace(/^(name|full name|candidate)\s*:?\s*/i, '').trim();
+    const words = clean.split(/\s+/).filter(w => w.length > 0);
+
+    if (words.length >= 2 && words.length <= 5) {
+      // Check if words look like name parts (start with uppercase, mainly letters)
+      const nameWords = words.filter(w => /^[A-Z][a-zA-Z'\-]+$/.test(w));
+      if (nameWords.length >= 2) {
+        result.firstName = nameWords[0];
+        result.lastName = nameWords.slice(1).join(' ');
+        console.log('[Fields] Name detected from line:', line, '->', result.firstName, result.lastName);
         break;
       }
     }
   }
 
-  // If name not found above, try to extract from email prefix
+  // If name not found, try to derive from email
   if (!result.firstName && result.email) {
     const prefix = result.email.split('@')[0];
-    const parts = prefix.split(/[._\-]+/).filter(p => p.length > 1);
+    const parts = prefix.split(/[._\-]+/).filter(p => p.length > 1 && /^[a-zA-Z]+$/.test(p));
     if (parts.length >= 2) {
-      result.firstName = parts[0].charAt(0).toUpperCase() + parts[0].slice(1);
-      result.lastName = parts[1].charAt(0).toUpperCase() + parts[1].slice(1);
+      result.firstName = parts[0].charAt(0).toUpperCase() + parts[0].slice(1).toLowerCase();
+      result.lastName = parts[1].charAt(0).toUpperCase() + parts[1].slice(1).toLowerCase();
     }
   }
 
+  console.log('[Fields] Final result:', JSON.stringify(result));
   return result;
 }
 
