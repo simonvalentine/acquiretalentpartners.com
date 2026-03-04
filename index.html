@@ -534,6 +534,32 @@
   }
   .form-section-label:first-of-type { margin-top: 0; }
 
+  /* Talent Network */
+  .tn-helper-text {
+    font-size: .82rem; color: var(--text-light); margin: -6px 0 12px; line-height: 1.4;
+  }
+  .tn-interest-group { margin-bottom: 16px; }
+  .tn-interest-label {
+    display: block; font-size: .8rem; font-weight: 600; color: var(--text);
+    margin-bottom: 8px;
+  }
+  .tn-chip-grid {
+    display: flex; flex-wrap: wrap; gap: 8px;
+  }
+  .tn-chip {
+    display: inline-flex; align-items: center; cursor: pointer;
+    padding: 6px 14px; border-radius: 20px;
+    border: 1.5px solid var(--border); background: var(--bg);
+    font-size: .8rem; color: var(--text); transition: all .2s;
+    user-select: none;
+  }
+  .tn-chip:hover { border-color: var(--accent-light); background: #f0f4ff; }
+  .tn-chip input { display: none; }
+  .tn-chip:has(input:checked) {
+    background: var(--accent); border-color: var(--accent); color: #fff;
+  }
+  .tn-chip:has(input:checked) span { color: #fff; }
+
   /* Checkbox */
   .checkbox-group { display: flex; align-items: flex-start; gap: 10px; margin-top: 8px; }
   .checkbox-group input[type="checkbox"] {
@@ -1052,6 +1078,9 @@
     .comm-pref-row .cpf-input { font-size: .82rem; padding: 7px 10px; }
     .form-section-label { font-size: .74rem; }
     .cv-parse-zone .file-upload { padding: 20px 16px; }
+    .tn-chip { font-size: .75rem; padding: 5px 11px; }
+    .tn-chip-grid { gap: 6px; }
+    .tn-helper-text { font-size: .78rem; }
   }
 
   /* ── Responsive: Small phones ── */
@@ -1120,17 +1149,7 @@
   }
 
 </style>
-<!-- PDF.js for resume parsing -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-<script>
-  // Verify libraries loaded
-  window.addEventListener('load', function() {
-    console.log('[Libs] pdfjsLib loaded:', typeof window.pdfjsLib !== 'undefined');
-    console.log('[Libs] JSZip loaded:', typeof window.JSZip !== 'undefined');
-  });
-</script>
-<!-- JSZip for DOCX parsing -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<!-- Resume parsing libraries loaded on-demand in JS -->
 </head>
 <body>
 
@@ -1494,7 +1513,7 @@
   <section class="cta-section">
     <h2>Don't See the Right Role?</h2>
     <p>Join our talent network and we'll notify you when a position matching your skills opens up.</p>
-    <a href="#" class="btn btn-primary">Join Talent Network</a>
+    <a href="#" class="btn btn-primary" onclick="event.preventDefault(); openTalentNetwork()">Join Talent Network</a>
   </section>
 
 </div>
@@ -1800,6 +1819,145 @@
     </div>
     <div class="modal-footer" id="applyFooter">
       <button class="btn btn-blue" id="applySubmitBtn" onclick="submitAndFinish()" style="width:100%">Submit Application</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════ TALENT NETWORK MODAL ═══════════ -->
+<div class="modal-overlay" id="talentNetworkModal">
+  <div class="modal">
+    <div class="modal-header">
+      <div>
+        <h2>Join Our Talent Network</h2>
+        <p>Get notified when roles matching your interests open up</p>
+      </div>
+      <button class="modal-close" onclick="closeModal('talentNetworkModal')">&times;</button>
+    </div>
+    <div class="modal-body" id="tnFormBody">
+
+      <div id="tnFormFields">
+        <!-- Resume Upload -->
+        <div class="form-section-label" style="margin-top:0">Upload Your CV / Resume (Optional)</div>
+        <div class="cv-parse-zone" id="tnParseZone">
+          <div class="file-upload" id="tnUploadZone">
+            <div class="upload-icon">&#128196;</div>
+            <div class="upload-text"><strong>Upload your CV to auto-fill your details</strong></div>
+            <div class="upload-text" style="font-size:.78rem;margin-top:4px;color:var(--text-light)">PDF, DOCX, or DOC (max 5MB)</div>
+            <div class="file-name" id="tnFileName"></div>
+            <input type="file" accept=".pdf,.doc,.docx" id="tnFile" onchange="handleTnUpload(this)">
+          </div>
+          <div class="parse-status" id="tnParseStatus" style="display:none">
+            <span class="parse-spinner"></span>
+            <span class="parse-text">Extracting details from your CV...</span>
+          </div>
+          <div class="parse-result" id="tnParseResult" style="display:none"></div>
+        </div>
+
+        <!-- Name & Contact -->
+        <div class="form-section-label">Your Details</div>
+        <div class="form-grid">
+          <div class="form-group">
+            <label>Full Name <span class="req">*</span></label>
+            <input type="text" id="tnName" placeholder="e.g. Simon Valentine">
+            <span class="error-msg">Name is required</span>
+          </div>
+          <div class="form-group">
+            <label>Email Address <span class="req">*</span></label>
+            <input type="email" id="tnEmail" placeholder="you@email.com">
+            <span class="error-msg">Please enter a valid email</span>
+          </div>
+        </div>
+
+        <!-- Profile Link -->
+        <div class="form-section-label">Profile Link</div>
+        <p class="tn-helper-text">Share your LinkedIn, portfolio, personal website, or a link to your resume</p>
+        <div class="form-group" style="margin-bottom:0">
+          <input type="url" id="tnProfileUrl" placeholder="e.g. https://linkedin.com/in/yourprofile or portfolio URL">
+        </div>
+
+        <!-- Areas of Interest -->
+        <div class="form-section-label">Areas of Interest</div>
+        <p class="tn-helper-text">Select all that apply so we can match you with the right opportunities</p>
+
+        <div class="tn-interest-group">
+          <label class="tn-interest-label">Departments</label>
+          <div class="tn-chip-grid" id="tnDeptChips">
+            <label class="tn-chip"><input type="checkbox" value="engineering"><span>Engineering</span></label>
+            <label class="tn-chip"><input type="checkbox" value="product"><span>Product & Design</span></label>
+            <label class="tn-chip"><input type="checkbox" value="sales"><span>Sales & Business Dev</span></label>
+            <label class="tn-chip"><input type="checkbox" value="consulting"><span>Consulting</span></label>
+            <label class="tn-chip"><input type="checkbox" value="finance"><span>Finance</span></label>
+            <label class="tn-chip"><input type="checkbox" value="hr"><span>Human Resources</span></label>
+            <label class="tn-chip"><input type="checkbox" value="marketing"><span>Marketing</span></label>
+            <label class="tn-chip"><input type="checkbox" value="operations"><span>Operations</span></label>
+            <label class="tn-chip"><input type="checkbox" value="legal"><span>Legal & Compliance</span></label>
+            <label class="tn-chip"><input type="checkbox" value="healthcare"><span>Healthcare Tech</span></label>
+            <label class="tn-chip"><input type="checkbox" value="energy"><span>Energy & Sustainability</span></label>
+            <label class="tn-chip"><input type="checkbox" value="security"><span>Defence & Security</span></label>
+          </div>
+        </div>
+
+        <div class="tn-interest-group">
+          <label class="tn-interest-label">Job Roles</label>
+          <div class="tn-chip-grid" id="tnRoleChips">
+            <label class="tn-chip"><input type="checkbox" value="software-engineer"><span>Software Engineer</span></label>
+            <label class="tn-chip"><input type="checkbox" value="data-scientist"><span>Data Scientist / ML</span></label>
+            <label class="tn-chip"><input type="checkbox" value="product-manager"><span>Product Manager</span></label>
+            <label class="tn-chip"><input type="checkbox" value="designer"><span>Designer / UX</span></label>
+            <label class="tn-chip"><input type="checkbox" value="project-manager"><span>Project Manager</span></label>
+            <label class="tn-chip"><input type="checkbox" value="consultant"><span>Consultant</span></label>
+            <label class="tn-chip"><input type="checkbox" value="analyst"><span>Analyst</span></label>
+            <label class="tn-chip"><input type="checkbox" value="account-executive"><span>Account Executive</span></label>
+            <label class="tn-chip"><input type="checkbox" value="recruiter"><span>Recruiter / TA</span></label>
+            <label class="tn-chip"><input type="checkbox" value="devops"><span>DevOps / SRE</span></label>
+            <label class="tn-chip"><input type="checkbox" value="legal-counsel"><span>Legal Counsel</span></label>
+            <label class="tn-chip"><input type="checkbox" value="executive"><span>Executive / VP</span></label>
+            <label class="tn-chip"><input type="checkbox" value="intern"><span>Intern / Graduate</span></label>
+            <label class="tn-chip"><input type="checkbox" value="other-role"><span>Other</span></label>
+          </div>
+        </div>
+
+        <div class="tn-interest-group">
+          <label class="tn-interest-label">Preferred Locations</label>
+          <div class="tn-chip-grid" id="tnLocChips">
+            <label class="tn-chip"><input type="checkbox" value="london"><span>London, UK</span></label>
+            <label class="tn-chip"><input type="checkbox" value="new-york"><span>New York, US</span></label>
+            <label class="tn-chip"><input type="checkbox" value="singapore"><span>Singapore</span></label>
+            <label class="tn-chip"><input type="checkbox" value="frankfurt"><span>Frankfurt, DE</span></label>
+            <label class="tn-chip"><input type="checkbox" value="tokyo"><span>Tokyo, JP</span></label>
+            <label class="tn-chip"><input type="checkbox" value="dubai"><span>Dubai, UAE</span></label>
+            <label class="tn-chip"><input type="checkbox" value="sydney"><span>Sydney, AU</span></label>
+            <label class="tn-chip"><input type="checkbox" value="toronto"><span>Toronto, CA</span></label>
+            <label class="tn-chip"><input type="checkbox" value="bangalore"><span>Bangalore, IN</span></label>
+            <label class="tn-chip"><input type="checkbox" value="sao-paulo"><span>S&atilde;o Paulo, BR</span></label>
+            <label class="tn-chip"><input type="checkbox" value="remote"><span>Remote / Anywhere</span></label>
+          </div>
+        </div>
+
+        <!-- GDPR -->
+        <div class="form-section-label">Consent</div>
+        <div class="form-group" style="margin-bottom:0">
+          <label class="checkbox-label" style="font-size:.82rem;">
+            <input type="checkbox" id="tnGDPR">
+            I consent to Acquire Talent Partners storing my data to notify me of relevant opportunities. <a href="#" style="color:var(--accent)">Privacy Policy</a>
+          </label>
+          <span class="error-msg" id="tnGdprError" style="display:none">You must consent to join the talent network</span>
+        </div>
+      </div>
+
+      <!-- Success State -->
+      <div id="tnSuccess" style="display:none">
+        <div class="success-state">
+          <div class="success-icon">&#10003;</div>
+          <h2>You're In!</h2>
+          <p>Thanks for joining our talent network. We'll be in touch when a role matching your interests opens up.</p>
+          <div class="ref-code" id="tnRef"></div>
+          <p style="margin-top:16px;font-size:.85rem;">Save this reference for your records.</p>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer" id="tnFooter">
+      <button class="btn btn-blue" onclick="submitTalentNetwork()" style="width:100%">Join Talent Network</button>
     </div>
   </div>
 </div>
@@ -2371,6 +2529,7 @@ function handleFileUpload(input, nameId) {
 }
 
 // ── CV Upload with Resume Parsing ──
+// ZERO external dependencies — uses browser-native DecompressionStream API
 function handleCvUpload(input) {
   handleFileUpload(input, 'cvFileName');
   document.getElementById('cvError').style.display = 'none';
@@ -2380,278 +2539,356 @@ function handleCvUpload(input) {
 }
 
 async function parseResume(file) {
-  const parseStatus = document.getElementById('parseStatus');
-  const parseResult = document.getElementById('parseResult');
-  parseStatus.style.display = 'flex';
-  parseResult.style.display = 'none';
-  console.log('[CV Parse] Starting parse for:', file.name, file.type, file.size + ' bytes');
+  const statusEl = document.getElementById('parseStatus');
+  const resultEl = document.getElementById('parseResult');
+  statusEl.style.display = 'flex';
+  resultEl.style.display = 'none';
+  resultEl.className = 'parse-result';
 
   try {
     const text = await extractTextFromFile(file);
-    console.log('[CV Parse] Extracted text length:', text ? text.length : 0);
-    console.log('[CV Parse] First 500 chars:', text ? text.substring(0, 500) : '(empty)');
 
     if (!text || text.trim().length < 10) {
-      parseStatus.style.display = 'none';
-      parseResult.className = 'parse-result error';
-      parseResult.innerHTML = '&#9888; Could not extract text from this file. Please fill in the fields manually.';
-      parseResult.style.display = 'block';
+      statusEl.style.display = 'none';
+      resultEl.className = 'parse-result error';
+      resultEl.textContent = 'Could not extract text from this file. Please fill in the fields manually.';
+      resultEl.style.display = 'block';
       return;
     }
 
     const parsed = extractFieldsFromText(text);
-    console.log('[CV Parse] Extracted fields:', JSON.stringify(parsed));
     let filled = 0;
 
-    const fillField = (id, value) => {
-      if (value) {
-        const el = document.getElementById(id);
-        if (el && !el.value.trim()) { el.value = value; filled++; console.log('[CV Parse] Filled', id, '=', value); }
-      }
+    const fill = (id, val) => {
+      if (!val) return;
+      const el = document.getElementById(id);
+      if (el && !el.value.trim()) { el.value = val; filled++; }
     };
 
-    fillField('appFirstName', parsed.firstName);
-    fillField('appLastName', parsed.lastName);
-    fillField('appEmail', parsed.email);
-    fillField('appPhone', parsed.phone);
-    fillField('appLocation', parsed.location);
-    fillField('appLinkedIn', parsed.linkedin);
+    fill('appFirstName', parsed.firstName);
+    fill('appLastName', parsed.lastName);
+    fill('appEmail', parsed.email);
+    fill('appPhone', parsed.phone);
+    fill('appLocation', parsed.location);
+    fill('appLinkedIn', parsed.linkedin);
 
     if (parsed.phone) syncCommFields('appPhone');
     if (parsed.email) syncCommFields('appEmail');
 
-    parseStatus.style.display = 'none';
-    console.log('[CV Parse] Total fields filled:', filled);
+    statusEl.style.display = 'none';
 
     if (filled > 0) {
-      parseResult.className = 'parse-result';
-      parseResult.innerHTML = '&#10003; Filled ' + filled + ' field' + (filled > 1 ? 's' : '') + ' from your CV. Please review and complete any remaining fields below.';
-      parseResult.style.display = 'block';
+      resultEl.className = 'parse-result';
+      resultEl.textContent = '\u2705 Filled ' + filled + ' field' + (filled > 1 ? 's' : '') + ' from your CV. Please review and complete any remaining fields.';
     } else {
-      parseResult.className = 'parse-result';
-      parseResult.innerHTML = '&#128196; CV uploaded. We couldn\'t auto-detect fields — please fill in the form below.';
-      parseResult.style.display = 'block';
+      resultEl.className = 'parse-result';
+      resultEl.textContent = 'CV uploaded. Could not auto-detect fields \u2014 please fill in the form below.';
     }
+    resultEl.style.display = 'block';
+
   } catch (e) {
-    parseStatus.style.display = 'none';
-    parseResult.className = 'parse-result error';
-    parseResult.innerHTML = '&#9888; Error reading file: ' + e.message + '. Please fill in the fields manually.';
-    parseResult.style.display = 'block';
-    console.error('[CV Parse] Error:', e);
+    console.error('parseResume error:', e);
+    statusEl.style.display = 'none';
+    resultEl.className = 'parse-result error';
+    resultEl.textContent = 'Error parsing CV: ' + (e.message || e) + '. Please fill in the fields manually.';
+    resultEl.style.display = 'block';
   }
 }
 
-// ═══ TEXT EXTRACTION ═══
+// ═══════════ TEXT EXTRACTION (NO EXTERNAL LIBRARIES) ═══════════
+
 async function extractTextFromFile(file) {
   const name = file.name.toLowerCase();
-  const arrayBuffer = await file.arrayBuffer();
-  console.log('[Extract] File type:', file.type, 'Name:', name, 'Buffer size:', arrayBuffer.byteLength);
+  const buf = await file.arrayBuffer();
 
-  if (name.endsWith('.pdf') || file.type === 'application/pdf') {
-    return await extractTextFromPdf(arrayBuffer);
-  } else if (name.endsWith('.docx') || file.type.includes('openxmlformats')) {
-    return await extractTextFromDocx(arrayBuffer);
-  } else if (name.endsWith('.doc')) {
-    return extractTextFromDoc(arrayBuffer);
-  }
+  if (name.endsWith('.pdf'))  return await extractPdfText(buf);
+  if (name.endsWith('.docx')) return await extractDocxText(buf);
+  if (name.endsWith('.doc'))  return extractDocText(buf);
   return '';
 }
 
-// ── PDF: use pdf.js library ──
-async function extractTextFromPdf(buf) {
-  // Method 1: pdf.js (loaded via CDN)
-  console.log('[PDF] pdfjsLib available?', typeof window.pdfjsLib !== 'undefined');
-  if (typeof window.pdfjsLib !== 'undefined') {
-    try {
-      pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
-      const loadingTask = pdfjsLib.getDocument({ data: new Uint8Array(buf) });
-      const pdf = await loadingTask.promise;
-      console.log('[PDF] pdf.js loaded, pages:', pdf.numPages);
-      const parts = [];
-      for (let i = 1; i <= Math.min(pdf.numPages, 5); i++) {
-        const page = await pdf.getPage(i);
-        const tc = await page.getTextContent();
-        const pageText = tc.items.map(item => item.str).join(' ');
-        parts.push(pageText);
-        console.log('[PDF] Page', i, 'text length:', pageText.length);
-      }
-      const result = parts.join('\n');
-      if (result.trim().length > 10) return result;
-      console.log('[PDF] pdf.js returned empty, trying fallback');
-    } catch (e) {
-      console.warn('[PDF] pdf.js failed:', e.message);
-    }
+// ── Helper: Decompress deflate-raw data using browser-native DecompressionStream ──
+async function inflateRaw(compressedBytes) {
+  const ds = new DecompressionStream('deflate-raw');
+  const writer = ds.writable.getWriter();
+  writer.write(compressedBytes);
+  writer.close();
+  const reader = ds.readable.getReader();
+  const chunks = [];
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    chunks.push(value);
   }
+  let total = 0;
+  for (const c of chunks) total += c.length;
+  const result = new Uint8Array(total);
+  let off = 0;
+  for (const c of chunks) { result.set(c, off); off += c.length; }
+  return result;
+}
 
-  // Method 2: Manual binary extraction fallback
-  console.log('[PDF] Using binary fallback');
+// ── DOCX: Parse ZIP structure natively, extract word/document.xml ──
+async function extractDocxText(buf) {
   try {
     const bytes = new Uint8Array(buf);
-    const decoder = new TextDecoder('latin1');
-    const raw = decoder.decode(bytes);
-    const parts = [];
-
-    // Look for text in Tj operators
-    const re1 = /\(([^\\)]{1,500})\)\s*Tj/g;
-    let m;
-    while ((m = re1.exec(raw)) !== null) parts.push(m[1]);
-
-    // Look for text in TJ arrays
-    const re2 = /\[([^\]]{1,2000})\]\s*TJ/gi;
-    while ((m = re2.exec(raw)) !== null) {
-      const inner = m[1].match(/\(([^)]*)\)/g);
-      if (inner) inner.forEach(s => parts.push(s.slice(1, -1)));
+    const dv = new DataView(buf);
+    // Find End of Central Directory record (search backwards from end)
+    let eocdPos = -1;
+    for (let i = bytes.length - 22; i >= 0 && i >= bytes.length - 65557; i--) {
+      if (dv.getUint32(i, true) === 0x06054b50) { eocdPos = i; break; }
     }
+    if (eocdPos === -1) throw new Error('Not a valid ZIP/DOCX file');
 
-    console.log('[PDF] Binary fallback found', parts.length, 'text fragments');
-    if (parts.length > 0) return parts.join(' ');
+    const cdOffset = dv.getUint32(eocdPos + 16, true);
+    const cdEntries = dv.getUint16(eocdPos + 10, true);
 
-    // Method 3: just grab any readable text blocks
-    const readable = raw.match(/[\x20-\x7E]{15,}/g);
-    console.log('[PDF] Readable blocks found:', readable ? readable.length : 0);
-    if (readable) return readable.join(' ');
-  } catch(e) { console.warn('[PDF] Binary fallback error:', e); }
-  return '';
-}
+    // Walk central directory to find word/document.xml
+    let pos = cdOffset;
+    let targetOffset = -1;
+    let targetCompSize = 0;
+    let targetMethod = 0;
 
-// ── DOCX: use JSZip library ──
-async function extractTextFromDocx(buf) {
-  console.log('[DOCX] JSZip available?', typeof window.JSZip !== 'undefined');
-  if (typeof window.JSZip !== 'undefined') {
-    try {
-      const zip = await JSZip.loadAsync(buf);
-      const files = Object.keys(zip.files);
-      console.log('[DOCX] Zip contains:', files.length, 'files');
-      const docFile = zip.file('word/document.xml');
-      if (!docFile) { console.warn('[DOCX] No word/document.xml found'); return ''; }
-      const xml = await docFile.async('text');
-      console.log('[DOCX] document.xml length:', xml.length);
-      // Use regex to extract text from <w:t> tags (more reliable than DOMParser for namespaced XML)
-      const matches = xml.match(/<w:t[^>]*>([^<]*)<\/w:t>/gi);
-      if (matches) {
-        const texts = matches.map(m => { const inner = m.match(/>([^<]*)<\//); return inner ? inner[1] : ''; });
-        const result = texts.join(' ');
-        console.log('[DOCX] Extracted text length:', result.length);
-        return result;
-      }
-      console.warn('[DOCX] No w:t tags found in document.xml');
-    } catch (e) {
-      console.warn('[DOCX] JSZip extraction failed:', e.message);
-    }
-  }
+    for (let i = 0; i < cdEntries && pos < bytes.length - 46; i++) {
+      if (dv.getUint32(pos, true) !== 0x02014b50) break;
+      const method = dv.getUint16(pos + 10, true);
+      const compSize = dv.getUint32(pos + 20, true);
+      const fnLen = dv.getUint16(pos + 28, true);
+      const extraLen = dv.getUint16(pos + 30, true);
+      const commentLen = dv.getUint16(pos + 32, true);
+      const localOffset = dv.getUint32(pos + 42, true);
+      const fnBytes = bytes.slice(pos + 46, pos + 46 + fnLen);
+      const fileName = new TextDecoder().decode(fnBytes);
 
-  // Fallback: raw binary scan for w:t tags (DOCX is a ZIP so this rarely works, but try)
-  console.log('[DOCX] Using raw fallback');
-  try {
-    const decoder = new TextDecoder('utf-8', { fatal: false });
-    const raw = decoder.decode(new Uint8Array(buf));
-    const matches = raw.match(/<w:t[^>]*>([^<]*)<\/w:t>/gi);
-    if (matches) {
-      return matches.map(m => { const inner = m.match(/>([^<]*)<\//); return inner ? inner[1] : ''; }).join(' ');
-    }
-  } catch (e) {}
-  return '';
-}
-
-// ── Legacy .doc format: best-effort text extraction ──
-function extractTextFromDoc(buf) {
-  console.log('[DOC] Attempting legacy .doc extraction');
-  try {
-    const decoder = new TextDecoder('latin1');
-    const raw = decoder.decode(new Uint8Array(buf));
-    // .doc files have readable ASCII text interspersed with binary
-    const readable = raw.match(/[\x20-\x7E]{15,}/g);
-    if (readable) return readable.join(' ');
-  } catch (e) {}
-  return '';
-}
-
-// ═══ FIELD EXTRACTION FROM TEXT ═══
-function extractFieldsFromText(text) {
-  const result = { firstName: '', lastName: '', email: '', phone: '', location: '', linkedin: '' };
-
-  // Email — most reliable pattern
-  const emailMatch = text.match(/[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}/);
-  if (emailMatch) result.email = emailMatch[0].toLowerCase();
-
-  // Phone — international formats (try several patterns)
-  const phonePatterns = [
-    /\+\d{1,3}[\s\-.]?\(?\d{1,4}\)?[\s\-.]?\d{2,4}[\s\-.]?\d{2,4}[\s\-.]?\d{0,4}/,
-    /\+\d[\d\s\-().]{7,16}/,
-    /(?:07\d{3}|\(0\d{3,4}\))\s?\d{3}\s?\d{3,4}/,
-    /0\d{2,4}[\s\-]?\d{3,4}[\s\-]?\d{3,4}/,
-    /\(?\d{3}\)?[\s\-.]?\d{3}[\s\-.]?\d{4}/
-  ];
-  for (const pattern of phonePatterns) {
-    const m = text.match(pattern);
-    if (m) {
-      const digits = m[0].replace(/\D/g, '');
-      if (digits.length >= 7 && digits.length <= 15) {
-        result.phone = m[0].trim();
+      if (fileName === 'word/document.xml') {
+        targetOffset = localOffset;
+        targetCompSize = compSize;
+        targetMethod = method;
         break;
       }
+      pos += 46 + fnLen + extraLen + commentLen;
     }
-  }
 
-  // LinkedIn URL
-  const linkedinMatch = text.match(/(?:https?:\/\/)?(?:www\.)?linkedin\.com\/in\/[a-zA-Z0-9\-_%]+/i);
-  if (linkedinMatch) {
-    let url = linkedinMatch[0];
-    if (!url.startsWith('http')) url = 'https://' + url;
-    result.linkedin = url;
-  }
+    if (targetOffset === -1) throw new Error('word/document.xml not found in DOCX');
 
-  // Location — look for city + country patterns
-  const locationPatterns = [
-    /(?:location|address|based in|located in)\s*:?\s*([A-Z][a-zA-Z\s]+,\s*[A-Za-z\s]+)/i,
-    /([A-Z][a-z]+(?:\s[A-Z][a-z]+)?\s*,\s*(?:UK|US|USA|United Kingdom|United States|Canada|Australia|Germany|France|India|Singapore|UAE|Dubai|Ireland|Netherlands|Spain|Italy|Japan|Hong Kong|China|Brazil|Sweden|Norway|Denmark|Belgium|Switzerland|Austria|Poland|Portugal|Czech Republic|New Zealand|South Africa|Mexico|Argentina|Colombia|Chile|Thailand|Vietnam|Malaysia|Philippines|Indonesia|South Korea|Taiwan|Scotland|Wales|England|Northern Ireland))/i,
-    /([A-Z][a-z]+,\s*[A-Z]{2}\s*\d{4,5})/
-  ];
-  for (const pattern of locationPatterns) {
-    const m = text.match(pattern);
-    if (m) {
-      result.location = (m[1] || m[0]).trim();
+    // Read local file header to find actual data start
+    const localFnLen = dv.getUint16(targetOffset + 26, true);
+    const localExtraLen = dv.getUint16(targetOffset + 28, true);
+    const dataStart = targetOffset + 30 + localFnLen + localExtraLen;
+    const compData = bytes.slice(dataStart, dataStart + targetCompSize);
+
+    let xmlBytes;
+    if (targetMethod === 0) {
+      xmlBytes = compData;
+    } else if (targetMethod === 8) {
+      // Deflate — use browser-native decompression
+      xmlBytes = await inflateRaw(compData);
+    } else {
+      throw new Error('Unsupported compression: ' + targetMethod);
+    }
+
+    const xml = new TextDecoder('utf-8').decode(xmlBytes);
+
+    // Parse paragraphs: each <w:p> becomes a line, <w:t> tags within are concatenated
+    const lines = [];
+    const paraRegex = /<w:p[\s>][^]*?<\/w:p>/gi;
+    let pm;
+    while ((pm = paraRegex.exec(xml))) {
+      const paraXml = pm[0];
+      const words = [];
+      const wt = /<w:t[^>]*?>([^<]*)<\/w:t>/gi;
+      let wm;
+      while ((wm = wt.exec(paraXml))) {
+        if (wm[1]) words.push(wm[1]);
+      }
+      if (words.length) lines.push(words.join(''));
+    }
+
+    if (lines.length > 0) return lines.join('\n');
+
+    // Fallback: just grab all <w:t> tags
+    const textParts = [];
+    const tagRegex = /<w:t[^>]*?>([^<]*)<\/w:t>/gi;
+    let match;
+    while ((match = tagRegex.exec(xml))) {
+      textParts.push(match[1]);
+    }
+    if (textParts.length > 0) return textParts.join(' ');
+
+    throw new Error('No text found in document.xml');
+
+  } catch (e) {
+    console.warn('DOCX native parse failed:', e.message);
+    return '';
+  }
+}
+
+// ── PDF: Extract text using native DecompressionStream for FlateDecode streams ──
+async function extractPdfText(buf) {
+  try {
+    const bytes = new Uint8Array(buf);
+    const raw = new TextDecoder('latin1').decode(bytes);
+    const textParts = [];
+
+    // Find all stream...endstream blocks and decompress FlateDecode ones
+    const streamPositions = [];
+    let searchFrom = 0;
+    while (true) {
+      const idx = raw.indexOf('stream\n', searchFrom);
+      const idx2 = raw.indexOf('stream\r\n', searchFrom);
+      let sIdx = -1;
+      let dataOffset = 0;
+      if (idx >= 0 && (idx2 < 0 || idx <= idx2)) { sIdx = idx; dataOffset = idx + 7; }
+      else if (idx2 >= 0) { sIdx = idx2; dataOffset = idx2 + 8; }
+      if (sIdx < 0) break;
+
+      const endIdx = raw.indexOf('endstream', dataOffset);
+      if (endIdx < 0) break;
+
+      streamPositions.push({ dictStart: Math.max(0, sIdx - 2000), sIdx, dataOffset, endIdx });
+      searchFrom = endIdx + 9;
+    }
+
+    for (const sp of streamPositions) {
+      const dictText = raw.substring(sp.dictStart, sp.sIdx);
+      // Skip image/font/metadata streams
+      if (/\/Subtype\s*\/Image/i.test(dictText)) continue;
+      if (/\/Type\s*\/(?:Font|XObject|Metadata)/i.test(dictText)) continue;
+
+      const isFlate = /\/FlateDecode/i.test(dictText);
+      let streamText = '';
+
+      if (isFlate) {
+        const compData = bytes.slice(sp.dataOffset, sp.endIdx);
+        try {
+          const decompressed = await inflateRaw(compData);
+          streamText = new TextDecoder('latin1').decode(decompressed);
+        } catch (e) {
+          // Trim and retry (streams sometimes have trailing whitespace)
+          try {
+            let trimEnd = compData.length;
+            while (trimEnd > 0 && (compData[trimEnd-1] === 0x0A || compData[trimEnd-1] === 0x0D || compData[trimEnd-1] === 0x20)) trimEnd--;
+            const trimmed = compData.slice(0, trimEnd);
+            const decompressed = await inflateRaw(trimmed);
+            streamText = new TextDecoder('latin1').decode(decompressed);
+          } catch(e2) { continue; }
+        }
+      } else {
+        streamText = raw.substring(sp.dataOffset, sp.endIdx);
+      }
+
+      if (!streamText) continue;
+
+      // Extract text from PDF text operators
+      const tjParts = [];
+      let tm;
+
+      // (text) Tj operator
+      const tj1 = /\(([^)]{1,500})\)\s*Tj/g;
+      while ((tm = tj1.exec(streamText))) tjParts.push(tm[1]);
+
+      // [(text)] TJ operator
+      const tj2 = /\[([^\]]{1,3000})\]\s*TJ/gi;
+      while ((tm = tj2.exec(streamText))) {
+        const inner = tm[1].match(/\(([^)]*)\)/g);
+        if (inner) inner.forEach(s => { const t = s.slice(1, -1); if (t.trim()) tjParts.push(t); });
+      }
+
+      if (tjParts.length) textParts.push(tjParts.join(' '));
+    }
+
+    if (textParts.length) {
+      let text = textParts.join('\n');
+      // Unescape PDF string escapes
+      text = text.replace(/\\n/g, '\n').replace(/\\r/g, '').replace(/\\t/g, ' ');
+      text = text.replace(/\\\(/g, '(').replace(/\\\)/g, ')');
+      if (text.trim().length > 10) return text;
+    }
+
+    // Fallback: direct Tj/TJ from raw (uncompressed PDFs)
+    const directParts = [];
+    let dm;
+    const dr1 = /\(([^)]{2,300})\)\s*Tj/g;
+    while ((dm = dr1.exec(raw))) directParts.push(dm[1]);
+    const dr2 = /\[([^\]]{1,2000})\]\s*TJ/gi;
+    while ((dm = dr2.exec(raw))) {
+      const inner = dm[1].match(/\(([^)]*)\)/g);
+      if (inner) inner.forEach(s => { const t = s.slice(1,-1); if (t.trim()) directParts.push(t); });
+    }
+    if (directParts.length) {
+      let text = directParts.join(' ');
+      if (text.trim().length > 10) return text;
+    }
+
+    // Last resort: readable ASCII runs
+    const runs = raw.match(/[\x20-\x7E]{15,}/g);
+    if (runs) {
+      const filtered = runs.filter(r => !/^[\/\[\]<>{}()%#]+$/.test(r) && !/^\d+\s+\d+\s+obj/.test(r));
+      if (filtered.length > 2) return filtered.join(' ');
+    }
+
+  } catch (e) {
+    console.warn('PDF parse error:', e.message);
+  }
+  return '';
+}
+
+// ── Legacy .doc ──
+function extractDocText(buf) {
+  try {
+    const raw = new TextDecoder('latin1').decode(new Uint8Array(buf));
+    const runs = raw.match(/[\x20-\x7E]{12,}/g);
+    if (runs) return runs.join(' ');
+  } catch(e) {}
+  return '';
+}
+
+// ═══════════ FIELD EXTRACTION ═══════════
+
+function extractFieldsFromText(text) {
+  const r = { firstName:'', lastName:'', email:'', phone:'', location:'', linkedin:'' };
+
+  const em = text.match(/[A-Za-z0-9._%+\-]+@[A-Za-z0-9.\-]+\.[A-Za-z]{2,}/);
+  if (em) r.email = em[0].toLowerCase();
+
+  const ph = text.match(/(?:\+\d{1,3}[\s\-.]?)?\(?\d{2,5}\)?[\s\-.]?\d{2,4}[\s\-.]?\d{2,4}[\s\-.]?\d{0,4}/) ||
+             text.match(/\+\d[\d\s\-().]{7,16}/) ||
+             text.match(/0\d{2,4}[\s\-]?\d{3,4}[\s\-]?\d{3,4}/) ||
+             text.match(/\d{3}[\s\-.]?\d{3}[\s\-.]?\d{4}/);
+  if (ph) { const d = ph[0].replace(/\D/g,''); if (d.length >= 7 && d.length <= 15) r.phone = ph[0].trim(); }
+
+  const li = text.match(/(?:https?:\/\/)?(?:www\.)?linkedin\.com\/in\/[A-Za-z0-9\-_%]+/i);
+  if (li) r.linkedin = li[0].startsWith('http') ? li[0] : 'https://' + li[0];
+
+  const loc = text.match(/(?:location|address|based in|located in)\s*:?\s*([A-Z][a-zA-Z\s]+,\s*[A-Za-z\s]+)/i) ||
+              text.match(/([A-Z][a-z]+(?:\s[A-Z][a-z]+)?\s*,\s*(?:UK|US|USA|United Kingdom|United States|Canada|Australia|Germany|France|India|Singapore|UAE|Dubai|Ireland|Netherlands|Spain|Italy|Japan|Hong Kong|China|Brazil|Sweden|Norway|Denmark|Belgium|Switzerland|Austria|Poland|Portugal|New Zealand|South Africa|Scotland|Wales|England))/i) ||
+              text.match(/([A-Z][a-z]+,\s*[A-Z]{2}\s*\d{4,5})/);
+  if (loc) r.location = (loc[1] || loc[0]).trim();
+
+  const lines = text.split(/[\n\r]+/).map(l => l.trim()).filter(l => l.length > 1 && l.length < 80);
+  for (const line of lines.slice(0, 15)) {
+    if (/@|http|www\.|phone|tel:|email:|address:|objective|summary|experience|education|skills|curriculum|resume|\bcv\b/i.test(line)) continue;
+    if (/^\d/.test(line)) continue;
+    const clean = line.replace(/^(name|full name|candidate)\s*:?\s*/i, '').trim();
+    const words = clean.split(/\s+/);
+    const nameWords = words.filter(w => /^[A-Z][a-zA-Z'\-]{1,}$/.test(w));
+    if (nameWords.length >= 2 && nameWords.length <= 4) {
+      r.firstName = nameWords[0];
+      r.lastName = nameWords.slice(1).join(' ');
       break;
     }
   }
-
-  // Name — try first few lines of text for a name-like pattern
-  const lines = text.split(/[\n\r]+/).map(l => l.trim()).filter(l => l.length > 1 && l.length < 80);
-  for (const line of lines.slice(0, 12)) {
-    // Skip lines that are clearly not names
-    if (/@|http|www\.|linkedin|phone|tel:|email:|address:|profile|objective|summary|experience|education|skills|curriculum|resume|cv\b/i.test(line)) continue;
-    if (/^\d/.test(line)) continue;
-    if (/^(jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec|january|february)/i.test(line)) continue;
-
-    // Clean the line — remove common prefixes
-    let clean = line.replace(/^(name|full name|candidate)\s*:?\s*/i, '').trim();
-    const words = clean.split(/\s+/).filter(w => w.length > 0);
-
-    if (words.length >= 2 && words.length <= 5) {
-      // Check if words look like name parts (start with uppercase, mainly letters)
-      const nameWords = words.filter(w => /^[A-Z][a-zA-Z'\-]+$/.test(w));
-      if (nameWords.length >= 2) {
-        result.firstName = nameWords[0];
-        result.lastName = nameWords.slice(1).join(' ');
-        console.log('[Fields] Name detected from line:', line, '->', result.firstName, result.lastName);
-        break;
-      }
-    }
-  }
-
-  // If name not found, try to derive from email
-  if (!result.firstName && result.email) {
-    const prefix = result.email.split('@')[0];
-    const parts = prefix.split(/[._\-]+/).filter(p => p.length > 1 && /^[a-zA-Z]+$/.test(p));
+  if (!r.firstName && r.email) {
+    const parts = r.email.split('@')[0].split(/[._\-]+/).filter(p => p.length > 1 && /^[a-z]+$/i.test(p));
     if (parts.length >= 2) {
-      result.firstName = parts[0].charAt(0).toUpperCase() + parts[0].slice(1).toLowerCase();
-      result.lastName = parts[1].charAt(0).toUpperCase() + parts[1].slice(1).toLowerCase();
+      r.firstName = parts[0][0].toUpperCase() + parts[0].slice(1);
+      r.lastName  = parts[1][0].toUpperCase() + parts[1].slice(1);
     }
   }
 
-  console.log('[Fields] Final result:', JSON.stringify(result));
-  return result;
+  return r;
 }
+
 
 // ── Submit to ATS (localStorage) ──
 // Read a file input as base64 data URL
@@ -2697,6 +2934,162 @@ async function submitApplication() {
     });
     localStorage.setItem('atp_applications', JSON.stringify(apps));
   } catch(e) { console.log('Storage not available:', e); }
+}
+
+// ═══════════ TALENT NETWORK ═══════════
+
+function openTalentNetwork() {
+  // Reset form
+  document.querySelectorAll('#talentNetworkModal input').forEach(el => {
+    if (el.type === 'checkbox') el.checked = false;
+    else if (el.type === 'file') el.value = '';
+    else el.value = '';
+  });
+  document.querySelectorAll('#talentNetworkModal .form-group').forEach(g => g.classList.remove('has-error'));
+  document.querySelectorAll('#talentNetworkModal .file-name').forEach(f => { f.style.display = 'none'; f.textContent = ''; });
+  document.getElementById('tnGdprError').style.display = 'none';
+  document.getElementById('tnParseStatus').style.display = 'none';
+  document.getElementById('tnParseResult').style.display = 'none';
+  // Reset chip visuals
+  document.querySelectorAll('.tn-chip').forEach(c => c.classList.remove('selected'));
+  document.getElementById('tnFormFields').style.display = 'block';
+  document.getElementById('tnSuccess').style.display = 'none';
+  document.getElementById('tnFooter').style.display = 'flex';
+  openModal('talentNetworkModal');
+}
+
+function handleTnUpload(input) {
+  handleFileUpload(input, 'tnFileName');
+  if (input.files.length) {
+    parseTnResume(input.files[0]);
+  }
+}
+
+async function parseTnResume(file) {
+  const statusEl = document.getElementById('tnParseStatus');
+  const resultEl = document.getElementById('tnParseResult');
+  statusEl.style.display = 'flex';
+  resultEl.style.display = 'none';
+
+  try {
+    const text = await extractTextFromFile(file);
+
+    if (!text || text.trim().length < 10) {
+      statusEl.style.display = 'none';
+      resultEl.className = 'parse-result error';
+      resultEl.textContent = 'Could not extract text. Please fill in your details manually.';
+      resultEl.style.display = 'block';
+      return;
+    }
+
+    const parsed = extractFieldsFromText(text);
+    let filled = 0;
+
+    // Fill name (combined for talent network)
+    const fullName = [parsed.firstName, parsed.lastName].filter(Boolean).join(' ');
+    if (fullName) {
+      const el = document.getElementById('tnName');
+      if (el && !el.value.trim()) { el.value = fullName; filled++; }
+    }
+    if (parsed.email) {
+      const el = document.getElementById('tnEmail');
+      if (el && !el.value.trim()) { el.value = parsed.email; filled++; }
+    }
+    if (parsed.linkedin) {
+      const el = document.getElementById('tnProfileUrl');
+      if (el && !el.value.trim()) { el.value = parsed.linkedin; filled++; }
+    }
+
+    statusEl.style.display = 'none';
+
+    if (filled > 0) {
+      resultEl.className = 'parse-result';
+      resultEl.textContent = '\u2705 Filled ' + filled + ' field' + (filled > 1 ? 's' : '') + ' from your CV.';
+    } else {
+      resultEl.className = 'parse-result';
+      resultEl.textContent = 'CV uploaded. Please fill in your details below.';
+    }
+    resultEl.style.display = 'block';
+
+  } catch (e) {
+    statusEl.style.display = 'none';
+    resultEl.className = 'parse-result error';
+    resultEl.textContent = 'Error: ' + (e.message || e);
+    resultEl.style.display = 'block';
+  }
+}
+
+function getCheckedValues(containerId) {
+  const chips = document.querySelectorAll('#' + containerId + ' input:checked');
+  return Array.from(chips).map(c => c.value);
+}
+
+function validateTalentNetwork() {
+  let valid = true;
+  let firstError = null;
+
+  // Name
+  const nameEl = document.getElementById('tnName');
+  if (!nameEl.value.trim()) {
+    nameEl.closest('.form-group').classList.add('has-error');
+    valid = false;
+    if (!firstError) firstError = nameEl;
+  }
+
+  // Email
+  const emailEl = document.getElementById('tnEmail');
+  if (!emailEl.value.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailEl.value)) {
+    emailEl.closest('.form-group').classList.add('has-error');
+    valid = false;
+    if (!firstError) firstError = emailEl;
+  }
+
+  // GDPR
+  if (!document.getElementById('tnGDPR').checked) {
+    document.getElementById('tnGdprError').style.display = 'block';
+    valid = false;
+    if (!firstError) firstError = document.getElementById('tnGdprError');
+  }
+
+  if (firstError) firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  return valid;
+}
+
+async function submitTalentNetwork() {
+  // Clear previous errors
+  document.querySelectorAll('#talentNetworkModal .form-group').forEach(g => g.classList.remove('has-error'));
+  document.getElementById('tnGdprError').style.display = 'none';
+
+  if (!validateTalentNetwork()) return;
+
+  // Read resume file if uploaded
+  const tnFileData = await readFileAsDataURL(document.getElementById('tnFile'));
+
+  // Gather data
+  const entry = {
+    name: document.getElementById('tnName').value.trim(),
+    email: document.getElementById('tnEmail').value.trim(),
+    profileUrl: document.getElementById('tnProfileUrl').value.trim(),
+    departments: getCheckedValues('tnDeptChips'),
+    roles: getCheckedValues('tnRoleChips'),
+    locations: getCheckedValues('tnLocChips'),
+    resumeFile: tnFileData,
+    joinedDate: new Date().toISOString()
+  };
+
+  // Save to localStorage
+  try {
+    const network = JSON.parse(localStorage.getItem('atp_talent_network') || '[]');
+    network.push(entry);
+    localStorage.setItem('atp_talent_network', JSON.stringify(network));
+  } catch(e) { console.log('Storage:', e); }
+
+  // Show success
+  document.getElementById('tnFormFields').style.display = 'none';
+  document.getElementById('tnSuccess').style.display = 'block';
+  document.getElementById('tnFooter').style.display = 'none';
+  document.getElementById('tnRef').textContent = 'TN-' + Date.now().toString(36).toUpperCase();
+  document.querySelector('#talentNetworkModal .modal').scrollTop = 0;
 }
 
 // ═══════════ CHATBOT ═══════════
