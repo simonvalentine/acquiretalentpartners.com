@@ -266,6 +266,52 @@ tr { cursor:pointer; transition:background .1s; }
 .d-field a { color:var(--accent); text-decoration:none; font-size:.88rem; }
 .d-field a:hover { text-decoration:underline; }
 
+/* AI Review */
+.ai-review-btn {
+  padding:8px 16px; border-radius:8px; font-size:.82rem; font-weight:600; cursor:pointer;
+  border:1.5px solid #8b5cf6; background:linear-gradient(135deg,#8b5cf6,#6366f1);
+  color:#fff; display:inline-flex; align-items:center; gap:6px; transition: all .2s;
+}
+.ai-review-btn:hover { filter:brightness(1.1); transform:translateY(-1px); box-shadow:0 4px 12px rgba(139,92,246,.3); }
+.ai-review-btn:disabled { opacity:.6; cursor:not-allowed; transform:none; filter:none; }
+.ai-review-btn .ai-icon { font-size:1rem; }
+.ai-review-panel {
+  background: linear-gradient(135deg, #f5f3ff 0%, #ede9fe 100%);
+  border: 1.5px solid #c4b5fd; border-radius:10px; padding:20px; margin-bottom:20px;
+}
+.ai-review-panel .ai-panel-title {
+  font-size:.82rem; font-weight:700; color:#6d28d9; text-transform:uppercase;
+  letter-spacing:1px; margin-bottom:12px; display:flex; align-items:center; gap:8px;
+}
+.ai-review-panel .ai-overall {
+  font-size:1.1rem; font-weight:700; color:#1e293b; margin-bottom:16px;
+  display:flex; align-items:center; gap:10px;
+}
+.ai-review-panel .ai-overall .ai-label {
+  display:inline-block; padding:3px 10px; border-radius:20px; font-size:.78rem; font-weight:600;
+}
+.ai-label.strong { background:#dcfce7; color:#166534; }
+.ai-label.good { background:#dbeafe; color:#1e40af; }
+.ai-label.partial { background:#fef3c7; color:#92400e; }
+.ai-label.weak { background:#fee2e2; color:#991b1b; }
+.ai-breakdown { display:grid; grid-template-columns:1fr 1fr; gap:8px 16px; margin-bottom:16px; }
+.ai-breakdown-item { font-size:.82rem; display:flex; align-items:center; gap:6px; }
+.ai-breakdown-item .ai-dim { color:var(--text-light); min-width:100px; }
+.ai-breakdown-item .ai-stars { color:#f59e0b; letter-spacing:1px; }
+.ai-breakdown-item .ai-desc { color:var(--text); font-size:.78rem; }
+.ai-observations { margin-bottom:16px; }
+.ai-observations p { font-size:.82rem; color:var(--text); line-height:1.6; margin-bottom:4px; }
+.ai-recommendation {
+  background:#fff; border-radius:8px; padding:12px 16px;
+  border-left:3px solid #8b5cf6; font-size:.85rem; color:var(--text); line-height:1.6;
+}
+.ai-pending {
+  text-align:center; padding:24px; color:#6d28d9; font-size:.88rem;
+}
+.ai-pending .spinner { display:inline-block; width:20px; height:20px; border:2.5px solid #c4b5fd;
+  border-top-color:#6d28d9; border-radius:50%; animation:spin .8s linear infinite; margin-right:8px; vertical-align:middle;
+}
+
 /* Status dropdown */
 .status-select {
   padding:8px 12px; border:1px solid var(--border); border-radius:8px;
@@ -1168,6 +1214,22 @@ function openDrawer(id) {
     </div>
   </div>`;
 
+  // AI Review
+  const aiNote = c.notes.find(n => n.author === 'AI Review Agent');
+  body += `<div class="d-section">
+    <div class="d-section-title" style="display:flex;align-items:center;justify-content:space-between;">
+      AI Review
+      ${!aiNote ? `<button class="ai-review-btn" id="aiReviewBtn" onclick="requestAIReview('${c.id}')"><span class="ai-icon">&#9733;</span> Request AI Review</button>` : ''}
+    </div>
+    <div id="aiReviewPanel">
+      ${aiNote ? renderAIReview(aiNote.text) : `
+        <div style="text-align:center;padding:20px;color:var(--text-xs);font-size:.85rem;">
+          No AI review yet. Click the button above to request an automated assessment against the job description.
+        </div>
+      `}
+    </div>
+  </div>`;
+
   // Notes
   body += `<div class="d-section">
     <div class="d-section-title">Notes</div>
@@ -1246,6 +1308,161 @@ function addNote(id) {
   c.notes.push({ text: input.value.trim(), author: 'Simon Valentine', date: new Date() });
   c.timeline.push({ action: 'Note added', date: new Date() });
   openDrawer(id);
+}
+
+// ═══════════ AI REVIEW ═══════════
+const AI_SERVER_URL = 'https://acquiretalentpartners-com.onrender.com';
+
+function renderAIReview(text) {
+  // Parse the AI review note text into a styled panel
+  // The text is stored as structured plain text from the scorecard email
+  const lines = text.split('\n').filter(l => l.trim());
+
+  // Try to extract the overall rating
+  let overall = '';
+  let overallClass = '';
+  const overallLine = lines.find(l => l.includes('OVERALL:'));
+  if (overallLine) {
+    overall = overallLine.replace('OVERALL:', '').trim();
+    if (overall.includes('Strong')) overallClass = 'strong';
+    else if (overall.includes('Good')) overallClass = 'good';
+    else if (overall.includes('Partial')) overallClass = 'partial';
+    else overallClass = 'weak';
+  }
+
+  // Extract breakdown items
+  const dimensions = ['Skills Match', 'Experience Level', 'Location Fit', 'Salary Alignment', 'Right to Work', 'Motivation'];
+  const breakdownItems = [];
+  dimensions.forEach(dim => {
+    const line = lines.find(l => l.trim().startsWith(dim + ':'));
+    if (line) {
+      const parts = line.split(':').slice(1).join(':').trim();
+      const starsMatch = parts.match(/[★☆]+/);
+      const stars = starsMatch ? starsMatch[0] : '';
+      const desc = parts.replace(/[★☆]+/, '').trim().replace(/^[\s—–-]+/, '').trim();
+      breakdownItems.push({ dim, stars, desc });
+    }
+  });
+
+  // Extract observations
+  const obsStart = lines.findIndex(l => l.includes('KEY OBSERVATIONS'));
+  const obsEnd = lines.findIndex((l, i) => i > obsStart && l.includes('RECOMMENDATION'));
+  const observations = obsStart >= 0 ? lines.slice(obsStart + 1, obsEnd >= 0 ? obsEnd : obsStart + 5)
+    .filter(l => l.trim().startsWith('•') || l.trim().startsWith('-'))
+    .map(l => l.trim().replace(/^[•\-]\s*/, '')) : [];
+
+  // Extract recommendation
+  const recStart = lines.findIndex(l => l.includes('RECOMMENDATION'));
+  const recommendation = recStart >= 0 ? lines.slice(recStart + 1)
+    .filter(l => l.trim() && !l.includes('───') && !l.includes('Assessed against'))
+    .map(l => l.trim()).join(' ') : '';
+
+  let html = '<div class="ai-review-panel">';
+  html += '<div class="ai-panel-title"><span style="font-size:1.1rem">&#9733;</span> AI Assessment</div>';
+
+  if (overall) {
+    html += `<div class="ai-overall">${overall.replace(/Strong Match|Good Match|Partial Match|Weak Match/,
+      m => `<span class="ai-label ${overallClass}">${m}</span>`)}</div>`;
+  }
+
+  if (breakdownItems.length) {
+    html += '<div class="ai-breakdown">';
+    breakdownItems.forEach(b => {
+      html += `<div class="ai-breakdown-item">
+        <span class="ai-dim">${b.dim}</span>
+        <span class="ai-stars">${b.stars}</span>
+        <span class="ai-desc">${b.desc}</span>
+      </div>`;
+    });
+    html += '</div>';
+  }
+
+  if (observations.length) {
+    html += '<div class="ai-observations">';
+    observations.forEach(o => { html += `<p>• ${o}</p>`; });
+    html += '</div>';
+  }
+
+  if (recommendation) {
+    html += `<div class="ai-recommendation"><strong>Recommendation:</strong> ${recommendation}</div>`;
+  }
+
+  // If we couldn't parse structured data, just show the raw text
+  if (!overall && !breakdownItems.length) {
+    html += `<pre style="white-space:pre-wrap;font-size:.82rem;line-height:1.6;font-family:inherit;">${text}</pre>`;
+  }
+
+  html += '</div>';
+  return html;
+}
+
+async function requestAIReview(id) {
+  const c = candidates.find(x => x.id === id);
+  if (!c) return;
+
+  const btn = document.getElementById('aiReviewBtn');
+  if (btn) {
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner"></span> Requesting...';
+  }
+
+  const panel = document.getElementById('aiReviewPanel');
+  if (panel) {
+    panel.innerHTML = `<div class="ai-pending"><span class="spinner"></span> Sending candidate data for AI assessment. You'll receive a scorecard email shortly.</div>`;
+  }
+
+  // Send candidate data to the application webhook
+  const payload = {
+    firstName: c.firstName,
+    lastName: c.lastName,
+    email: c.email,
+    phone: c.phone || '',
+    location: c.location || '',
+    linkedin: c.linkedin || '',
+    salary: c.salary || '',
+    notice: c.notice || '',
+    experience: c.experience || '',
+    visa: c.visa || '',
+    motivation: c.motivation || '',
+    jobTitle: c.job,
+    department: c.department || '',
+    jobTags: '',
+    jobSalary: '',
+    jobLocation: c.location || '',
+    cvFileName: c.cvFile ? c.cvFile.name : '',
+    source: 'ATS Review'
+  };
+
+  try {
+    const resp = await fetch(AI_SERVER_URL + '/api/application', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+    const data = await resp.json();
+
+    if (data.success) {
+      // Add a timeline entry
+      c.timeline.push({ action: 'AI review requested', date: new Date() });
+
+      if (panel) {
+        panel.innerHTML = `<div class="ai-pending" style="color:#10b981;">
+          &#10003; Review request sent. The AI agent will assess this candidate and email you a scorecard within 30 minutes.
+          <br><br><span style="font-size:.78rem;color:var(--text-xs)">To see the scorecard here, paste it as a note with author "AI Review Agent".</span>
+        </div>`;
+      }
+    } else {
+      throw new Error(data.error || 'Server error');
+    }
+  } catch (err) {
+    console.error('AI Review request failed:', err);
+    if (panel) {
+      panel.innerHTML = `<div class="ai-pending" style="color:#ef4444;">
+        Failed to send review request: ${err.message}<br>
+        <button class="ai-review-btn" style="margin-top:12px;" onclick="requestAIReview('${id}')"><span class="ai-icon">&#9733;</span> Retry</button>
+      </div>`;
+    }
+  }
 }
 
 function bindEvents() {}

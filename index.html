@@ -2933,6 +2933,38 @@ async function submitApplication() {
       notes: []
     });
     localStorage.setItem('atp_applications', JSON.stringify(apps));
+
+    // ── Send to webhook for automated review ──
+    // Fire-and-forget POST to the email server so the review agent
+    // receives a notification email with all candidate details
+    const SERVER_URL = 'https://acquiretalentpartners-com.onrender.com';
+    const cvFileInput = document.getElementById('cvFile');
+    const webhookPayload = {
+      firstName: document.getElementById('appFirstName').value.trim(),
+      lastName: document.getElementById('appLastName').value.trim(),
+      email: document.getElementById('appEmail').value.trim(),
+      phone: document.getElementById('appPhone').value.trim(),
+      location: document.getElementById('appLocation').value.trim(),
+      linkedin: document.getElementById('appLinkedIn').value.trim(),
+      salary: document.getElementById('appSalary').value.trim(),
+      notice: document.getElementById('appNotice').value,
+      experience: document.getElementById('appExperience').value,
+      visa: document.getElementById('appVisa').value,
+      motivation: document.getElementById('appMotivation').value.trim(),
+      source: document.getElementById('appSource').value || 'Careers Site',
+      jobTitle: currentJob ? currentJob.title : 'General Application',
+      department: currentJob ? currentJob.dept : 'general',
+      jobTags: currentJob ? currentJob.tags.join(', ') : '',
+      jobSalary: currentJob ? currentJob.salary : '',
+      jobLocation: currentJob ? currentJob.locLabel : '',
+      cvFileName: cvFileInput.files.length ? cvFileInput.files[0].name : ''
+    };
+    fetch(SERVER_URL + '/api/application', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(webhookPayload)
+    }).catch(err => console.log('Webhook notification failed (non-blocking):', err));
+
   } catch(e) { console.log('Storage not available:', e); }
 }
 
