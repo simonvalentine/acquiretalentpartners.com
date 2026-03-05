@@ -574,9 +574,10 @@ tr { cursor:pointer; transition:background .1s; }
 </style>
 <script>
   // ══════════════════════════════════════════════════════════════
-  // Email Server URL — Update this after deploying to Render.com
+  // Backend URL — Google Apps Script Web App
   // ══════════════════════════════════════════════════════════════
-  const EMAIL_SERVER_URL = 'https://acquiretalentpartners-com.onrender.com';
+  // PASTE YOUR GOOGLE APPS SCRIPT WEB APP URL HERE:
+  const EMAIL_SERVER_URL = 'https://script.google.com/a/macros/acquiretalentpartners.com/s/AKfycby4kgV5gCaupOWGELUY8uYdzSslKpLaWDD8k4lbopD0AhEnqiM4GdjW3SJIGlR-yGA/exec';
 </script>
 </head>
 <body>
@@ -751,16 +752,27 @@ function formatDateTime(d) {
 function randomItem(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
 function randomRating() { return Math.floor(Math.random() * 5) + 1; }
 
-// ── Server-backed application storage ──
-const ATS_SERVER_URL = 'https://acquiretalentpartners-com.onrender.com';
+// ── Server-backed application storage (Google Apps Script) ──
+// PASTE YOUR GOOGLE APPS SCRIPT WEB APP URL HERE:
+const ATS_SERVER_URL = 'https://script.google.com/a/macros/acquiretalentpartners.com/s/AKfycby4kgV5gCaupOWGELUY8uYdzSslKpLaWDD8k4lbopD0AhEnqiM4GdjW3SJIGlR-yGA/exec';
 let serverApps = []; // Real applications from the server
+
+// Helper: POST to Apps Script (handles redirect)
+function postToServer(payload) {
+  return fetch(ATS_SERVER_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'text/plain' },
+    body: JSON.stringify(payload),
+    redirect: 'follow'
+  }).then(r => r.json());
+}
 
 // Fetch real applications from the server (merged into candidates on load)
 async function fetchServerApplications() {
   try {
     const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 10000); // 10s timeout
-    const res = await fetch(ATS_SERVER_URL + '/api/applications', { signal: controller.signal });
+    const timeout = setTimeout(() => controller.abort(), 15000); // 15s timeout (Apps Script can be slow on first call)
+    const res = await fetch(ATS_SERVER_URL + '?action=getApplications', { signal: controller.signal, redirect: 'follow' });
     clearTimeout(timeout);
     const data = await res.json();
     if (data.success && data.applications) {
@@ -799,7 +811,7 @@ async function fetchServerApplications() {
         else candidates.unshift(record);  // Real apps at the top
       });
       renderCurrentView();
-      console.log(`Loaded ${data.applications.length} applications from server`);
+      console.log('Loaded ' + data.applications.length + ' applications from server');
     }
   } catch(e) { console.log('Could not fetch server applications:', e.message); }
 }
@@ -808,15 +820,13 @@ async function fetchServerApplications() {
 async function syncToServer(candidate) {
   if (!candidate._serverManaged) return; // Only sync real applications
   try {
-    await fetch(ATS_SERVER_URL + '/api/applications/' + candidate.id, {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        status: candidate.status,
-        rating: candidate.rating,
-        notes: candidate.notes,
-        timeline: candidate.timeline
-      })
+    postToServer({
+      action: 'updateApplication',
+      id: candidate.id,
+      status: candidate.status,
+      rating: candidate.rating,
+      notes: candidate.notes,
+      timeline: candidate.timeline
     });
   } catch(e) { console.log('Server sync failed:', e.message); }
 }
@@ -1351,7 +1361,7 @@ function addNote(id) {
 }
 
 // ═══════════ AI REVIEW ═══════════
-const AI_SERVER_URL = 'https://acquiretalentpartners-com.onrender.com';
+const AI_SERVER_URL = ATS_SERVER_URL; // Same Apps Script backend
 
 function renderAIReview(text) {
   // Parse the AI review note text into a styled panel
@@ -1474,10 +1484,12 @@ async function requestAIReview(id) {
   };
 
   try {
-    const resp = await fetch(AI_SERVER_URL + '/api/application', {
+    payload.action = 'submitApplication';
+    const resp = await fetch(AI_SERVER_URL, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload)
+      headers: { 'Content-Type': 'text/plain' },
+      body: JSON.stringify(payload),
+      redirect: 'follow'
     });
     const data = await resp.json();
 
@@ -1973,16 +1985,18 @@ async function sendEmail(templateId, candidateId) {
   }
 
   try {
-    const res = await fetch(EMAIL_SERVER_URL + '/send-email', {
+    const res = await fetch(EMAIL_SERVER_URL, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'text/plain' },
       body: JSON.stringify({
+        action: 'sendEmail',
         to: c.email,
         toName: c.firstName + ' ' + c.lastName,
         subject: subject,
         html: htmlBody,
         templateName: tpl.name
-      })
+      }),
+      redirect: 'follow'
     });
 
     const data = await res.json();

@@ -2890,8 +2890,19 @@ function extractFieldsFromText(text) {
 }
 
 
-// ── Submit to ATS (server) ──
-const ATS_SERVER_URL = 'https://acquiretalentpartners-com.onrender.com';
+// ── Submit to ATS (Google Apps Script backend) ──
+// PASTE YOUR GOOGLE APPS SCRIPT WEB APP URL HERE:
+const ATS_SERVER_URL = 'https://script.google.com/a/macros/acquiretalentpartners.com/s/AKfycby4kgV5gCaupOWGELUY8uYdzSslKpLaWDD8k4lbopD0AhEnqiM4GdjW3SJIGlR-yGA/exec';
+
+// Helper: POST to Apps Script (handles redirect)
+function postToServer(payload) {
+  return fetch(ATS_SERVER_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'text/plain' },
+    body: JSON.stringify(payload),
+    redirect: 'follow'
+  }).then(r => r.json());
+}
 
 // Read a file input as base64 data URL
 function readFileAsDataURL(fileInput) {
@@ -2937,11 +2948,8 @@ async function submitApplication() {
     };
 
     // POST to the ATS server — this stores the application AND sends the notification email
-    fetch(ATS_SERVER_URL + '/api/application', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload)
-    }).catch(err => console.log('Server submission failed (non-blocking):', err));
+    payload.action = 'submitApplication';
+    postToServer(payload).catch(err => console.log('Server submission failed (non-blocking):', err));
 
   } catch(e) { console.log('Submission error:', e); }
 }
@@ -3088,11 +3096,8 @@ async function submitTalentNetwork() {
   };
 
   // Save to server
-  fetch(ATS_SERVER_URL + '/api/talent-network', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(entry)
-  }).catch(err => console.log('Talent network save failed:', err));
+  entry.action = 'submitTalentNetwork';
+  postToServer(entry).catch(err => console.log('Talent network save failed:', err));
 
   // Show success
   document.getElementById('tnFormFields').style.display = 'none';
@@ -3525,11 +3530,8 @@ function submitChatApplication() {
       jobSalary: chatApplyJob ? chatApplyJob.salary : '',
       jobLocation: chatApplyJob ? chatApplyJob.locLabel : ''
     };
-    fetch(ATS_SERVER_URL + '/api/application', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload)
-    }).catch(err => console.log('Server submission failed:', err));
+    payload.action = 'submitApplication';
+    postToServer(payload).catch(err => console.log('Server submission failed:', err));
   } catch(e) { console.log('Submission error:', e); }
 
   const ref = 'REF-ATP-' + Date.now().toString(36).toUpperCase();
