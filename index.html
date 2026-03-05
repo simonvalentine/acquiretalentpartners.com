@@ -3087,12 +3087,12 @@ async function submitTalentNetwork() {
     joinedDate: new Date().toISOString()
   };
 
-  // Save to localStorage
-  try {
-    const network = JSON.parse(localStorage.getItem('atp_talent_network') || '[]');
-    network.push(entry);
-    localStorage.setItem('atp_talent_network', JSON.stringify(network));
-  } catch(e) { console.log('Storage:', e); }
+  // Save to server
+  fetch(ATS_SERVER_URL + '/api/talent-network', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(entry)
+  }).catch(err => console.log('Talent network save failed:', err));
 
   // Show success
   document.getElementById('tnFormFields').style.display = 'none';

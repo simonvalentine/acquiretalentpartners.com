@@ -270,6 +270,46 @@ app.patch('/api/applications/:id', (req, res) => {
   res.json({ success: true, application: app });
 });
 
+// ═══════════ TALENT NETWORK ═══════════
+const TN_FILE = process.env.DATA_DIR
+  ? require('path').join(process.env.DATA_DIR, 'talent-network.json')
+  : './talent-network.json';
+
+let talentNetwork = [];
+try {
+  if (fs.existsSync(TN_FILE)) {
+    talentNetwork = JSON.parse(fs.readFileSync(TN_FILE, 'utf8'));
+    console.log(`Loaded ${talentNetwork.length} talent network entries from ${TN_FILE}`);
+  }
+} catch (e) { console.log('No existing talent network data found, starting fresh.'); }
+
+function saveTalentNetwork() {
+  try { fs.writeFileSync(TN_FILE, JSON.stringify(talentNetwork, null, 2)); }
+  catch (e) { console.error('Failed to save talent network:', e.message); }
+}
+
+app.post('/api/talent-network', (req, res) => {
+  const { name, email, profileUrl, departments, roles, locations, resumeFile } = req.body;
+  if (!name || !email) {
+    return res.status(400).json({ success: false, error: 'Missing required fields: name, email' });
+  }
+  const entry = {
+    id: 'TN-' + Date.now().toString(36).toUpperCase(),
+    name, email, profileUrl: profileUrl || '',
+    departments: departments || [], roles: roles || [], locations: locations || [],
+    resumeFile: resumeFile || null,
+    joinedDate: new Date().toISOString()
+  };
+  talentNetwork.push(entry);
+  saveTalentNetwork();
+  console.log(`[${new Date().toLocaleTimeString()}] Talent network signup -> ${name} (${email})`);
+  res.json({ success: true, id: entry.id });
+});
+
+app.get('/api/talent-network', (req, res) => {
+  res.json({ success: true, entries: talentNetwork });
+});
+
 // ═══════════ HEALTH CHECK ═══════════
 app.get('/', (req, res) => {
   res.json({
