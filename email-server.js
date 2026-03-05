@@ -49,6 +49,33 @@ transporter.verify((err, success) => {
   }
 });
 
+// ═══════════ APPLICATION STORE ═══════════
+// In-memory store so both the careers site and ATS can share data.
+// On Render free tier the server may restart, clearing this store.
+// For persistence, applications are also saved to a JSON file.
+const fs = require('fs');
+const DATA_FILE = process.env.DATA_DIR
+  ? require('path').join(process.env.DATA_DIR, 'applications.json')
+  : './applications.json';
+
+let applications = [];
+try {
+  if (fs.existsSync(DATA_FILE)) {
+    applications = JSON.parse(fs.readFileSync(DATA_FILE, 'utf8'));
+    console.log(`Loaded ${applications.length} applications from ${DATA_FILE}`);
+  }
+} catch (e) { console.log('No existing application data found, starting fresh.'); }
+
+function saveApplications() {
+  try { fs.writeFileSync(DATA_FILE, JSON.stringify(applications, null, 2)); }
+  catch (e) { console.error('Failed to save applications:', e.message); }
+}
+
+// GET all applications (used by ATS admin)
+app.get('/api/applications', (req, res) => {
+  res.json({ success: true, applications });
+});
+
 // ═══════════ SEND EMAIL ENDPOINT ═══════════
 app.post('/send-email', async (req, res) => {
   const { to, toName, subject, html, templateName } = req.body;
@@ -171,26 +198,76 @@ ${motivation}
     html: notificationHtml
   };
 
-  try {
-    const info = await transporter.sendMail(mailOptions);
+  // ── Store the application in the server ──
+  const appId = 'APP-' + Date.now().toString(36).toUpperCase();
+  const appRecord = {
+    id: appId,
+    firstName: firstName || '',
+    lastName: lastName || '',
+    email: email || '',
+    phone: phone || '',
+    location: location || '',
+    linkedin: linkedin || '',
+    salary: salary || '',
+    notice: notice || '',
+    experience: experience || '',
+    visa: visa || '',
+    motivation: motivation || '',
+    source: source || 'Careers Site',
+    commPreference: req.body.commPreference || ['Email'],
+    commDetails: req.body.commDetails || {},
+    cvFile: req.body.cvFile || null,
+    coverLetterFile: req.body.coverLetterFile || null,
+    job: jobTitle || 'General Application',
+    department: department || 'General',
+    jobTags: jobTags || '',
+    jobSalary: jobSalary || '',
+    jobLocation: jobLocation || '',
+    status: 'new',
+    rating: 0,
+    appliedDate,
+    notes: [],
+    timeline: [{ action: 'Applied via ' + (source || 'Careers Site'), date: appliedDate }]
+  };
+  applications.push(appRecord);
+  saveApplications();
+  console.log(`[${new Date().toLocaleTimeString()}] Application stored -> ${appId} (${candidateName})`);
 
-    console.log(`[${new Date().toLocaleTimeString()}] Application received -> ${candidateName}`);
-    console.log(`   Role: ${jobTitle}`);
-    console.log(`   Email: ${email}`);
-    console.log(`   Message ID: ${info.messageId}\n`);
+  // ── Send notification email (non-blocking) ──
+  transporter.sendMail(mailOptions)
+    .then(info => {
+      console.log(`[${new Date().toLocaleTimeString()}] Notification email sent -> ${candidateName}`);
+      console.log(`   Role: ${jobTitle}`);
+      console.log(`   Message ID: ${info.messageId}\n`);
+    })
+    .catch(err => {
+      console.error(`Failed to send notification for ${candidateName}:`, err.message);
+    });
 
-    res.json({
-      success: true,
-      messageId: info.messageId,
-      timestamp: appliedDate
-    });
-  } catch (err) {
-    console.error(`Failed to send application notification for ${candidateName}:`, err.message);
-    res.status(500).json({
-      success: false,
-      error: err.message
-    });
-  }
+  // Return immediately with the stored application
+  res.json({
+    success: true,
+    id: appId,
+    timestamp: appliedDate
+  });
+});
+
+// ═══════════ UPDATE APPLICATION ═══════════
+// PATCH /api/applications/:id — update status, rating, notes, timeline
+app.patch('/api/applications/:id', (req, res) => {
+  const app = applications.find(a => a.id === req.params.id);
+  if (!app) return res.status(404).json({ success: false, error: 'Application not found' });
+
+  const { status, rating, notes, timeline, addNote, addTimeline } = req.body;
+  if (status !== undefined) app.status = status;
+  if (rating !== undefined) app.rating = rating;
+  if (notes !== undefined) app.notes = notes;
+  if (timeline !== undefined) app.timeline = timeline;
+  if (addNote) { app.notes = app.notes || []; app.notes.push(addNote); }
+  if (addTimeline) { app.timeline = app.timeline || []; app.timeline.push(addTimeline); }
+
+  saveApplications();
+  res.json({ success: true, application: app });
 });
 
 // ═══════════ HEALTH CHECK ═══════════

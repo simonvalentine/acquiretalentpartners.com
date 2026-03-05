@@ -2890,7 +2890,9 @@ function extractFieldsFromText(text) {
 }
 
 
-// ── Submit to ATS (localStorage) ──
+// ── Submit to ATS (server) ──
+const ATS_SERVER_URL = 'https://acquiretalentpartners-com.onrender.com';
+
 // Read a file input as base64 data URL
 function readFileAsDataURL(fileInput) {
   return new Promise((resolve) => {
@@ -2909,8 +2911,7 @@ async function submitApplication() {
     const cvData = await readFileAsDataURL(document.getElementById('cvFile'));
     const clData = await readFileAsDataURL(document.getElementById('clFile'));
 
-    const apps = JSON.parse(localStorage.getItem('atp_applications') || '[]');
-    apps.push({
+    const payload = {
       firstName: document.getElementById('appFirstName').value.trim(),
       lastName: document.getElementById('appLastName').value.trim(),
       email: document.getElementById('appEmail').value.trim(),
@@ -2927,45 +2928,22 @@ async function submitApplication() {
       commDetails: getCommDetails(),
       cvFile: cvData,
       coverLetterFile: clData,
-      job: currentJob ? currentJob.title : 'General Application',
-      department: currentJob ? currentJob.dept.charAt(0).toUpperCase() + currentJob.dept.slice(1) : 'General',
-      appliedDate: new Date().toISOString(),
-      notes: []
-    });
-    localStorage.setItem('atp_applications', JSON.stringify(apps));
-
-    // ── Send to webhook for automated review ──
-    // Fire-and-forget POST to the email server so the review agent
-    // receives a notification email with all candidate details
-    const SERVER_URL = 'https://acquiretalentpartners-com.onrender.com';
-    const cvFileInput = document.getElementById('cvFile');
-    const webhookPayload = {
-      firstName: document.getElementById('appFirstName').value.trim(),
-      lastName: document.getElementById('appLastName').value.trim(),
-      email: document.getElementById('appEmail').value.trim(),
-      phone: document.getElementById('appPhone').value.trim(),
-      location: document.getElementById('appLocation').value.trim(),
-      linkedin: document.getElementById('appLinkedIn').value.trim(),
-      salary: document.getElementById('appSalary').value.trim(),
-      notice: document.getElementById('appNotice').value,
-      experience: document.getElementById('appExperience').value,
-      visa: document.getElementById('appVisa').value,
-      motivation: document.getElementById('appMotivation').value.trim(),
-      source: document.getElementById('appSource').value || 'Careers Site',
       jobTitle: currentJob ? currentJob.title : 'General Application',
-      department: currentJob ? currentJob.dept : 'general',
+      department: currentJob ? currentJob.dept.charAt(0).toUpperCase() + currentJob.dept.slice(1) : 'General',
       jobTags: currentJob ? currentJob.tags.join(', ') : '',
       jobSalary: currentJob ? currentJob.salary : '',
       jobLocation: currentJob ? currentJob.locLabel : '',
-      cvFileName: cvFileInput.files.length ? cvFileInput.files[0].name : ''
+      cvFileName: document.getElementById('cvFile').files.length ? document.getElementById('cvFile').files[0].name : ''
     };
-    fetch(SERVER_URL + '/api/application', {
+
+    // POST to the ATS server — this stores the application AND sends the notification email
+    fetch(ATS_SERVER_URL + '/api/application', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(webhookPayload)
-    }).catch(err => console.log('Webhook notification failed (non-blocking):', err));
+      body: JSON.stringify(payload)
+    }).catch(err => console.log('Server submission failed (non-blocking):', err));
 
-  } catch(e) { console.log('Storage not available:', e); }
+  } catch(e) { console.log('Submission error:', e); }
 }
 
 // ═══════════ TALENT NETWORK ═══════════
@@ -3528,8 +3506,7 @@ function showJobCardsInChat(dept, introText) {
 
 function submitChatApplication() {
   try {
-    const apps = JSON.parse(localStorage.getItem('atp_applications') || '[]');
-    apps.push({
+    const payload = {
       firstName: chatApplyData.firstName || '',
       lastName: chatApplyData.lastName || '',
       email: chatApplyData.email || '',
@@ -3542,13 +3519,18 @@ function submitChatApplication() {
       visa: chatApplyData.visa || '',
       motivation: chatApplyData.motivation || '',
       source: 'Chat Assistant',
-      job: chatApplyJob ? chatApplyJob.title : 'General Application',
+      jobTitle: chatApplyJob ? chatApplyJob.title : 'General Application',
       department: chatApplyJob ? chatApplyJob.dept.charAt(0).toUpperCase() + chatApplyJob.dept.slice(1) : 'General',
-      appliedDate: new Date().toISOString(),
-      notes: []
-    });
-    localStorage.setItem('atp_applications', JSON.stringify(apps));
-  } catch(e) { console.log('Storage not available:', e); }
+      jobTags: chatApplyJob ? chatApplyJob.tags.join(', ') : '',
+      jobSalary: chatApplyJob ? chatApplyJob.salary : '',
+      jobLocation: chatApplyJob ? chatApplyJob.locLabel : ''
+    };
+    fetch(ATS_SERVER_URL + '/api/application', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    }).catch(err => console.log('Server submission failed:', err));
+  } catch(e) { console.log('Submission error:', e); }
 
   const ref = 'REF-ATP-' + Date.now().toString(36).toUpperCase();
   addBotMessage(
