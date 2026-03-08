@@ -792,6 +792,7 @@ async function fetchServerApplications() {
           source: app.source || 'Careers Site',
           status: app.status || 'new',
           rating: app.rating || 0,
+          aiRating: app.aiRating || 0,
           appliedDate: new Date(app.appliedDate || Date.now()),
           linkedin: app.linkedin || '',
           salary: app.salary || '',
@@ -996,7 +997,7 @@ function renderPipeline() {
       html += '<div style="text-align:center;padding:20px;color:var(--text-xs);font-size:.82rem">No candidates</div>';
     }
     cards.slice(0, 20).forEach(c => {
-      const stars = renderStarsHTML(c.rating);
+      const aiCol = (c.aiRating||0) >= 4 ? '#10b981' : (c.aiRating||0) >= 3 ? '#f59e0b' : (c.aiRating||0) >= 2 ? '#f97316' : (c.aiRating||0) >= 1 ? '#ef4444' : '';
       html += `
         <div class="kanban-card" onclick="openDrawer('${c.id}')">
           <div class="kc-name">${c.firstName} ${c.lastName}</div>
@@ -1005,7 +1006,10 @@ function renderPipeline() {
             <span>&#128205; ${c.location}</span>
             <span>&#128197; ${formatDate(c.appliedDate)}</span>
           </div>
-          ${c.rating > 0 ? '<div class="kc-rating">' + stars + '</div>' : ''}
+          <div style="display:flex;gap:12px;align-items:center;margin-top:4px;">
+            ${(c.aiRating||0) > 0 ? '<span style="font-size:.65rem;color:var(--text-xs)">AI</span>' + renderStarsHTML(c.aiRating, aiCol) : ''}
+            ${c.rating > 0 ? '<span style="font-size:.65rem;color:var(--text-xs)">You</span>' + renderStarsHTML(c.rating) : ''}
+          </div>
         </div>`;
     });
     if (cards.length > 20) html += `<div style="text-align:center;padding:8px;font-size:.78rem;color:var(--text-xs)">+${cards.length - 20} more</div>`;
@@ -1068,15 +1072,18 @@ function renderTable(data) {
   html += `<th onclick="toggleSort('name')">Candidate ${sortIcon('name')}</th>`;
   html += `<th onclick="toggleSort('job')">Role ${sortIcon('job')}</th>`;
   html += `<th onclick="toggleSort('status')">Status ${sortIcon('status')}</th>`;
-  html += `<th onclick="toggleSort('rating')">Rating ${sortIcon('rating')}</th>`;
+  html += `<th onclick="toggleSort('aiRating')">AI Score ${sortIcon('aiRating')}</th>`;
+  html += `<th onclick="toggleSort('rating')">Your Rating ${sortIcon('rating')}</th>`;
   html += `<th onclick="toggleSort('source')">Source ${sortIcon('source')}</th>`;
   html += `<th onclick="toggleSort('appliedDate')">Applied ${sortIcon('appliedDate')}</th>`;
   html += '</tr></thead><tbody>';
   pageData.forEach(c => {
+    const aiCol = (c.aiRating||0) >= 4 ? '#10b981' : (c.aiRating||0) >= 3 ? '#f59e0b' : (c.aiRating||0) >= 2 ? '#f97316' : (c.aiRating||0) >= 1 ? '#ef4444' : '#94a3b8';
     html += `<tr onclick="openDrawer('${c.id}')">
       <td><div class="candidate-name">${c.firstName} ${c.lastName}</div><div class="candidate-email">${c.email}</div></td>
       <td><div class="candidate-job">${c.job}</div><div class="candidate-loc">&#128205; ${c.location}</div></td>
       <td><span class="status-badge status-${c.status}"><span class="status-dot dot-${c.status}"></span>${statusLabels[c.status]}</span></td>
+      <td>${(c.aiRating||0) > 0 ? renderStarsHTML(c.aiRating, aiCol) : '<span style="font-size:.75rem;color:var(--text-xs)">—</span>'}</td>
       <td>${renderStarsHTML(c.rating)}</td>
       <td style="font-size:.82rem;color:var(--text-light)">${c.source}</td>
       <td style="font-size:.82rem;color:var(--text-light);white-space:nowrap">${formatDate(c.appliedDate)}</td>
@@ -1112,9 +1119,9 @@ function changePage(p) { currentPage = p; render(); window.scrollTo({top:0}); }
 function filterByStatus(s) { statusFilter = s; currentPage = 1; render(); }
 function handleGlobalSearch() { currentPage = 1; render(); }
 
-function renderStarsHTML(rating) {
+function renderStarsHTML(rating, color) {
   let s = '';
-  for (let i = 1; i <= 5; i++) s += `<span class="star ${i <= rating ? 'filled' : ''}">&#9733;</span>`;
+  for (let i = 1; i <= 5; i++) s += `<span class="star ${i <= rating ? 'filled' : ''}" ${i <= rating && color ? 'style="color:'+color+'"' : ''}>&#9733;</span>`;
   return '<div class="rating" style="display:inline-flex;gap:1px">' + s + '</div>';
 }
 
@@ -1128,9 +1135,12 @@ function openDrawer(id) {
 
   let body = '';
 
-  // Status & Rating
+  // Status & Ratings (AI + Human)
+  const aiR = c.aiRating || 0;
+  const aiLabel = aiR >= 5 ? 'Strong Match' : aiR >= 4 ? 'Good Match' : aiR >= 3 ? 'Partial Match' : aiR >= 2 ? 'Weak Match' : 'Not Scored';
+  const aiColor = aiR >= 4 ? '#10b981' : aiR >= 3 ? '#f59e0b' : aiR >= 2 ? '#f97316' : aiR >= 1 ? '#ef4444' : '#94a3b8';
   body += `<div class="d-section">
-    <div class="d-section-title">Status & Rating</div>
+    <div class="d-section-title">Status & Ratings</div>
     <div class="d-grid">
       <div class="d-field">
         <label>Current Status</label>
@@ -1139,7 +1149,13 @@ function openDrawer(id) {
         </select>
       </div>
       <div class="d-field">
-        <label>Rating</label>
+        <label style="display:flex;align-items:center;gap:6px">&#9733; AI Score <span style="font-size:.65rem;background:${aiColor}22;color:${aiColor};padding:2px 8px;border-radius:10px;font-weight:600">${aiLabel}</span></label>
+        <div class="rating" style="font-size:1.3rem; margin-top:4px;" title="Automated AI assessment — read only">
+          ${[1,2,3,4,5].map(i => `<span class="star ${i <= aiR ? 'filled' : ''}" style="cursor:default;${i <= aiR ? 'color:' + aiColor : ''}">&#9733;</span>`).join('')}
+        </div>
+      </div>
+      <div class="d-field">
+        <label>Your Assessment</label>
         <div class="rating" id="drawerRating" style="font-size:1.3rem; margin-top:4px;">
           ${[1,2,3,4,5].map(i => `<span class="star ${i <= c.rating ? 'filled' : ''}" onclick="updateRating('${c.id}', ${i})" style="cursor:pointer">&#9733;</span>`).join('')}
         </div>
@@ -1261,17 +1277,17 @@ function openDrawer(id) {
     </div>
   </div>`;
 
-  // AI Review
+  // AI Assessment (auto-generated on application)
   const aiNote = c.notes.find(n => n.author === 'AI Review Agent');
   body += `<div class="d-section">
     <div class="d-section-title" style="display:flex;align-items:center;justify-content:space-between;">
-      AI Review
-      ${!aiNote ? `<button class="ai-review-btn" id="aiReviewBtn" onclick="requestAIReview('${c.id}')"><span class="ai-icon">&#9733;</span> Request AI Review</button>` : ''}
+      AI Assessment
+      ${aiNote ? `<span style="font-size:.72rem;color:${aiColor};font-weight:600">Auto-scored on application</span>` : ''}
     </div>
     <div id="aiReviewPanel">
       ${aiNote ? renderAIReview(aiNote.text) : `
         <div style="text-align:center;padding:20px;color:var(--text-xs);font-size:.85rem;">
-          No AI review yet. Click the button above to request an automated assessment against the job description.
+          ${c._serverManaged ? 'AI scoring is applied automatically when candidates apply. This candidate may have been added before scoring was enabled.' : 'AI scoring is only available for real applications (not demo data).'}
         </div>
       `}
     </div>
@@ -1446,76 +1462,8 @@ function renderAIReview(text) {
   return html;
 }
 
-async function requestAIReview(id) {
-  const c = candidates.find(x => x.id === id);
-  if (!c) return;
-
-  const btn = document.getElementById('aiReviewBtn');
-  if (btn) {
-    btn.disabled = true;
-    btn.innerHTML = '<span class="spinner"></span> Requesting...';
-  }
-
-  const panel = document.getElementById('aiReviewPanel');
-  if (panel) {
-    panel.innerHTML = `<div class="ai-pending"><span class="spinner"></span> Sending candidate data for AI assessment. You'll receive a scorecard email shortly.</div>`;
-  }
-
-  // Send candidate data to the application webhook
-  const payload = {
-    firstName: c.firstName,
-    lastName: c.lastName,
-    email: c.email,
-    phone: c.phone || '',
-    location: c.location || '',
-    linkedin: c.linkedin || '',
-    salary: c.salary || '',
-    notice: c.notice || '',
-    experience: c.experience || '',
-    visa: c.visa || '',
-    motivation: c.motivation || '',
-    jobTitle: c.job,
-    department: c.department || '',
-    jobTags: '',
-    jobSalary: '',
-    jobLocation: c.location || '',
-    cvFileName: c.cvFile ? c.cvFile.name : '',
-    source: 'ATS Review'
-  };
-
-  try {
-    payload.action = 'submitApplication';
-    const resp = await fetch(AI_SERVER_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'text/plain' },
-      body: JSON.stringify(payload),
-      redirect: 'follow'
-    });
-    const data = await resp.json();
-
-    if (data.success) {
-      // Add a timeline entry
-      c.timeline.push({ action: 'AI review requested', date: new Date() });
-
-      if (panel) {
-        panel.innerHTML = `<div class="ai-pending" style="color:#10b981;">
-          &#10003; Review request sent. The AI agent will assess this candidate and email you a scorecard within 30 minutes.
-          <br><br><span style="font-size:.78rem;color:var(--text-xs)">To see the scorecard here, paste it as a note with author "AI Review Agent".</span>
-        </div>`;
-      }
-    } else {
-      throw new Error(data.error || 'Server error');
-    }
-  } catch (err) {
-    console.error('AI Review request failed:', err);
-    if (panel) {
-      panel.innerHTML = `<div class="ai-pending" style="color:#ef4444;">
-        Failed to send review request: ${err.message}<br>
-        <button class="ai-review-btn" style="margin-top:12px;" onclick="requestAIReview('${id}')"><span class="ai-icon">&#9733;</span> Retry</button>
-      </div>`;
-    }
-  }
-}
+// AI scoring now happens automatically on the server when a candidate applies.
+// No manual "Request AI Review" button needed.
 
 function bindEvents() {}
 
