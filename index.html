@@ -1050,7 +1050,7 @@
     .hero-stats { gap: 24px; }
     .hero-stat h3 { font-size: 1.8rem; }
 
-    .btn { padding: 12px 24px; font-size: .9rem; }
+    .btn { padding: 12px 24px; font-size: .9rem; min-height: 44px; }
     .btn-secondary { margin-left: 0; margin-top: 10px; }
 
     section { padding: 56px 16px; }
@@ -1081,6 +1081,16 @@
     .tn-chip { font-size: .75rem; padding: 5px 11px; }
     .tn-chip-grid { gap: 6px; }
     .tn-helper-text { font-size: .78rem; }
+
+    /* Form & modal responsive */
+    .form-grid { grid-template-columns: 1fr; }
+    .modal-overlay { padding: 12px; }
+    .modal-header { padding: 20px 20px 16px; }
+    .modal-body { padding: 20px; }
+    .modal-footer { padding: 16px 20px 20px; flex-wrap: wrap; }
+    .modal-footer .btn { flex: 1; min-width: 120px; }
+    .job-detail-meta { gap: 8px; }
+    .job-detail-meta span { font-size: .78rem; padding: 5px 10px; }
   }
 
   /* ── Responsive: Small phones ── */
@@ -1115,6 +1125,16 @@
     .comm-pref-row { flex-wrap: wrap; padding: 10px 12px; gap: 8px; }
     .comm-pref-row .cpf-label { min-width: 70px; font-size: .78rem; }
     .comm-pref-row .cpf-input { width: 100%; flex: unset; font-size: .8rem; padding: 7px 10px; }
+
+    /* Full-screen modal on small phones */
+    .modal-overlay { padding: 0; }
+    .modal { max-height: 100vh; border-radius: 0; max-width: 100%; }
+    .modal-header { padding: 16px; }
+    .modal-header h2 { font-size: 1.1rem; }
+    .modal-body { padding: 16px; }
+    .modal-footer { padding: 12px 16px; }
+    .modal-footer .btn { width: 100%; }
+    .job-detail-meta span { font-size: .72rem; }
   }
 
   /* ── Chat widget: tablet ── */

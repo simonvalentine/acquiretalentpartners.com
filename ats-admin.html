@@ -124,6 +124,8 @@ body { font-family: -apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetic
   background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='%2394a3b8' viewBox='0 0 16 16'%3E%3Cpath d='M11.742 10.344a6.5 6.5 0 10-1.397 1.398h-.001l3.85 3.85a1 1 0 001.415-1.414l-3.85-3.85zm-5.242.156a5 5 0 110-10 5 5 0 010 10z'/%3E%3C/svg%3E") no-repeat 12px center var(--bg-white);
 }
 .topbar-search:focus { border-color:var(--accent); }
+.mobile-menu-btn { display:none; }
+.sidebar-overlay { display:none; }
 
 /* ── Content Area ── */
 .content { padding:28px 32px; }
@@ -497,13 +499,17 @@ tr { cursor:pointer; transition:background .1s; }
 .send-email-option .seo-desc { font-size:.72rem; color:var(--text-light); }
 
 /* Responsive */
-/* ── Responsive: Large tablet ── */
+/* ── Responsive: Tablet landscape ── */
 @media (max-width:1200px) {
   .stats-row { grid-template-columns:repeat(3,1fr); }
+  .kanban-column { min-width:240px; max-width:260px; }
+  .drawer { width:500px; max-width:90vw; }
+  .content { padding:24px 24px; }
 }
 
-/* ── Responsive: Mobile ── */
+/* ── Responsive: Tablet portrait / large phones ── */
 @media (max-width:768px) {
+  /* Sidebar — off-canvas */
   .sidebar {
     display:none;
     position:fixed; top:0; left:0; bottom:0; z-index:1100;
@@ -514,27 +520,63 @@ tr { cursor:pointer; transition:background .1s; }
   }
   .sidebar-overlay.open { display:block; }
   .main { margin-left:0; }
-  .stats-row { grid-template-columns:repeat(2,1fr); gap:12px; }
-  .drawer { width:100%; max-width:100%; }
-  .topbar { padding:14px 16px; flex-wrap:wrap; gap:10px; }
-  .topbar-search { width:100%; order:3; }
-  .topbar h1 { font-size:1.05rem; }
-  .topbar-actions { gap:8px; }
+
+  /* Mobile menu hamburger */
   .mobile-menu-btn {
     display:flex !important; align-items:center; justify-content:center;
-    width:36px; height:36px; border:1px solid var(--border); border-radius:8px;
+    width:44px; height:44px; border:1px solid var(--border); border-radius:8px;
     background:var(--bg); cursor:pointer; font-size:1.1rem; order:-1;
   }
-  .kanban-board { gap:12px; }
-  .kanban-column { min-width:260px; }
+
+  /* Topbar */
+  .topbar { padding:14px 16px; flex-wrap:wrap; gap:10px; }
+  .topbar h1 { font-size:1.05rem; }
+  .topbar-search { width:100%; order:3; }
+  .topbar-actions { gap:8px; }
+
+  /* Content area */
+  .content { padding:20px 16px; }
+
+  /* Stats */
+  .stats-row { grid-template-columns:repeat(2,1fr); gap:12px; }
+  .stat-card { padding:16px; }
+  .stat-card .stat-value { font-size:1.5rem; }
+
+  /* Filters */
+  .filters-bar { gap:8px; }
+  .filter-chip { padding:8px 12px; font-size:.78rem; min-height:44px; display:inline-flex; align-items:center; }
+  .filter-select { min-height:44px; }
+  .view-btn { min-height:44px; padding:8px 14px; }
+
+  /* Kanban — vertical stacking on tablet */
+  .kanban-board { flex-direction:column; overflow-x:visible; gap:16px; padding-bottom:20px; }
+  .kanban-column { min-width:0; max-width:100%; width:100%; }
+  .kanban-column-header { position:sticky; top:0; z-index:10; background:var(--bg); padding:10px 0; }
+
+  /* Table */
   .table-wrapper { font-size:.85rem; overflow-x:auto; -webkit-overflow-scrolling:touch; }
   .table-wrapper th, .table-wrapper td { padding:10px 12px; white-space:nowrap; }
+  .pagination { flex-wrap:wrap; gap:8px; justify-content:center; }
+  .page-btn { min-height:44px; min-width:44px; display:inline-flex; align-items:center; justify-content:center; }
+
+  /* Drawer — full width */
+  .drawer { width:100%; max-width:100%; }
+  .drawer-header { padding:20px 16px 16px; }
   .drawer-body { padding:20px 16px; }
   .drawer-footer { padding:14px 16px; flex-wrap:wrap; }
-  .tab-nav { gap:0; flex-wrap:wrap; }
-  .tab-nav button { flex:1; min-width:auto; font-size:.78rem; padding:10px 8px; }
+  .d-grid { grid-template-columns:1fr; }
+  .ai-breakdown { grid-template-columns:1fr; }
+  .d-section { margin-bottom:20px; }
 
-  /* Email modal — mobile */
+  /* Tabs in drawer */
+  .tab-nav { gap:0; flex-wrap:wrap; }
+  .tab-nav button { flex:1; min-width:auto; font-size:.78rem; padding:10px 8px; min-height:44px; }
+
+  /* Touch targets — ensure all interactive elements are ≥44px */
+  .btn, button { min-height:44px; }
+  .star { font-size:1.1rem; padding:2px; }
+
+  /* Email modal — full width */
   .email-modal { width:100%; max-width:100%; max-height:100vh; border-radius:0; margin:0; }
   .email-modal-overlay.open { align-items:stretch; }
   .email-modal-header { padding:16px; }
@@ -545,30 +587,53 @@ tr { cursor:pointer; transition:background .1s; }
   .email-meta-row { flex-wrap:wrap; font-size:.8rem; }
   .email-modal-footer { padding:12px 16px; flex-wrap:wrap; gap:8px; font-size:.85rem; }
 
-  /* Email templates grid — mobile */
+  /* Email templates grid */
   .email-templates-grid { grid-template-columns:1fr; }
 
-  /* Email log items — mobile */
+  /* Email log items */
   .email-log-item { padding:8px 10px; gap:8px; }
   .email-log-icon { width:28px; height:28px; font-size:.8rem; }
 
-  /* Send email dropdown in drawer — mobile */
+  /* Send email dropdown */
   .send-email-option { padding:8px 10px; }
 }
 
 /* ── Responsive: Small phones ── */
 @media (max-width:480px) {
-  .stats-row { grid-template-columns:1fr; }
-  .kanban-column { min-width:220px; }
+  /* Stats — single column */
+  .stats-row { grid-template-columns:1fr; gap:10px; }
+  .stat-card { padding:14px; }
+  .stat-card .stat-value { font-size:1.3rem; }
+
+  /* Topbar */
   .topbar h1 { font-size:.95rem; }
-  .login-box { padding:28px 20px; margin:0 12px; }
+
+  /* Kanban — compact cards */
+  .kanban-column { min-width:0; }
+  .kanban-card { padding:10px 12px; }
+  .kanban-board { padding-bottom:80px; }
+
+  /* Table — compact */
+  .table-wrapper th, .table-wrapper td { padding:8px; font-size:.8rem; }
+
+  /* Drawer — full screen feel */
   .drawer-header { padding:16px; }
   .drawer-header h2 { font-size:1rem; }
   .drawer-body { padding:16px 12px; }
+  .drawer-footer .btn { flex:1; min-width:0; font-size:.82rem; }
+
+  /* Login */
+  .login-box { padding:28px 20px; margin:0 12px; }
+
+  /* Email modal — compact */
   .email-modal-body iframe { height:280px; }
   .email-modal-footer { flex-direction:column; text-align:center; }
-  .kanban-board { padding-bottom:80px; }
-  .table-wrapper th, .table-wrapper td { padding:8px; font-size:.8rem; }
+
+  /* Pagination — larger targets */
+  .page-btn { padding:8px 14px; font-size:.85rem; }
+
+  /* Content padding */
+  .content { padding:16px 12px; }
 }
 
 </style>
@@ -578,6 +643,16 @@ tr { cursor:pointer; transition:background .1s; }
   // ══════════════════════════════════════════════════════════════
   // PASTE YOUR GOOGLE APPS SCRIPT WEB APP URL HERE:
   const EMAIL_SERVER_URL = 'https://script.google.com/a/macros/acquiretalentpartners.com/s/AKfycby4kgV5gCaupOWGELUY8uYdzSslKpLaWDD8k4lbopD0AhEnqiM4GdjW3SJIGlR-yGA/exec';
+
+  // ── Mobile sidebar toggle ──
+  function toggleMobileSidebar() {
+    const sidebar = document.querySelector('.sidebar');
+    const overlay = document.getElementById('sidebarOverlay');
+    const isOpen = sidebar.classList.contains('mobile-open');
+    sidebar.classList.toggle('mobile-open', !isOpen);
+    overlay.classList.toggle('open', !isOpen);
+    document.body.style.overflow = isOpen ? '' : 'hidden';
+  }
 </script>
 </head>
 <body>
@@ -634,11 +709,13 @@ tr { cursor:pointer; transition:background .1s; }
     </div>
   </div>
 </aside>
+<div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleMobileSidebar()"></div>
 
 <!-- ═══════════ MAIN ═══════════ -->
 <div class="main">
   <!-- Top Bar -->
   <div class="topbar">
+    <button class="mobile-menu-btn" onclick="toggleMobileSidebar()" aria-label="Open menu">&#9776;</button>
     <h1 id="pageTitle">Dashboard</h1>
     <div class="topbar-actions">
       <input type="text" class="topbar-search" placeholder="Search candidates..." id="globalSearch" onkeyup="handleGlobalSearch()">
