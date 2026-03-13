@@ -279,33 +279,34 @@ tr { cursor:pointer; transition:background .1s; }
 .ai-review-btn .ai-icon { font-size:1rem; }
 .ai-review-panel {
   background: linear-gradient(135deg, #f5f3ff 0%, #ede9fe 100%);
-  border: 1.5px solid #c4b5fd; border-radius:10px; padding:20px; margin-bottom:20px;
+  border: 1.5px solid #c4b5fd; border-radius:10px; padding:16px; margin-bottom:16px;
 }
 .ai-review-panel .ai-panel-title {
-  font-size:.82rem; font-weight:700; color:#6d28d9; text-transform:uppercase;
-  letter-spacing:1px; margin-bottom:12px; display:flex; align-items:center; gap:8px;
+  font-size:.75rem; font-weight:700; color:#6d28d9; text-transform:uppercase;
+  letter-spacing:1px; margin-bottom:8px; display:flex; align-items:center; gap:6px;
 }
 .ai-review-panel .ai-overall {
-  font-size:1.1rem; font-weight:700; color:#1e293b; margin-bottom:16px;
-  display:flex; align-items:center; gap:10px;
+  font-size:1rem; font-weight:700; color:#1e293b; margin-bottom:12px;
+  display:flex; align-items:center; gap:8px;
 }
 .ai-review-panel .ai-overall .ai-label {
-  display:inline-block; padding:3px 10px; border-radius:20px; font-size:.78rem; font-weight:600;
+  display:inline-block; padding:2px 10px; border-radius:20px; font-size:.75rem; font-weight:600;
 }
 .ai-label.strong { background:#dcfce7; color:#166534; }
 .ai-label.good { background:#dbeafe; color:#1e40af; }
 .ai-label.partial { background:#fef3c7; color:#92400e; }
 .ai-label.weak { background:#fee2e2; color:#991b1b; }
-.ai-breakdown { display:grid; grid-template-columns:1fr 1fr; gap:8px 16px; margin-bottom:16px; }
-.ai-breakdown-item { font-size:.82rem; display:flex; align-items:center; gap:6px; }
-.ai-breakdown-item .ai-dim { color:var(--text-light); min-width:100px; }
-.ai-breakdown-item .ai-stars { color:#f59e0b; letter-spacing:1px; }
-.ai-breakdown-item .ai-desc { color:var(--text); font-size:.78rem; }
-.ai-observations { margin-bottom:16px; }
-.ai-observations p { font-size:.82rem; color:var(--text); line-height:1.6; margin-bottom:4px; }
+.ai-breakdown { display:grid; grid-template-columns:1fr 1fr; gap:0; margin-bottom:12px; }
+.ai-breakdown-item { font-size:.78rem; display:grid; grid-template-columns:auto 1fr; gap:2px; padding:6px 8px; border-radius:6px; }
+.ai-breakdown-item:nth-child(odd) { background:rgba(255,255,255,.4); }
+.ai-breakdown-item .ai-dim { color:var(--text-light); font-weight:600; font-size:.72rem; grid-column:1/-1; }
+.ai-breakdown-item .ai-stars { color:#f59e0b; letter-spacing:1px; font-size:.75rem; }
+.ai-breakdown-item .ai-desc { color:var(--text); font-size:.72rem; line-height:1.3; }
+.ai-observations { margin-bottom:10px; }
+.ai-observations p { font-size:.78rem; color:var(--text); line-height:1.4; margin-bottom:2px; }
 .ai-recommendation {
-  background:#fff; border-radius:8px; padding:12px 16px;
-  border-left:3px solid #8b5cf6; font-size:.85rem; color:var(--text); line-height:1.6;
+  background:#fff; border-radius:8px; padding:10px 12px;
+  border-left:3px solid #8b5cf6; font-size:.78rem; color:var(--text); line-height:1.5;
 }
 .ai-pending {
   text-align:center; padding:24px; color:#6d28d9; font-size:.88rem;
@@ -565,7 +566,6 @@ tr { cursor:pointer; transition:background .1s; }
   .drawer-body { padding:20px 16px; }
   .drawer-footer { padding:14px 16px; flex-wrap:wrap; }
   .d-grid { grid-template-columns:1fr; }
-  .ai-breakdown { grid-template-columns:1fr; }
   .d-section { margin-bottom:20px; }
 
   /* Tabs in drawer */
@@ -1467,16 +1467,15 @@ function addNote(id) {
 const AI_SERVER_URL = ATS_SERVER_URL; // Same Apps Script backend
 
 function renderAIReview(text) {
-  // Parse the AI review note text into a styled panel
-  // The text is stored as structured plain text from the scorecard email
   const lines = text.split('\n').filter(l => l.trim());
 
-  // Try to extract the overall rating
-  let overall = '';
-  let overallClass = '';
+  // Extract overall rating
+  let overall = '', overallClass = '', overallPct = '';
   const overallLine = lines.find(l => l.includes('OVERALL:'));
   if (overallLine) {
     overall = overallLine.replace('OVERALL:', '').trim();
+    const pctMatch = overall.match(/(\d+)%/);
+    overallPct = pctMatch ? pctMatch[1] + '%' : '';
     if (overall.includes('Strong')) overallClass = 'strong';
     else if (overall.includes('Good')) overallClass = 'good';
     else if (overall.includes('Partial')) overallClass = 'partial';
@@ -1493,7 +1492,9 @@ function renderAIReview(text) {
       const starsMatch = parts.match(/[★☆]+/);
       const stars = starsMatch ? starsMatch[0] : '';
       const desc = parts.replace(/[★☆]+/, '').trim().replace(/^[\s—–-]+/, '').trim();
-      breakdownItems.push({ dim, stars, desc });
+      // Truncate long descriptions
+      const shortDesc = desc.length > 40 ? desc.substring(0, 40) + '…' : desc;
+      breakdownItems.push({ dim, stars, desc: shortDesc });
     }
   });
 
@@ -1507,42 +1508,50 @@ function renderAIReview(text) {
   // Extract recommendation
   const recStart = lines.findIndex(l => l.includes('RECOMMENDATION'));
   const recommendation = recStart >= 0 ? lines.slice(recStart + 1)
-    .filter(l => l.trim() && !l.includes('───') && !l.includes('Assessed against'))
+    .filter(l => l.trim() && !l.includes('───') && !l.includes('Assessed against') && !l.includes('Scored:'))
     .map(l => l.trim()).join(' ') : '';
 
   let html = '<div class="ai-review-panel">';
-  html += '<div class="ai-panel-title"><span style="font-size:1.1rem">&#9733;</span> AI Assessment</div>';
 
+  // Compact header: label + percentage on one line
   if (overall) {
-    html += `<div class="ai-overall">${overall.replace(/Strong Match|Good Match|Partial Match|Weak Match/,
-      m => `<span class="ai-label ${overallClass}">${m}</span>`)}</div>`;
+    const matchLabel = overall.match(/Strong Match|Good Match|Partial Match|Weak Match/);
+    html += `<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+      <div style="display:flex;align-items:center;gap:8px;">
+        ${matchLabel ? `<span class="ai-label ${overallClass}">${matchLabel[0]}</span>` : ''}
+        <span style="font-size:1.1rem;font-weight:800;color:#1e293b;">${overallPct}</span>
+      </div>
+    </div>`;
   }
 
+  // 3-column grid for breakdown — compact cards
   if (breakdownItems.length) {
-    html += '<div class="ai-breakdown">';
+    html += '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-bottom:10px;">';
     breakdownItems.forEach(b => {
-      html += `<div class="ai-breakdown-item">
-        <span class="ai-dim">${b.dim}</span>
-        <span class="ai-stars">${b.stars}</span>
-        <span class="ai-desc">${b.desc}</span>
+      html += `<div style="background:rgba(255,255,255,.5);border-radius:6px;padding:6px 8px;">
+        <div style="font-size:.68rem;color:var(--text-light);font-weight:600;margin-bottom:2px;">${b.dim}</div>
+        <div style="color:#f59e0b;font-size:.72rem;letter-spacing:1px;margin-bottom:1px;">${b.stars}</div>
+        <div style="font-size:.68rem;color:var(--text);line-height:1.3;">${b.desc}</div>
       </div>`;
     });
     html += '</div>';
   }
 
+  // Observations — single compact list
   if (observations.length) {
-    html += '<div class="ai-observations">';
-    observations.forEach(o => { html += `<p>• ${o}</p>`; });
+    html += '<div style="margin-bottom:8px;font-size:.75rem;color:var(--text);line-height:1.5;">';
+    observations.forEach(o => { html += `<div style="margin-bottom:1px;">• ${o}</div>`; });
     html += '</div>';
   }
 
+  // Recommendation — compact box
   if (recommendation) {
     html += `<div class="ai-recommendation"><strong>Recommendation:</strong> ${recommendation}</div>`;
   }
 
-  // If we couldn't parse structured data, just show the raw text
+  // Fallback: raw text
   if (!overall && !breakdownItems.length) {
-    html += `<pre style="white-space:pre-wrap;font-size:.82rem;line-height:1.6;font-family:inherit;">${text}</pre>`;
+    html += `<pre style="white-space:pre-wrap;font-size:.78rem;line-height:1.5;font-family:inherit;">${text}</pre>`;
   }
 
   html += '</div>';
