@@ -636,6 +636,8 @@ tr { cursor:pointer; transition:background .1s; }
   .content { padding:16px 12px; }
 }
 
+@keyframes spin { to { transform:rotate(360deg); } }
+
 </style>
 <script>
   // ══════════════════════════════════════════════════════════════
@@ -719,6 +721,7 @@ tr { cursor:pointer; transition:background .1s; }
     <h1 id="pageTitle">Dashboard</h1>
     <div class="topbar-actions">
       <input type="text" class="topbar-search" placeholder="Search candidates..." id="globalSearch" onkeyup="handleGlobalSearch()">
+      <button class="btn btn-sm" onclick="scoreAllUnscored()" style="font-size:.78rem;background:linear-gradient(135deg,#8b5cf6,#6366f1);color:#fff;border:none;white-space:nowrap;" title="Score all unscored candidates with AI">&#9733; AI Score All</button>
       <a href="acquire-talent-partners.html" target="_blank" class="btn btn-secondary btn-sm">&#127760; View Careers Site</a>
     </div>
   </div>
@@ -1359,12 +1362,15 @@ function openDrawer(id) {
   body += `<div class="d-section">
     <div class="d-section-title" style="display:flex;align-items:center;justify-content:space-between;">
       AI Assessment
-      ${aiNote ? `<span style="font-size:.72rem;color:${aiColor};font-weight:600">Auto-scored on application</span>` : ''}
+      <div style="display:flex;gap:8px;align-items:center;">
+        ${aiNote ? `<span style="font-size:.72rem;color:${aiColor};font-weight:600">Auto-scored</span>` : ''}
+        ${c._serverManaged ? `<button class="btn btn-sm" style="font-size:.72rem;padding:4px 10px;min-height:auto;background:linear-gradient(135deg,#8b5cf6,#6366f1);color:#fff;border:none;border-radius:6px;cursor:pointer;" onclick="requestAIScore('${c.id}')">${aiNote ? '&#x21bb; Re-score' : '&#9733; Score Now'}</button>` : ''}
+      </div>
     </div>
     <div id="aiReviewPanel">
       ${aiNote ? renderAIReview(aiNote.text) : `
         <div style="text-align:center;padding:20px;color:var(--text-xs);font-size:.85rem;">
-          ${c._serverManaged ? 'AI scoring is applied automatically when candidates apply. This candidate may have been added before scoring was enabled.' : 'AI scoring is only available for real applications (not demo data).'}
+          ${c._serverManaged ? 'No AI score yet. Click <strong>Score Now</strong> above to generate one, or it will be scored automatically on new applications.' : 'AI scoring is only available for real applications (not demo data).'}
         </div>
       `}
     </div>
@@ -1539,8 +1545,43 @@ function renderAIReview(text) {
   return html;
 }
 
-// AI scoring now happens automatically on the server when a candidate applies.
-// No manual "Request AI Review" button needed.
+// ── AI Scoring: request score for a single candidate ──
+async function requestAIScore(id) {
+  const panel = document.getElementById('aiReviewPanel');
+  if (panel) panel.innerHTML = '<div style="text-align:center;padding:20px;color:var(--text-xs);font-size:.85rem;"><div class="spinner" style="display:inline-block;width:20px;height:20px;border:2px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .6s linear infinite;margin-bottom:8px;"></div><br>Scoring candidate against job advert...</div>';
+  try {
+    const result = await postToServer({ action: 'scoreApplication', id: id });
+    if (result && result.success) {
+      // Refresh the candidate data & re-open drawer
+      await fetchServerApplications();
+      render();
+      openDrawer(id);
+    } else {
+      if (panel) panel.innerHTML = '<div style="text-align:center;padding:20px;color:#ef4444;font-size:.85rem;">Scoring failed: ' + (result?.error || 'Unknown error') + '</div>';
+    }
+  } catch (err) {
+    if (panel) panel.innerHTML = '<div style="text-align:center;padding:20px;color:#ef4444;font-size:.85rem;">Scoring failed: ' + err.message + '</div>';
+  }
+}
+
+// ── AI Scoring: bulk score all unscored candidates ──
+async function scoreAllUnscored() {
+  const unscored = candidates.filter(c => c._serverManaged && (!c.aiRating || c.aiRating === 0));
+  if (!unscored.length) { alert('All candidates already have AI scores.'); return; }
+  if (!confirm('Score ' + unscored.length + ' unscored candidate(s)? This may take a moment.')) return;
+
+  let scored = 0, failed = 0;
+  for (const c of unscored) {
+    try {
+      const result = await postToServer({ action: 'scoreApplication', id: c.id });
+      if (result && result.success) scored++;
+      else failed++;
+    } catch (e) { failed++; }
+  }
+  alert('Scoring complete: ' + scored + ' scored, ' + failed + ' failed.');
+  await fetchServerApplications();
+  render();
+}
 
 function bindEvents() {}
 
