@@ -882,6 +882,10 @@ async function fetchServerApplications() {
           motivation: app.motivation || '',
           commPreference: app.commPreference || ['Email'],
           commDetails: app.commDetails || {},
+          cvFileUrl: app.cvFileUrl || '',
+          cvFileName: app.cvFileName || '',
+          clFileUrl: app.clFileUrl || '',
+          clFileName: app.clFileName || '',
           cvFile: app.cvFile || null,
           coverLetterFile: app.coverLetterFile || null,
           notes: (app.notes || []).map(n => ({ ...n, date: new Date(n.date || Date.now()) })),
@@ -1278,33 +1282,33 @@ function openDrawer(id) {
     ${c.motivation ? `<div style="margin-top:12px"><label style="font-size:.72rem;color:var(--text-xs);display:block;margin-bottom:4px">Motivation</label><p style="font-size:.88rem;line-height:1.7;background:var(--bg);padding:12px;border-radius:8px;border:1px solid var(--border)">${c.motivation}</p></div>` : ''}
   </div>`;
 
-  // Documents (CV / Cover Letter)
+  // Documents (CV / Cover Letter) — uses Google Drive URLs from server
+  const hasCv = !!(c.cvFileUrl);
+  const hasCl = !!(c.clFileUrl);
   body += `<div class="d-section">
     <div class="d-section-title">Documents</div>
     <div style="display:flex;flex-direction:column;gap:10px">
-      ${c.cvFile ? `
+      ${hasCv ? `
       <div style="display:flex;align-items:center;gap:12px;background:var(--bg);padding:12px 16px;border-radius:8px;border:1px solid var(--border)">
         <span style="font-size:1.4rem">&#128196;</span>
         <div style="flex:1;min-width:0">
-          <p style="font-weight:600;font-size:.88rem;margin-bottom:2px">${c.cvFile.name}</p>
-          <p style="font-size:.72rem;color:var(--text-xs)">${(c.cvFile.size / 1024).toFixed(0)} KB &middot; CV / Resume</p>
+          <p style="font-weight:600;font-size:.88rem;margin-bottom:2px">${c.cvFileName || 'CV / Resume'}</p>
+          <p style="font-size:.72rem;color:var(--text-xs)">Stored in Google Drive &middot; CV / Resume</p>
         </div>
-        <a href="${c.cvFile.dataUrl}" download="${c.cvFile.name}" style="padding:6px 14px;border-radius:6px;background:var(--accent);color:#fff;font-size:.78rem;font-weight:600;text-decoration:none;white-space:nowrap">Download</a>
-        ${c.cvFile.type === 'application/pdf' ? `<button onclick="previewDocument('${c.id}','cv')" style="padding:6px 14px;border-radius:6px;background:transparent;border:1px solid var(--accent);color:var(--accent);font-size:.78rem;font-weight:600;cursor:pointer;white-space:nowrap">Preview</button>` : ''}
+        <a href="${c.cvFileUrl}" target="_blank" style="padding:6px 14px;border-radius:6px;background:var(--accent);color:#fff;font-size:.78rem;font-weight:600;text-decoration:none;white-space:nowrap">Open</a>
       </div>` : `
       <div style="display:flex;align-items:center;gap:12px;background:var(--bg);padding:12px 16px;border-radius:8px;border:1px solid var(--border)">
         <span style="font-size:1.4rem;opacity:.4">&#128196;</span>
         <div style="flex:1"><p style="font-size:.88rem;color:var(--text-xs)">No CV / Resume uploaded</p></div>
       </div>`}
-      ${c.coverLetterFile ? `
+      ${hasCl ? `
       <div style="display:flex;align-items:center;gap:12px;background:var(--bg);padding:12px 16px;border-radius:8px;border:1px solid var(--border)">
         <span style="font-size:1.4rem">&#128221;</span>
         <div style="flex:1;min-width:0">
-          <p style="font-weight:600;font-size:.88rem;margin-bottom:2px">${c.coverLetterFile.name}</p>
-          <p style="font-size:.72rem;color:var(--text-xs)">${(c.coverLetterFile.size / 1024).toFixed(0)} KB &middot; Cover Letter</p>
+          <p style="font-weight:600;font-size:.88rem;margin-bottom:2px">${c.clFileName || 'Cover Letter'}</p>
+          <p style="font-size:.72rem;color:var(--text-xs)">Stored in Google Drive &middot; Cover Letter</p>
         </div>
-        <a href="${c.coverLetterFile.dataUrl}" download="${c.coverLetterFile.name}" style="padding:6px 14px;border-radius:6px;background:var(--accent);color:#fff;font-size:.78rem;font-weight:600;text-decoration:none;white-space:nowrap">Download</a>
-        ${c.coverLetterFile.type === 'application/pdf' ? `<button onclick="previewDocument('${c.id}','cl')" style="padding:6px 14px;border-radius:6px;background:transparent;border:1px solid var(--accent);color:var(--accent);font-size:.78rem;font-weight:600;cursor:pointer;white-space:nowrap">Preview</button>` : ''}
+        <a href="${c.clFileUrl}" target="_blank" style="padding:6px 14px;border-radius:6px;background:var(--accent);color:#fff;font-size:.78rem;font-weight:600;text-decoration:none;white-space:nowrap">Open</a>
       </div>` : `
       <div style="display:flex;align-items:center;gap:12px;background:var(--bg);padding:12px 16px;border-radius:8px;border:1px solid var(--border)">
         <span style="font-size:1.4rem;opacity:.4">&#128221;</span>
