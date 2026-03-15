@@ -644,7 +644,7 @@ tr { cursor:pointer; transition:background .1s; }
   // Backend URL — Google Apps Script Web App
   // ══════════════════════════════════════════════════════════════
   // PASTE YOUR GOOGLE APPS SCRIPT WEB APP URL HERE:
-  const EMAIL_SERVER_URL = 'https://script.google.com/a/macros/acquiretalentpartners.com/s/AKfycby4kgV5gCaupOWGELUY8uYdzSslKpLaWDD8k4lbopD0AhEnqiM4GdjW3SJIGlR-yGA/exec';
+  const ATS_SERVER_URL = 'https://script.google.com/a/macros/acquiretalentpartners.com/s/AKfycby4kgV5gCaupOWGELUY8uYdzSslKpLaWDD8k4lbopD0AhEnqiM4GdjW3SJIGlR-yGA/exec';
 
   // ── Mobile sidebar toggle ──
   function toggleMobileSidebar() {
@@ -695,13 +695,13 @@ tr { cursor:pointer; transition:background .1s; }
     <a href="#" onclick="setView('pipeline')"><span class="icon">&#9654;</span> Pipeline</a>
     <a href="#" onclick="setView('candidates')"><span class="icon">&#128100;</span> All Candidates</a>
     <div class="section-label">Manage</div>
-    <a href="#"><span class="icon">&#128188;</span> Jobs</a>
-    <a href="#"><span class="icon">&#128197;</span> Interviews</a>
+    <a href="#" onclick="setView('jobs')"><span class="icon">&#128188;</span> Jobs</a>
+    <a href="#" onclick="setView('interviews')"><span class="icon">&#128197;</span> Interviews</a>
     <a href="#" onclick="setView('emails')"><span class="icon">&#9993;</span> Email Templates</a>
-    <a href="#"><span class="icon">&#128200;</span> Reports</a>
+    <a href="#" onclick="setView('reports')"><span class="icon">&#128200;</span> Reports</a>
     <div class="section-label">Settings</div>
-    <a href="#"><span class="icon">&#9881;</span> Configuration</a>
-    <a href="#"><span class="icon">&#128101;</span> Team</a>
+    <a href="#" onclick="setView('settings')"><span class="icon">&#9881;</span> Configuration</a>
+    <a href="#" onclick="setView('team')"><span class="icon">&#128101;</span> Team</a>
   </nav>
   <div class="sidebar-user">
     <div class="avatar">SV</div>
@@ -765,7 +765,6 @@ tr { cursor:pointer; transition:background .1s; }
 // ═══════════ AUTH ═══════════
 const ATS_CREDENTIALS = {
   email: 'simon@acquiretalentpartners.com',
-  // SHA-256 hash of the password — not stored in plain text
   password: 'AcquireATS2026!'
 };
 
@@ -798,30 +797,10 @@ if (sessionStorage.getItem('ats_auth') === 'true') {
 const statuses = ['new','reviewing','interview','offer','hired','rejected','withdrawn'];
 const statusLabels = { new:'New', reviewing:'Reviewing', interview:'Interview', offer:'Offer', hired:'Hired', rejected:'Rejected', withdrawn:'Withdrawn' };
 
-// Generate demo candidates
-const jobTitles = [
-  "Senior Software Engineer — Cloud Platform", "Staff Machine Learning Engineer", "Frontend Engineer — Design Systems",
-  "DevOps Engineer", "Backend Engineer — Payments", "Product Manager — Enterprise Platform",
-  "Senior UX Designer", "Enterprise Account Executive", "Management Consultant — Digital Transformation",
-  "Talent Acquisition Partner — Technology", "Financial Analyst — FP&A", "Data Engineer",
-  "Cybersecurity Analyst", "Legal Counsel — Commercial Contracts", "Renewable Energy Project Engineer",
-  "AI Research Scientist", "Senior Strategy Consultant", "HR Business Partner — APAC",
-  "Digital Marketing Manager", "Site Reliability Engineer", "Solutions Architect — Pre-Sales",
-  "Clinical Systems Analyst", "ESG Reporting Analyst", "Platform Engineer — Kubernetes",
-  "Content Strategist", "UX Researcher", "Business Development Manager — APAC",
-  "Software Engineering Intern — Summer 2026", "Sales Development Representative", "Head of Diversity, Equity & Inclusion"
-];
-
-const locations = ["London, UK","New York, US","Singapore","Frankfurt, DE","Tokyo, JP","Dubai, UAE","Sydney, AU","Toronto, CA","Bangalore, IN","São Paulo, BR","Remote"];
-const sources = ["Careers Site","LinkedIn","Indeed","Referral","Glassdoor","Agency","University"];
+// Reference data for filters and forms
 const departments = ["Engineering","Product","Sales","Consulting","Finance","HR","Marketing","Operations","Legal","Healthcare","Energy","Security"];
+const sources = ["Careers Site","LinkedIn","Indeed","Referral","Glassdoor","Agency","University"];
 
-const firstNames = ["James","Emma","Liam","Olivia","Noah","Ava","Ethan","Sophia","Mason","Isabella","Lucas","Mia","Alexander","Charlotte","Benjamin","Amelia","Daniel","Harper","Matthew","Evelyn","Aiden","Luna","Henry","Camila","Sebastian","Aria","Jack","Scarlett","Owen","Madison","Samuel","Layla","Ryan","Chloe","Nathan","Penelope","Leo","Riley","Raj","Priya","Wei","Yuki","Ahmed","Fatima","Carlos","Maria","Ivan","Katya","Kwame","Chioma","Hiroshi","Sakura","Omar","Leila","Matteo","Giulia","Lars","Freya","Diego","Valentina"];
-const lastNames = ["Smith","Johnson","Williams","Brown","Jones","Garcia","Miller","Davis","Rodriguez","Martinez","Chen","Wang","Kim","Patel","Nakamura","Singh","Ali","Okafor","Müller","Johansson","Rossi","Dubois","Santos","Petrov","Nguyen","O'Brien","Andersen","Yamamoto","Chowdhury","Van den Berg","Kowalski","Fernandez","Bianchi","Larsson","Sato","Krishnamurthy","Al-Hassan","Nwosu","Weber","Berg","Costa","Tanaka","Gupta","Reeves","Harrison","Campbell","Thompson","Mitchell","Turner","Wright"];
-
-function randomDate(start, end) {
-  return new Date(start.getTime() + Math.random() * (end.getTime() - start.getTime()));
-}
 function formatDate(d) {
   const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
   return d.getDate() + ' ' + months[d.getMonth()] + ' ' + d.getFullYear();
@@ -829,8 +808,6 @@ function formatDate(d) {
 function formatDateTime(d) {
   return formatDate(d) + ', ' + d.getHours().toString().padStart(2,'0') + ':' + d.getMinutes().toString().padStart(2,'0');
 }
-function randomItem(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
-function randomRating() { return Math.floor(Math.random() * 5) + 1; }
 
 // ── Server-backed application storage (Google Apps Script) ──
 // PASTE YOUR GOOGLE APPS SCRIPT WEB APP URL HERE:
@@ -888,6 +865,11 @@ async function fetchServerApplications() {
           clFileName: app.clFileName || '',
           cvFile: app.cvFile || null,
           coverLetterFile: app.coverLetterFile || null,
+          screenResponses: app.screenResponses || [],
+          matchScore: Number(app.matchScore) || 0,
+          screenScore: Number(app.screenScore) || 0,
+          combinedScore: Number(app.combinedScore) || 0,
+          aiNarrative: app.aiNarrative || '',
           notes: (app.notes || []).map(n => ({ ...n, date: new Date(n.date || Date.now()) })),
           timeline: (app.timeline || []).map(t => ({ ...t, date: new Date(t.date || Date.now()) })),
           _serverManaged: true  // Flag so we know to sync changes back
@@ -917,72 +899,7 @@ async function syncToServer(candidate) {
 }
 
 const candidates = [];
-
-// Generate 85 demo candidates
-for (let i = 0; i < 85; i++) {
-  const first = randomItem(firstNames);
-  const last = randomItem(lastNames);
-  const applied = randomDate(new Date('2026-01-05'), new Date('2026-02-20'));
-  const status = randomItem(['new','new','new','reviewing','reviewing','interview','interview','offer','hired','rejected','withdrawn']);
-  const rating = status === 'new' ? (Math.random() > .5 ? 0 : randomRating()) : randomRating();
-  const job = randomItem(jobTitles);
-  const dept = randomItem(departments);
-  const notes = [];
-  if (status !== 'new') {
-    notes.push({ text: 'CV reviewed. ' + (rating >= 4 ? 'Strong background, relevant experience.' : rating >= 3 ? 'Decent profile, some gaps in experience.' : 'Below average fit for the role.'), author: 'Simon Valentine', date: new Date(applied.getTime() + 86400000 * (1 + Math.floor(Math.random() * 3))) });
-  }
-  if (['interview','offer','hired'].includes(status)) {
-    notes.push({ text: randomItem(['Good technical depth in the interview. Communicates well.', 'Panel was impressed. Culture fit is strong.', 'Solid answers but needs to sharpen on system design.', 'Excellent presentation. Team unanimous on progressing.', 'Strong problem-solving. Would complement the existing team well.']), author: randomItem(['Simon Valentine','Sarah Chen','Tom Barrett']), date: new Date(applied.getTime() + 86400000 * (4 + Math.floor(Math.random() * 5))) });
-  }
-  if (status === 'offer' || status === 'hired') {
-    notes.push({ text: status === 'hired' ? 'Offer accepted. Start date confirmed.' : 'Offer sent. Awaiting response.', author: 'Simon Valentine', date: new Date(applied.getTime() + 86400000 * (10 + Math.floor(Math.random() * 5))) });
-  }
-  if (status === 'rejected') {
-    notes.push({ text: randomItem(['Did not meet minimum requirements for the role.','Decided to go with a stronger candidate.','Culture fit concerns raised by panel.','Withdrew after receiving another offer — marked as rejected.']), author: 'Simon Valentine', date: new Date(applied.getTime() + 86400000 * (3 + Math.floor(Math.random() * 5))) });
-  }
-
-  const timeline = [{ action: 'Applied via ' + randomItem(sources), date: applied }];
-  if (status !== 'new') timeline.push({ action: 'Moved to Reviewing', date: new Date(applied.getTime() + 86400000 * 2) });
-  if (['interview','offer','hired'].includes(status)) timeline.push({ action: 'Interview scheduled', date: new Date(applied.getTime() + 86400000 * 5) });
-  if (['offer','hired'].includes(status)) timeline.push({ action: 'Offer extended', date: new Date(applied.getTime() + 86400000 * 12) });
-  if (status === 'hired') timeline.push({ action: 'Offer accepted', date: new Date(applied.getTime() + 86400000 * 15) });
-  if (status === 'rejected') timeline.push({ action: 'Application rejected', date: new Date(applied.getTime() + 86400000 * 7) });
-
-  candidates.push({
-    id: 'ATP-' + (2000 + i),
-    firstName: first,
-    lastName: last,
-    email: first.toLowerCase() + '.' + last.toLowerCase() + '@email.com',
-    phone: '+' + (Math.floor(Math.random() * 80) + 1) + ' ' + Math.floor(1000000000 + Math.random() * 9000000000),
-    location: randomItem(locations),
-    job: job,
-    department: dept,
-    source: randomItem(sources),
-    status: status,
-    rating: rating,
-    appliedDate: applied,
-    linkedin: Math.random() > .3 ? 'linkedin.com/in/' + first.toLowerCase() + last.toLowerCase() : '',
-    salary: randomItem(['','£80K–100K','$120K–150K','€90K–110K','SGD 100K–130K','AED 300K+','Negotiable']),
-    notice: randomItem(['Immediately','1 week','2 weeks','1 month','2 months','3 months']),
-    experience: randomItem(['< 1 year','1–2 years','3–5 years','6–10 years','10–15 years','15+ years']),
-    visa: randomItem(['Yes — right to work','Yes — with sponsorship','Requires sponsorship']),
-    commPreference: (() => { const opts = ['Phone','Text/SMS','Email','WhatsApp','LinkedIn Messages','WeChat']; const n = 1 + Math.floor(Math.random() * 3); const shuffled = opts.sort(() => .5 - Math.random()); return shuffled.slice(0, n); })(),
-    commDetails: (() => {
-      const d = {}; const email = first.toLowerCase() + '.' + last.toLowerCase() + '@email.com';
-      const phone = '+' + (Math.floor(Math.random() * 80) + 1) + ' ' + Math.floor(1000000000 + Math.random() * 9000000000);
-      const handle = first.toLowerCase() + last.toLowerCase().charAt(0);
-      if (Math.random() > .3) d['Phone'] = phone;
-      if (Math.random() > .5) d['Email'] = email;
-      if (Math.random() > .6) d['WhatsApp'] = phone;
-      if (Math.random() > .7) d['LinkedIn Messages'] = 'linkedin.com/in/' + handle;
-      if (Math.random() > .9) d['WeChat'] = handle + '_wc';
-      return d;
-    })(),
-    motivation: '',
-    notes: notes,
-    timeline: timeline
-  });
-}
+// All candidate data comes from the server — no demo data
 
 // ═══════════ STATE ═══════════
 let currentView = 'dashboard';
@@ -997,20 +914,35 @@ const pageSize = 20;
 function setView(view) {
   currentView = view;
   document.querySelectorAll('.sidebar-nav a').forEach(a => a.classList.remove('active'));
-  const labels = { dashboard:'Dashboard', pipeline:'Pipeline', candidates:'All Candidates', emails:'Email Templates' };
+  const labels = {
+    dashboard:'Dashboard', pipeline:'Pipeline', candidates:'All Candidates',
+    jobs:'Jobs', interviews:'Interviews', emails:'Email Templates',
+    reports:'Reports', settings:'Configuration', team:'Team'
+  };
   if (event && event.target) event.target.closest('a').classList.add('active');
   document.getElementById('pageTitle').textContent = labels[view] || 'Dashboard';
   statusFilter = '';
   currentPage = 1;
   render();
+  // Close mobile sidebar if open
+  const sidebar = document.querySelector('.sidebar');
+  if (sidebar && sidebar.classList.contains('mobile-open')) toggleMobileSidebar();
 }
 
 function render() {
   const el = document.getElementById('mainContent');
-  if (currentView === 'dashboard') el.innerHTML = renderDashboard();
-  else if (currentView === 'pipeline') el.innerHTML = renderPipeline();
-  else if (currentView === 'candidates') el.innerHTML = renderCandidateList();
-  else if (currentView === 'emails') el.innerHTML = renderEmailTemplatesPage();
+  switch (currentView) {
+    case 'dashboard': el.innerHTML = renderDashboard(); break;
+    case 'pipeline': el.innerHTML = renderPipeline(); break;
+    case 'candidates': el.innerHTML = renderCandidateList(); break;
+    case 'jobs': el.innerHTML = renderJobsPage(); break;
+    case 'interviews': el.innerHTML = renderInterviewsPage(); break;
+    case 'emails': el.innerHTML = renderEmailTemplatesPage(); break;
+    case 'reports': el.innerHTML = renderReportsPage(); break;
+    case 'settings': el.innerHTML = renderSettingsPage(); break;
+    case 'team': el.innerHTML = renderTeamPage(); break;
+    default: el.innerHTML = renderDashboard();
+  }
   bindEvents();
 }
 
@@ -1019,6 +951,20 @@ function renderDashboard() {
   const counts = {};
   statuses.forEach(s => counts[s] = candidates.filter(c => c.status === s).length);
   const total = candidates.length;
+
+  if (total === 0) {
+    return `<div class="empty-state" style="padding:60px 20px;">
+      <div class="empty-icon" style="font-size:3rem;">&#128640;</div>
+      <h3 style="margin:16px 0 8px;font-weight:700;font-size:1.15rem;color:var(--primary);">Welcome to Acquire Talent Partners ATS</h3>
+      <p style="color:var(--text-light);font-size:.92rem;max-width:500px;margin:0 auto 20px;line-height:1.7;">Your applicant tracking system is ready. Candidates will appear here as they apply through your careers site.</p>
+      <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;">
+        <button class="btn btn-primary btn-sm" onclick="testServerConnection()">&#128268; Test Server Connection</button>
+        <a href="acquire-talent-partners.html" target="_blank" class="btn btn-secondary btn-sm">&#127760; Open Careers Site</a>
+      </div>
+      <div id="serverTestResult" style="margin-top:16px;"></div>
+    </div>`;
+  }
+
   const thisWeek = candidates.filter(c => (Date.now() - c.appliedDate.getTime()) < 7 * 86400000).length;
 
   return `
@@ -1105,6 +1051,15 @@ function renderPipeline() {
 
 // ═══════════ CANDIDATE LIST ═══════════
 function renderCandidateList() {
+  const filtered = getFilteredCandidates();
+  if (candidates.length === 0) {
+    return `<div class="empty-state">
+      <div class="empty-icon">&#128100;</div>
+      <h3 style="margin:12px 0 8px;font-weight:700;color:var(--text);">No Candidates Yet</h3>
+      <p style="color:var(--text-light);font-size:.88rem;max-width:440px;margin:0 auto;">Candidates will appear here when they apply through the careers site. Share your careers page to start receiving applications.</p>
+      <button class="btn btn-primary btn-sm" style="margin-top:16px;" onclick="testServerConnection().then(()=>fetchServerApplications())">&#128260; Check Server</button>
+    </div>`;
+  }
   return `
     <div class="filters-bar">
       <select class="filter-select" id="listStatusFilter" onchange="statusFilter=this.value;currentPage=1;render()">
@@ -1116,9 +1071,10 @@ function renderCandidateList() {
         ${departments.map(d => `<option value="${d}" ${deptFilter===d?'selected':''}>${d}</option>`).join('')}
       </select>
       <span style="flex:1"></span>
-      <span style="font-size:.82rem;color:var(--text-light)">${getFilteredCandidates().length} candidates</span>
+      <button class="btn btn-sm btn-secondary" onclick="exportCandidatesCSV()" style="margin-right:10px;">&#128229; Export CSV</button>
+      <span style="font-size:.82rem;color:var(--text-light)">${filtered.length} candidates</span>
     </div>
-    ${renderTable(getFilteredCandidates())}
+    ${renderTable(filtered)}
   `;
 }
 
@@ -1361,8 +1317,15 @@ function openDrawer(id) {
     </div>
   </div>`;
 
-  // AI Assessment (auto-generated on application)
+  // AI Assessment — Enhanced Dual Scoring (Match + Screen)
   const aiNote = c.notes.find(n => n.author === 'AI Review Agent');
+  const matchPct = c.matchScore || 0;
+  const screenPct = c.screenScore || 0;
+  const combinedPct = c.combinedScore || 0;
+  const hasScreenScore = screenPct > 0;
+  let aiNarrative = null;
+  try { aiNarrative = typeof c.aiNarrative === 'string' && c.aiNarrative ? JSON.parse(c.aiNarrative) : c.aiNarrative; } catch(e) {}
+
   body += `<div class="d-section">
     <div class="d-section-title" style="display:flex;align-items:center;justify-content:space-between;">
       AI Assessment
@@ -1371,13 +1334,93 @@ function openDrawer(id) {
         ${c._serverManaged ? `<button class="btn btn-sm" style="font-size:.72rem;padding:4px 10px;min-height:auto;background:linear-gradient(135deg,#8b5cf6,#6366f1);color:#fff;border:none;border-radius:6px;cursor:pointer;" onclick="requestAIScore('${c.id}')">${aiNote ? '&#x21bb; Re-score' : '&#9733; Score Now'}</button>` : ''}
       </div>
     </div>
-    <div id="aiReviewPanel">
-      ${aiNote ? renderAIReview(aiNote.text) : `
-        <div style="text-align:center;padding:20px;color:var(--text-xs);font-size:.85rem;">
-          ${c._serverManaged ? 'No AI score yet. Click <strong>Score Now</strong> above to generate one, or it will be scored automatically on new applications.' : 'AI scoring is only available for real applications (not demo data).'}
+    <div id="aiReviewPanel">`;
+
+  if (aiNote) {
+    // Show enhanced dual scoring if combined score exists
+    if (combinedPct > 0 || matchPct > 0) {
+      const combColor = combinedPct >= 80 ? '#10b981' : combinedPct >= 60 ? '#f59e0b' : combinedPct >= 40 ? '#f97316' : '#ef4444';
+      const combLabel = combinedPct >= 80 ? 'Strong Match' : combinedPct >= 60 ? 'Good Match' : combinedPct >= 40 ? 'Partial Match' : 'Weak Match';
+
+      body += `<div style="background:var(--bg);border-radius:8px;padding:16px;margin-bottom:12px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+          <div style="display:flex;align-items:center;gap:10px;">
+            <div style="font-size:1.4rem;font-weight:800;color:${combColor};">${combinedPct || matchPct}%</div>
+            <span style="font-size:.78rem;background:${combColor}15;color:${combColor};padding:3px 12px;border-radius:10px;font-weight:700;">${combLabel}</span>
+          </div>
+        </div>`;
+
+      if (hasScreenScore) {
+        body += `<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px;">
+          <div style="background:var(--bg-white);border:1px solid var(--border);border-radius:6px;padding:10px;text-align:center;">
+            <div style="font-size:.68rem;color:var(--text-light);font-weight:600;margin-bottom:4px;">MATCH SCORE</div>
+            <div style="font-size:1.1rem;font-weight:800;color:#2563eb;">${matchPct}%</div>
+            <div style="font-size:.65rem;color:var(--text-xs);">Profile-based</div>
+          </div>
+          <div style="background:var(--bg-white);border:1px solid var(--border);border-radius:6px;padding:10px;text-align:center;">
+            <div style="font-size:.68rem;color:var(--text-light);font-weight:600;margin-bottom:4px;">SCREEN SCORE</div>
+            <div style="font-size:1.1rem;font-weight:800;color:#8b5cf6;">${screenPct}%</div>
+            <div style="font-size:.65rem;color:var(--text-xs);">Response-based</div>
+          </div>
+        </div>`;
+      }
+
+      // AI Narrative
+      if (aiNarrative && aiNarrative.narrative) {
+        body += `<div style="background:#f0f9ff;border-left:3px solid #2563eb;border-radius:4px;padding:10px 12px;margin-bottom:12px;">
+          <p style="font-size:.8rem;color:var(--text);line-height:1.6;margin:0;">${aiNarrative.narrative}</p>
+        </div>`;
+
+        if (aiNarrative.strengths && aiNarrative.strengths.length) {
+          body += '<div style="margin-bottom:8px;">';
+          aiNarrative.strengths.forEach(s => {
+            body += '<span style="display:inline-block;font-size:.68rem;background:#dcfce7;color:#166534;padding:2px 8px;border-radius:10px;margin:2px 4px 2px 0;">&#10003; ' + s + '</span>';
+          });
+          body += '</div>';
+        }
+        if (aiNarrative.concerns && aiNarrative.concerns.length) {
+          body += '<div style="margin-bottom:8px;">';
+          aiNarrative.concerns.forEach(s => {
+            body += '<span style="display:inline-block;font-size:.68rem;background:#fef2f2;color:#dc2626;padding:2px 8px;border-radius:10px;margin:2px 4px 2px 0;">&#9888; ' + s + '</span>';
+          });
+          body += '</div>';
+        }
+        if (aiNarrative.nextStep) {
+          body += '<div style="font-size:.78rem;color:var(--text);margin-top:8px;"><strong>Next step:</strong> ' + aiNarrative.nextStep + '</div>';
+        }
+      }
+
+      body += '</div>';
+    }
+
+    // Still show the full scorecard breakdown
+    body += renderAIReview(aiNote.text);
+  } else {
+    body += `<div style="text-align:center;padding:20px;color:var(--text-xs);font-size:.85rem;">
+      ${c._serverManaged ? 'No AI score yet. Click <strong>Score Now</strong> above to generate one, or it will be scored automatically on new applications.' : 'AI scoring is only available for real applications submitted through the careers site.'}
+    </div>`;
+  }
+
+  // Show screening responses if available
+  const screenResponses = c.screenResponses || [];
+  if (screenResponses.length > 0) {
+    body += `<div style="margin-top:12px;border-top:1px solid var(--border);padding-top:12px;">
+      <div style="font-size:.78rem;font-weight:700;color:var(--text);margin-bottom:8px;">Screening Responses (${screenResponses.length})</div>`;
+    screenResponses.forEach((r, i) => {
+      const catColors = { technical: '#6366f1', experience: '#2563eb', motivation: '#10b981', problem_solving: '#f59e0b', cultural_fit: '#8b5cf6' };
+      body += `<div style="background:var(--bg);border-radius:6px;padding:10px;margin-bottom:8px;">
+        <div style="display:flex;gap:6px;align-items:center;margin-bottom:4px;">
+          <span style="font-size:.65rem;background:${catColors[r.category] || '#64748b'};color:#fff;padding:1px 6px;border-radius:8px;font-weight:600;text-transform:uppercase;">${(r.category || '').replace('_',' ')}</span>
+          ${r.mustHave ? '<span style="font-size:.65rem;background:#fef2f2;color:#dc2626;padding:1px 6px;border-radius:8px;font-weight:600;">Must-have</span>' : ''}
         </div>
-      `}
-    </div>
+        <p style="font-size:.78rem;font-weight:600;color:var(--text);margin-bottom:4px;">${r.question || 'Question ' + (i+1)}</p>
+        <p style="font-size:.78rem;color:var(--text-light);line-height:1.5;margin:0;">${r.answer || '<em>No response</em>'}</p>
+      </div>`;
+    });
+    body += '</div>';
+  }
+
+  body += `</div>
   </div>`;
 
   // Notes
@@ -1594,6 +1637,601 @@ async function scoreAllUnscored() {
   alert('Scoring complete: ' + scored + ' scored, ' + failed + ' failed.');
   await fetchServerApplications();
   render();
+}
+
+// ═══════════ JOBS PAGE ═══════════
+// Jobs are derived from real candidate data — unique job titles from applications
+function getJobsList() {
+  const jobMap = {};
+  candidates.forEach(c => {
+    if (!jobMap[c.job]) {
+      jobMap[c.job] = { title: c.job, department: c.department, location: c.location, candidates: 0, new: 0, interview: 0, offer: 0, hired: 0, active: true };
+    }
+    jobMap[c.job].candidates++;
+    if (c.status === 'new') jobMap[c.job].new++;
+    if (c.status === 'interview') jobMap[c.job].interview++;
+    if (c.status === 'offer') jobMap[c.job].offer++;
+    if (c.status === 'hired') jobMap[c.job].hired++;
+  });
+  return Object.values(jobMap).sort((a, b) => b.candidates - a.candidates);
+}
+
+// Screening questions cache
+let screeningQuestionsCache = {};
+let screeningQuestionsLoaded = false;
+
+async function loadAllScreeningQuestions() {
+  try {
+    const res = await fetch(ATS_SERVER_URL + '?action=getAllScreeningQuestions', { redirect: 'follow' });
+    const data = await res.json();
+    if (data.success && data.jobs) {
+      screeningQuestionsCache = {};
+      data.jobs.forEach(j => { screeningQuestionsCache[j.jobTitle] = j; });
+      screeningQuestionsLoaded = true;
+    }
+  } catch (e) { console.log('Failed to load screening questions:', e.message); }
+}
+
+function renderJobsPage() {
+  const jobs = getJobsList();
+
+  // Load screening questions in background
+  if (!screeningQuestionsLoaded) loadAllScreeningQuestions();
+
+  if (jobs.length === 0) {
+    return `<div class="empty-state">
+      <div class="empty-icon">&#128188;</div>
+      <h3 style="margin:12px 0 8px;font-weight:700;color:var(--text);">No Active Jobs</h3>
+      <p style="color:var(--text-light);font-size:.88rem;max-width:400px;margin:0 auto;">Jobs will appear here automatically when candidates apply through the careers site. Each unique job title creates an entry.</p>
+    </div>`;
+  }
+
+  let html = `<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
+    <div><h2 style="font-size:1.1rem;font-weight:700;">Active Positions</h2>
+    <p style="font-size:.82rem;color:var(--text-light);margin-top:2px;">${jobs.length} roles with ${candidates.length} total candidates</p></div>
+    <div style="display:flex;gap:8px;">
+      <button class="btn btn-sm" onclick="generateAllScreeningQuestions()" style="font-size:.78rem;background:linear-gradient(135deg,#8b5cf6,#6366f1);color:#fff;border:none;">&#9733; Generate All Screening Questions</button>
+      <button class="btn btn-primary btn-sm" onclick="exportJobsCSV()">&#128229; Export CSV</button>
+    </div>
+  </div>`;
+
+  html += '<div class="table-wrapper"><table><thead><tr>';
+  html += '<th>Job Title</th><th>Department</th><th>Location</th><th>Candidates</th><th>Screening</th><th>Actions</th>';
+  html += '</tr></thead><tbody>';
+
+  jobs.forEach(j => {
+    const sq = screeningQuestionsCache[j.title];
+    const hasQuestions = sq && sq.questions && sq.questions.length > 0;
+    const isActive = hasQuestions && String(sq.active) !== 'false';
+    const qCount = hasQuestions ? sq.questions.length : 0;
+
+    html += `<tr>
+      <td>
+        <strong style="color:var(--primary)">${j.title}</strong>
+        <div style="font-size:.72rem;color:var(--text-xs);margin-top:2px;">${j.department} &middot; &#128205; ${j.location}</div>
+      </td>
+      <td style="font-size:.82rem;color:var(--text-light)">${j.department}</td>
+      <td style="font-size:.82rem;color:var(--text-light)">${j.location}</td>
+      <td>
+        <span style="font-weight:700">${j.candidates}</span>
+        <div style="font-size:.68rem;color:var(--text-xs);">${j.new} new &middot; ${j.interview} interview &middot; ${j.hired} hired</div>
+      </td>
+      <td>
+        ${hasQuestions ?
+          `<span style="font-size:.72rem;padding:3px 10px;border-radius:10px;font-weight:600;background:${isActive ? '#dcfce7' : '#fef2f2'};color:${isActive ? '#166534' : '#dc2626'};">${isActive ? qCount + ' Questions Active' : 'Paused'}</span>` :
+          '<span style="font-size:.72rem;color:var(--text-xs)">No questions</span>'}
+      </td>
+      <td style="white-space:nowrap;">
+        <button class="btn btn-sm btn-secondary" onclick="openScreeningEditor('${j.title.replace(/'/g, "\\'")}')" style="font-size:.72rem;">${hasQuestions ? '&#9998; Edit' : '&#9733; Generate'}</button>
+        <button class="btn btn-sm btn-secondary" onclick="statusFilter='';currentPage=1;setView('candidates');document.getElementById('globalSearch').value='${j.title.replace(/'/g, "\\'")}';handleGlobalSearch();" style="font-size:.72rem;">View</button>
+      </td>
+    </tr>`;
+  });
+
+  html += '</tbody></table></div>';
+
+  // Screening question editor panel (hidden by default)
+  html += '<div id="screeningEditorPanel" style="display:none;margin-top:24px;"></div>';
+
+  return html;
+}
+
+// Generate screening questions for a single job
+async function openScreeningEditor(jobTitle) {
+  const panel = document.getElementById('screeningEditorPanel');
+  if (!panel) return;
+
+  const sq = screeningQuestionsCache[jobTitle];
+  const hasQuestions = sq && sq.questions && sq.questions.length > 0;
+
+  if (!hasQuestions) {
+    // Generate first
+    panel.style.display = 'block';
+    panel.innerHTML = '<div style="background:var(--bg-white);border:1px solid var(--border);border-radius:var(--radius);padding:24px;"><div style="text-align:center;padding:20px;color:var(--text-xs);font-size:.85rem;"><div class="spinner" style="display:inline-block;width:20px;height:20px;border:2px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .6s linear infinite;margin-bottom:8px;"></div><br>Generating AI screening questions for ' + jobTitle + '...</div></div>';
+    panel.scrollIntoView({ behavior: 'smooth' });
+
+    try {
+      const result = await postToServer({ action: 'generateScreeningQuestions', jobTitle: jobTitle });
+      if (result.success) {
+        screeningQuestionsCache[jobTitle] = { jobTitle: jobTitle, questions: result.questions, active: 'true', generatedBy: result.generatedBy };
+        renderScreeningEditor(jobTitle, result.questions);
+        render(); // refresh table
+      } else {
+        panel.innerHTML = '<div style="background:var(--bg-white);border:1px solid var(--border);border-radius:var(--radius);padding:24px;color:#dc2626;font-size:.85rem;">Failed to generate questions: ' + (result.error || 'Unknown error') + '</div>';
+      }
+    } catch (e) {
+      panel.innerHTML = '<div style="background:var(--bg-white);border:1px solid var(--border);border-radius:var(--radius);padding:24px;color:#dc2626;font-size:.85rem;">Error: ' + e.message + '</div>';
+    }
+  } else {
+    renderScreeningEditor(jobTitle, sq.questions);
+    panel.style.display = 'block';
+    panel.scrollIntoView({ behavior: 'smooth' });
+  }
+}
+
+function renderScreeningEditor(jobTitle, questions) {
+  const panel = document.getElementById('screeningEditorPanel');
+  if (!panel) return;
+
+  const sq = screeningQuestionsCache[jobTitle] || {};
+  const isActive = String(sq.active) !== 'false';
+  const catColors = { technical: '#6366f1', experience: '#2563eb', motivation: '#10b981', problem_solving: '#f59e0b', cultural_fit: '#8b5cf6' };
+
+  let html = `<div style="background:var(--bg-white);border:1px solid var(--border);border-radius:var(--radius);padding:24px;">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
+      <div>
+        <h3 style="font-size:1rem;font-weight:700;margin-bottom:4px;">Screening Questions: ${jobTitle}</h3>
+        <p style="font-size:.78rem;color:var(--text-light);">These questions appear on the careers site when candidates apply for this role. Edit questions, adjust weights, or toggle must-have flags.</p>
+      </div>
+      <div style="display:flex;gap:8px;">
+        <label style="display:flex;align-items:center;gap:6px;font-size:.78rem;cursor:pointer;">
+          <input type="checkbox" id="screeningActive" ${isActive ? 'checked' : ''} onchange="toggleScreeningActive('${jobTitle.replace(/'/g, "\\'")}', this.checked)">
+          Active
+        </label>
+        <button class="btn btn-sm" onclick="regenerateQuestions('${jobTitle.replace(/'/g, "\\'")}')" style="font-size:.72rem;background:linear-gradient(135deg,#8b5cf6,#6366f1);color:#fff;border:none;">&#8635; Regenerate</button>
+        <button class="btn btn-sm btn-secondary" onclick="document.getElementById('screeningEditorPanel').style.display='none'" style="font-size:.72rem;">Close</button>
+      </div>
+    </div>`;
+
+  questions.forEach((q, i) => {
+    const catCol = catColors[q.category] || '#64748b';
+    html += `<div style="background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:16px;margin-bottom:12px;" id="sqEdit${i}">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px;">
+        <div style="display:flex;gap:6px;align-items:center;">
+          <span style="font-size:.68rem;background:${catCol};color:#fff;padding:2px 8px;border-radius:10px;font-weight:600;text-transform:uppercase;">${q.category.replace('_',' ')}</span>
+          <span style="font-size:.68rem;background:${q.mustHave ? '#fef2f2' : '#f8fafc'};color:${q.mustHave ? '#dc2626' : '#64748b'};padding:2px 8px;border-radius:10px;font-weight:600;">${q.mustHave ? 'Must-have' : 'Nice-to-have'}</span>
+          <span style="font-size:.68rem;color:var(--text-xs);">Weight: ${q.weight}/5</span>
+        </div>
+        <button onclick="removeScreeningQuestion('${jobTitle.replace(/'/g, "\\'")}', ${i})" style="background:none;border:none;color:#dc2626;cursor:pointer;font-size:.82rem;padding:2px 6px;" title="Remove question">&times;</button>
+      </div>
+      <textarea id="sqText${i}" rows="2" style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:6px;font-size:.85rem;font-family:inherit;resize:vertical;margin-bottom:8px;">${q.question}</textarea>
+      <div style="display:flex;gap:12px;align-items:center;">
+        <label style="font-size:.72rem;color:var(--text-light);display:flex;align-items:center;gap:4px;">
+          Weight: <select id="sqWeight${i}" style="padding:2px 6px;border:1px solid var(--border);border-radius:4px;font-size:.72rem;" onchange="updateQuestionField('${jobTitle.replace(/'/g, "\\'")}',${i},'weight',parseInt(this.value))">
+            ${[1,2,3,4,5].map(w => `<option value="${w}" ${q.weight === w ? 'selected' : ''}>${w}</option>`).join('')}
+          </select>
+        </label>
+        <label style="font-size:.72rem;color:var(--text-light);display:flex;align-items:center;gap:4px;">
+          <input type="checkbox" ${q.mustHave ? 'checked' : ''} onchange="updateQuestionField('${jobTitle.replace(/'/g, "\\'")}',${i},'mustHave',this.checked)"> Must-have
+        </label>
+        <label style="font-size:.72rem;color:var(--text-light);display:flex;align-items:center;gap:4px;">
+          Category: <select id="sqCat${i}" style="padding:2px 6px;border:1px solid var(--border);border-radius:4px;font-size:.72rem;" onchange="updateQuestionField('${jobTitle.replace(/'/g, "\\'")}',${i},'category',this.value)">
+            ${['technical','experience','motivation','problem_solving','cultural_fit'].map(c => `<option value="${c}" ${q.category === c ? 'selected' : ''}>${c.replace('_',' ')}</option>`).join('')}
+          </select>
+        </label>
+      </div>
+    </div>`;
+  });
+
+  html += `<div style="display:flex;gap:8px;margin-top:16px;">
+    <button class="btn btn-primary btn-sm" onclick="saveScreeningEdits('${jobTitle.replace(/'/g, "\\'")}')">&#10003; Save Changes</button>
+    <button class="btn btn-secondary btn-sm" onclick="addScreeningQuestion('${jobTitle.replace(/'/g, "\\'")}')">+ Add Question</button>
+  </div>
+  <div id="screeningSaveResult" style="margin-top:8px;"></div>
+  </div>`;
+
+  panel.innerHTML = html;
+}
+
+function updateQuestionField(jobTitle, index, field, value) {
+  const sq = screeningQuestionsCache[jobTitle];
+  if (sq && sq.questions && sq.questions[index]) {
+    sq.questions[index][field] = value;
+  }
+}
+
+function removeScreeningQuestion(jobTitle, index) {
+  const sq = screeningQuestionsCache[jobTitle];
+  if (sq && sq.questions) {
+    sq.questions.splice(index, 1);
+    renderScreeningEditor(jobTitle, sq.questions);
+  }
+}
+
+function addScreeningQuestion(jobTitle) {
+  const sq = screeningQuestionsCache[jobTitle];
+  if (!sq) return;
+  if (!sq.questions) sq.questions = [];
+  sq.questions.push({
+    question: 'Enter your new screening question here...',
+    category: 'experience',
+    weight: 3,
+    mustHave: false,
+    idealAnswer: ''
+  });
+  renderScreeningEditor(jobTitle, sq.questions);
+}
+
+async function saveScreeningEdits(jobTitle) {
+  const sq = screeningQuestionsCache[jobTitle];
+  if (!sq || !sq.questions) return;
+
+  // Read text from textareas (in case they were edited)
+  sq.questions.forEach((q, i) => {
+    const textarea = document.getElementById('sqText' + i);
+    if (textarea) q.question = textarea.value.trim();
+  });
+
+  const resultEl = document.getElementById('screeningSaveResult');
+  if (resultEl) resultEl.innerHTML = '<span style="color:var(--accent);font-size:.82rem;">Saving...</span>';
+
+  try {
+    const result = await postToServer({ action: 'saveScreeningQuestions', jobTitle: jobTitle, questions: sq.questions, active: String(sq.active) !== 'false' });
+    if (result.success) {
+      if (resultEl) resultEl.innerHTML = '<span style="color:#16a34a;font-size:.82rem;font-weight:600;">&#10003; Saved successfully</span>';
+      render();
+    } else {
+      if (resultEl) resultEl.innerHTML = '<span style="color:#dc2626;font-size:.82rem;">Failed: ' + (result.error || 'Unknown') + '</span>';
+    }
+  } catch (e) {
+    if (resultEl) resultEl.innerHTML = '<span style="color:#dc2626;font-size:.82rem;">Error: ' + e.message + '</span>';
+  }
+}
+
+function toggleScreeningActive(jobTitle, active) {
+  const sq = screeningQuestionsCache[jobTitle];
+  if (sq) sq.active = active ? 'true' : 'false';
+}
+
+async function regenerateQuestions(jobTitle) {
+  if (!confirm('Regenerate screening questions for ' + jobTitle + '? This will replace the current questions.')) return;
+  openScreeningEditor(jobTitle);
+  // Force regeneration by clearing cache
+  delete screeningQuestionsCache[jobTitle];
+  const panel = document.getElementById('screeningEditorPanel');
+  panel.innerHTML = '<div style="background:var(--bg-white);border:1px solid var(--border);border-radius:var(--radius);padding:24px;"><div style="text-align:center;padding:20px;color:var(--text-xs);font-size:.85rem;"><div class="spinner" style="display:inline-block;width:20px;height:20px;border:2px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .6s linear infinite;margin-bottom:8px;"></div><br>Generating AI screening questions...</div></div>';
+  try {
+    const result = await postToServer({ action: 'generateScreeningQuestions', jobTitle: jobTitle });
+    if (result.success) {
+      screeningQuestionsCache[jobTitle] = { jobTitle: jobTitle, questions: result.questions, active: 'true', generatedBy: result.generatedBy };
+      renderScreeningEditor(jobTitle, result.questions);
+      render();
+    }
+  } catch (e) {
+    panel.innerHTML = '<div style="background:var(--bg-white);border:1px solid var(--border);border-radius:var(--radius);padding:24px;color:#dc2626;">Error: ' + e.message + '</div>';
+  }
+}
+
+async function generateAllScreeningQuestions() {
+  const jobs = getJobsList();
+  const toGenerate = jobs.filter(j => !screeningQuestionsCache[j.title] || !screeningQuestionsCache[j.title].questions || screeningQuestionsCache[j.title].questions.length === 0);
+  if (toGenerate.length === 0) { alert('All jobs already have screening questions.'); return; }
+  if (!confirm('Generate screening questions for ' + toGenerate.length + ' job(s)? This may take a moment.')) return;
+
+  let done = 0, failed = 0;
+  for (const j of toGenerate) {
+    try {
+      const result = await postToServer({ action: 'generateScreeningQuestions', jobTitle: j.title });
+      if (result.success) {
+        screeningQuestionsCache[j.title] = { jobTitle: j.title, questions: result.questions, active: 'true', generatedBy: result.generatedBy };
+        done++;
+      } else { failed++; }
+    } catch (e) { failed++; }
+  }
+  alert('Generation complete: ' + done + ' generated, ' + failed + ' failed.');
+  render();
+}
+
+function exportJobsCSV() {
+  const jobs = getJobsList();
+  const rows = [['Job Title','Department','Location','Total Candidates','New','Interview','Offer','Hired']];
+  jobs.forEach(j => rows.push([j.title, j.department, j.location, j.candidates, j.new, j.interview, j.offer, j.hired]));
+  downloadCSV(rows, 'atp-jobs-' + new Date().toISOString().split('T')[0] + '.csv');
+}
+
+// ═══════════ INTERVIEWS PAGE ═══════════
+function renderInterviewsPage() {
+  const interviewCandidates = candidates.filter(c => c.status === 'interview');
+
+  if (interviewCandidates.length === 0) {
+    return `<div class="empty-state">
+      <div class="empty-icon">&#128197;</div>
+      <h3 style="margin:12px 0 8px;font-weight:700;color:var(--text);">No Active Interviews</h3>
+      <p style="color:var(--text-light);font-size:.88rem;max-width:400px;margin:0 auto;">When candidates are moved to the Interview stage, they'll appear here. Move candidates from the Pipeline or their profile.</p>
+    </div>`;
+  }
+
+  let html = `<div style="margin-bottom:20px;">
+    <h2 style="font-size:1.1rem;font-weight:700;">${interviewCandidates.length} Candidate${interviewCandidates.length !== 1 ? 's' : ''} at Interview Stage</h2>
+    <p style="font-size:.82rem;color:var(--text-light);margin-top:2px;">Manage interviews and track progress</p>
+  </div>`;
+
+  html += '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:16px;">';
+
+  interviewCandidates.sort((a, b) => b.appliedDate - a.appliedDate).forEach(c => {
+    const aiR = c.aiRating || 0;
+    const aiColor = aiR >= 4 ? '#10b981' : aiR >= 3 ? '#f59e0b' : aiR >= 2 ? '#f97316' : '#94a3b8';
+    const lastAction = c.timeline.length ? c.timeline[c.timeline.length - 1] : null;
+
+    html += `<div style="background:var(--bg-white);border-radius:var(--radius);border:1px solid var(--border);padding:20px;cursor:pointer;transition:box-shadow .2s;" onclick="openDrawer('${c.id}')" onmouseover="this.style.boxShadow='var(--shadow-lg)'" onmouseout="this.style.boxShadow='none'">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px;">
+        <div>
+          <h3 style="font-size:.95rem;font-weight:700;color:var(--primary);margin-bottom:2px;">${c.firstName} ${c.lastName}</h3>
+          <p style="font-size:.82rem;color:var(--text-light)">${c.job}</p>
+        </div>
+        ${aiR > 0 ? `<span style="font-size:.72rem;background:${aiColor}15;color:${aiColor};padding:3px 10px;border-radius:10px;font-weight:700;">${aiR}/5 AI</span>` : ''}
+      </div>
+      <div style="display:flex;gap:16px;font-size:.78rem;color:var(--text-light);margin-bottom:12px;">
+        <span>&#128205; ${c.location}</span>
+        <span>&#128197; Applied ${formatDate(c.appliedDate)}</span>
+      </div>
+      ${lastAction ? `<div style="font-size:.75rem;color:var(--text-xs);background:var(--bg);padding:8px 10px;border-radius:6px;">Last: ${lastAction.action} — ${formatDate(lastAction.date)}</div>` : ''}
+      <div style="display:flex;gap:8px;margin-top:12px;">
+        <button class="btn btn-sm btn-success" onclick="event.stopPropagation();updateStatus('${c.id}','offer');render();" style="font-size:.72rem;">Extend Offer</button>
+        <button class="btn btn-sm btn-danger" onclick="event.stopPropagation();updateStatus('${c.id}','rejected');render();" style="font-size:.72rem;">Reject</button>
+        <button class="btn btn-sm btn-secondary" onclick="event.stopPropagation();previewEmail('post-interview','${c.id}')" style="font-size:.72rem;">Send Thank You</button>
+      </div>
+    </div>`;
+  });
+
+  html += '</div>';
+  return html;
+}
+
+// ═══════════ REPORTS PAGE ═══════════
+function renderReportsPage() {
+  const total = candidates.length;
+  if (total === 0) {
+    return `<div class="empty-state">
+      <div class="empty-icon">&#128200;</div>
+      <h3 style="margin:12px 0 8px;font-weight:700;color:var(--text);">No Data Yet</h3>
+      <p style="color:var(--text-light);font-size:.88rem;max-width:400px;margin:0 auto;">Reports will generate automatically as candidates apply. Share the careers site to start receiving applications.</p>
+    </div>`;
+  }
+
+  const counts = {};
+  statuses.forEach(s => counts[s] = candidates.filter(c => c.status === s).length);
+
+  // Source breakdown
+  const sourceMap = {};
+  candidates.forEach(c => { sourceMap[c.source] = (sourceMap[c.source] || 0) + 1; });
+  const topSources = Object.entries(sourceMap).sort((a, b) => b[1] - a[1]);
+
+  // Department breakdown
+  const deptMap = {};
+  candidates.forEach(c => { deptMap[c.department] = (deptMap[c.department] || 0) + 1; });
+  const topDepts = Object.entries(deptMap).sort((a, b) => b[1] - a[1]);
+
+  // Time metrics
+  const thisWeek = candidates.filter(c => (Date.now() - c.appliedDate.getTime()) < 7 * 86400000).length;
+  const thisMonth = candidates.filter(c => (Date.now() - c.appliedDate.getTime()) < 30 * 86400000).length;
+
+  // AI scoring stats
+  const scored = candidates.filter(c => (c.aiRating || 0) > 0);
+  const avgAI = scored.length > 0 ? (scored.reduce((sum, c) => sum + c.aiRating, 0) / scored.length).toFixed(1) : '—';
+  const strongMatches = scored.filter(c => c.aiRating >= 4).length;
+
+  // Conversion funnel
+  const funnelPct = (count) => total > 0 ? ((count / total) * 100).toFixed(0) + '%' : '0%';
+
+  let html = `<div style="margin-bottom:24px;display:flex;justify-content:space-between;align-items:center;">
+    <div><h2 style="font-size:1.1rem;font-weight:700;">Recruitment Reports</h2>
+    <p style="font-size:.82rem;color:var(--text-light);margin-top:2px;">Analytics from ${total} candidate${total !== 1 ? 's' : ''}</p></div>
+    <button class="btn btn-primary btn-sm" onclick="exportReportCSV()">&#128229; Export Report</button>
+  </div>`;
+
+  // KPI cards
+  html += `<div class="stats-row" style="margin-bottom:24px;">
+    <div class="stat-card"><div class="stat-label">Applications This Week</div><div class="stat-value">${thisWeek}</div></div>
+    <div class="stat-card"><div class="stat-label">Applications This Month</div><div class="stat-value">${thisMonth}</div></div>
+    <div class="stat-card"><div class="stat-label">Avg AI Score</div><div class="stat-value" style="color:#8b5cf6">${avgAI}</div><div class="stat-change">${scored.length} scored</div></div>
+    <div class="stat-card"><div class="stat-label">Strong Matches (4+)</div><div class="stat-value" style="color:var(--hired)">${strongMatches}</div></div>
+    <div class="stat-card"><div class="stat-label">Hired</div><div class="stat-value" style="color:var(--hired)">${counts.hired || 0}</div></div>
+    <div class="stat-card"><div class="stat-label">Offer Rate</div><div class="stat-value">${funnelPct((counts.offer || 0) + (counts.hired || 0))}</div></div>
+  </div>`;
+
+  // Funnel
+  html += `<div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:24px;">
+    <div style="background:var(--bg-white);border:1px solid var(--border);border-radius:var(--radius);padding:20px;">
+      <h3 style="font-size:.92rem;font-weight:700;margin-bottom:16px;">Pipeline Funnel</h3>
+      ${['new','reviewing','interview','offer','hired'].map(s => {
+        const pct = total > 0 ? ((counts[s] || 0) / total * 100) : 0;
+        const colors = { new:'var(--new)', reviewing:'var(--review)', interview:'var(--interview)', offer:'var(--offer)', hired:'var(--hired)' };
+        return `<div style="margin-bottom:10px;">
+          <div style="display:flex;justify-content:space-between;font-size:.78rem;margin-bottom:4px;">
+            <span style="font-weight:600;">${statusLabels[s]}</span>
+            <span style="color:var(--text-light)">${counts[s] || 0} (${pct.toFixed(0)}%)</span>
+          </div>
+          <div style="height:8px;background:var(--bg);border-radius:4px;overflow:hidden;">
+            <div style="height:100%;width:${pct}%;background:${colors[s]};border-radius:4px;transition:width .3s;"></div>
+          </div>
+        </div>`;
+      }).join('')}
+    </div>
+
+    <div style="background:var(--bg-white);border:1px solid var(--border);border-radius:var(--radius);padding:20px;">
+      <h3 style="font-size:.92rem;font-weight:700;margin-bottom:16px;">Top Sources</h3>
+      ${topSources.slice(0, 7).map(([source, count]) => {
+        const pct = (count / total * 100);
+        return `<div style="margin-bottom:10px;">
+          <div style="display:flex;justify-content:space-between;font-size:.78rem;margin-bottom:4px;">
+            <span style="font-weight:600;">${source}</span>
+            <span style="color:var(--text-light)">${count} (${pct.toFixed(0)}%)</span>
+          </div>
+          <div style="height:8px;background:var(--bg);border-radius:4px;overflow:hidden;">
+            <div style="height:100%;width:${pct}%;background:var(--accent);border-radius:4px;"></div>
+          </div>
+        </div>`;
+      }).join('')}
+    </div>
+  </div>`;
+
+  // Department breakdown
+  html += `<div style="background:var(--bg-white);border:1px solid var(--border);border-radius:var(--radius);padding:20px;margin-bottom:24px;">
+    <h3 style="font-size:.92rem;font-weight:700;margin-bottom:16px;">Applications by Department</h3>
+    <div class="table-wrapper"><table><thead><tr><th>Department</th><th>Candidates</th><th>% of Total</th></tr></thead><tbody>
+    ${topDepts.map(([dept, count]) => `<tr><td style="font-weight:600;">${dept}</td><td>${count}</td><td>${(count/total*100).toFixed(0)}%</td></tr>`).join('')}
+    </tbody></table></div>
+  </div>`;
+
+  return html;
+}
+
+function exportReportCSV() {
+  const rows = [['Metric','Value']];
+  const total = candidates.length;
+  const counts = {};
+  statuses.forEach(s => counts[s] = candidates.filter(c => c.status === s).length);
+  rows.push(['Total Candidates', total]);
+  statuses.forEach(s => rows.push([statusLabels[s], counts[s]]));
+
+  const sourceMap = {};
+  candidates.forEach(c => { sourceMap[c.source] = (sourceMap[c.source] || 0) + 1; });
+  rows.push(['','']);
+  rows.push(['Source','Count']);
+  Object.entries(sourceMap).sort((a,b) => b[1]-a[1]).forEach(([s,c]) => rows.push([s, c]));
+
+  downloadCSV(rows, 'atp-report-' + new Date().toISOString().split('T')[0] + '.csv');
+}
+
+// ═══════════ SETTINGS PAGE ═══════════
+function renderSettingsPage() {
+  return `<div style="max-width:700px;">
+    <h2 style="font-size:1.1rem;font-weight:700;margin-bottom:4px;">Configuration</h2>
+    <p style="font-size:.82rem;color:var(--text-light);margin-bottom:24px;">Manage your ATS settings and integrations.</p>
+
+    <div style="background:var(--bg-white);border:1px solid var(--border);border-radius:var(--radius);padding:24px;margin-bottom:20px;">
+      <h3 style="font-size:.92rem;font-weight:700;margin-bottom:16px;">Server Connection</h3>
+      <div style="margin-bottom:16px;">
+        <label style="font-size:.78rem;font-weight:600;color:var(--text-light);display:block;margin-bottom:6px;">Google Apps Script URL</label>
+        <input type="text" id="settingsServerUrl" value="${ATS_SERVER_URL}" style="width:100%;padding:10px 14px;border:1px solid var(--border);border-radius:8px;font-size:.85rem;font-family:monospace;" readonly>
+        <p style="font-size:.72rem;color:var(--text-xs);margin-top:4px;">This is your backend endpoint. To change it, edit the ATS_SERVER_URL variable in the source code.</p>
+      </div>
+      <div style="display:flex;gap:10px;">
+        <button class="btn btn-sm btn-primary" onclick="testServerConnection()">&#128268; Test Connection</button>
+        <button class="btn btn-sm btn-secondary" onclick="fetchServerApplications().then(()=>alert('Data refreshed — ' + candidates.length + ' candidates loaded.'))">&#128260; Refresh Data</button>
+      </div>
+      <div id="serverTestResult" style="margin-top:12px;"></div>
+    </div>
+
+    <div style="background:var(--bg-white);border:1px solid var(--border);border-radius:var(--radius);padding:24px;margin-bottom:20px;">
+      <h3 style="font-size:.92rem;font-weight:700;margin-bottom:16px;">Email Notifications</h3>
+      <p style="font-size:.85rem;color:var(--text-light);margin-bottom:16px;">Emails are sent via the same Google Apps Script backend using Gmail. Auto-triggered emails fire when candidate status changes.</p>
+      <div style="display:grid;gap:8px;">
+        ${emailTemplates.map(t => `<div style="display:flex;align-items:center;justify-content:space-between;padding:8px 12px;background:var(--bg);border-radius:6px;">
+          <div style="display:flex;align-items:center;gap:8px;">
+            <span>${t.icon}</span>
+            <span style="font-size:.82rem;font-weight:600;">${t.name}</span>
+          </div>
+          <span style="font-size:.72rem;padding:3px 10px;border-radius:10px;background:${t.trigger === 'auto' ? '#dcfce7' : '#f1f5f9'};color:${t.trigger === 'auto' ? '#166534' : '#64748b'};font-weight:600;">${t.trigger === 'auto' ? 'Auto' : 'Manual'}</span>
+        </div>`).join('')}
+      </div>
+    </div>
+
+    <div style="background:var(--bg-white);border:1px solid var(--border);border-radius:var(--radius);padding:24px;margin-bottom:20px;">
+      <h3 style="font-size:.92rem;font-weight:700;margin-bottom:16px;">AI Scoring</h3>
+      <p style="font-size:.85rem;color:var(--text-light);margin-bottom:12px;">AI candidate scoring uses Gemini via the Google Apps Script backend. Scores are generated automatically when applications are submitted and can also be triggered manually.</p>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;font-size:.82rem;">
+        <div style="background:var(--bg);padding:12px;border-radius:6px;text-align:center;">
+          <div style="font-weight:700;font-size:1rem;color:var(--primary);">${candidates.filter(c => (c.aiRating||0) > 0).length}</div>
+          <div style="color:var(--text-light);font-size:.72rem;">Scored</div>
+        </div>
+        <div style="background:var(--bg);padding:12px;border-radius:6px;text-align:center;">
+          <div style="font-weight:700;font-size:1rem;color:var(--primary);">${candidates.filter(c => c._serverManaged && (!c.aiRating || c.aiRating === 0)).length}</div>
+          <div style="color:var(--text-light);font-size:.72rem;">Unscored</div>
+        </div>
+        <div style="background:var(--bg);padding:12px;border-radius:6px;text-align:center;">
+          <div style="font-weight:700;font-size:1rem;color:#8b5cf6;">6</div>
+          <div style="color:var(--text-light);font-size:.72rem;">Dimensions</div>
+        </div>
+      </div>
+    </div>
+
+    <div style="background:var(--bg-white);border:1px solid var(--border);border-radius:var(--radius);padding:24px;">
+      <h3 style="font-size:.92rem;font-weight:700;margin-bottom:12px;">About</h3>
+      <p style="font-size:.85rem;color:var(--text-light);line-height:1.7;">ATS v2.0 — Built for Acquire Talent Partners. Powered by Google Sheets, Google Apps Script, and Gemini AI. &copy; 2026.</p>
+    </div>
+  </div>`;
+}
+
+async function testServerConnection() {
+  const el = document.getElementById('serverTestResult');
+  el.innerHTML = '<span style="color:var(--accent);font-size:.82rem;">Testing connection...</span>';
+  try {
+    const start = Date.now();
+    const res = await fetch(ATS_SERVER_URL + '?action=getApplications', { redirect: 'follow' });
+    const elapsed = Date.now() - start;
+    const data = await res.json();
+    if (data.success) {
+      el.innerHTML = '<span style="color:#16a34a;font-size:.82rem;font-weight:600;">&#10003; Connected — ' + (data.applications?.length || 0) + ' applications found (' + elapsed + 'ms)</span>';
+    } else {
+      el.innerHTML = '<span style="color:#dc2626;font-size:.82rem;">&#10007; Server responded with error: ' + (data.error || 'Unknown') + '</span>';
+    }
+  } catch (err) {
+    el.innerHTML = '<span style="color:#dc2626;font-size:.82rem;">&#10007; Connection failed: ' + err.message + '</span>';
+  }
+}
+
+// ═══════════ TEAM PAGE ═══════════
+function renderTeamPage() {
+  const teamMembers = [
+    { name: 'Simon Valentine', role: 'Hiring Manager', email: 'simon@acquiretalentpartners.com', initials: 'SV', color: '#2563eb' },
+    { name: 'Sarah Chen', role: 'Senior Recruiter', email: 'sarah@acquiretalentpartners.com', initials: 'SC', color: '#8b5cf6' },
+    { name: 'Tom Barrett', role: 'Talent Partner', email: 'tom@acquiretalentpartners.com', initials: 'TB', color: '#10b981' }
+  ];
+
+  let html = `<div style="margin-bottom:24px;">
+    <h2 style="font-size:1.1rem;font-weight:700;">Team</h2>
+    <p style="font-size:.82rem;color:var(--text-light);margin-top:2px;">Your recruitment team members.</p>
+  </div>`;
+
+  html += '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px;">';
+  teamMembers.forEach(m => {
+    // Count notes by this team member
+    const noteCount = candidates.reduce((sum, c) => sum + c.notes.filter(n => n.author === m.name).length, 0);
+    html += `<div style="background:var(--bg-white);border:1px solid var(--border);border-radius:var(--radius);padding:24px;display:flex;align-items:center;gap:16px;">
+      <div style="width:48px;height:48px;border-radius:50%;background:${m.color};color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:.92rem;flex-shrink:0;">${m.initials}</div>
+      <div style="flex:1;min-width:0;">
+        <h3 style="font-size:.92rem;font-weight:700;color:var(--primary);">${m.name}</h3>
+        <p style="font-size:.82rem;color:var(--text-light);margin:2px 0;">${m.role}</p>
+        <a href="mailto:${m.email}" style="font-size:.78rem;color:var(--accent);text-decoration:none;">${m.email}</a>
+        <p style="font-size:.72rem;color:var(--text-xs);margin-top:4px;">${noteCount} note${noteCount !== 1 ? 's' : ''} added</p>
+      </div>
+    </div>`;
+  });
+  html += '</div>';
+
+  return html;
+}
+
+// ═══════════ CSV EXPORT ═══════════
+function downloadCSV(rows, filename) {
+  const csv = rows.map(r => r.map(cell => '"' + String(cell).replace(/"/g, '""') + '"').join(',')).join('\n');
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+  const link = document.createElement('a');
+  link.href = URL.createObjectURL(blob);
+  link.download = filename;
+  link.click();
+  URL.revokeObjectURL(link.href);
+}
+
+function exportCandidatesCSV() {
+  const data = getFilteredCandidates();
+  const rows = [['ID','First Name','Last Name','Email','Phone','Location','Job','Department','Source','Status','AI Score','Your Rating','Applied Date','Notice','Experience','Salary','Visa']];
+  data.forEach(c => {
+    rows.push([c.id, c.firstName, c.lastName, c.email, c.phone, c.location, c.job, c.department, c.source, statusLabels[c.status], c.aiRating || '', c.rating || '', formatDate(c.appliedDate), c.notice || '', c.experience || '', c.salary || '', c.visa || '']);
+  });
+  downloadCSV(rows, 'atp-candidates-' + new Date().toISOString().split('T')[0] + '.csv');
 }
 
 function bindEvents() {}
@@ -2064,7 +2702,7 @@ async function sendEmail(templateId, candidateId) {
   }
 
   try {
-    const res = await fetch(EMAIL_SERVER_URL, {
+    const res = await fetch(ATS_SERVER_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'text/plain' },
       body: JSON.stringify({
@@ -2111,7 +2749,7 @@ async function sendEmail(templateId, candidateId) {
     console.error('Email send error:', err);
     if (modalFooter) {
       modalFooter.innerHTML = '<span style="color:#dc2626;font-weight:600;">❌ Failed to send: ' + (err.message || 'Unknown error') + '</span>' +
-        '<br><span style="font-size:.82rem;color:var(--text-light);margin-top:4px;display:inline-block;">Check that your email server is deployed and EMAIL_SERVER_URL is set correctly</span>' +
+        '<br><span style="font-size:.82rem;color:var(--text-light);margin-top:4px;display:inline-block;">Check that your email server is deployed and ATS_SERVER_URL is set correctly</span>' +
         '<button onclick="sendEmail(\'' + templateId + '\',\'' + candidateId + '\')" style="margin-left:12px;margin-top:8px;padding:6px 16px;background:var(--accent);color:#fff;border:none;border-radius:6px;cursor:pointer;font-weight:600;">Retry</button>';
     }
   }

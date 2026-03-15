@@ -1814,6 +1814,16 @@
           </div>
         </div>
 
+        <!-- Screening Questions (loaded dynamically per job) -->
+        <div id="screeningQuestionsSection" style="display:none;">
+          <div class="form-section-label" style="margin-top:8px;display:flex;align-items:center;gap:8px;">
+            Screening Questions
+            <span style="font-size:.68rem;background:#eff6ff;color:#2563eb;padding:2px 8px;border-radius:10px;font-weight:600;">AI-Powered</span>
+          </div>
+          <p style="font-size:.78rem;color:var(--text-light);margin-bottom:16px;line-height:1.6;">Please answer the following questions to help us better understand your experience and fit for this role. Your responses will be evaluated alongside your profile.</p>
+          <div id="screeningQuestionsContainer"></div>
+        </div>
+
         <div class="form-section-label" style="margin-top:8px">Consent</div>
         <div class="form-grid">
           <div class="form-group full" style="margin-bottom:0">
@@ -2381,7 +2391,71 @@ function openApplyModal() {
   document.getElementById('applyJobTitle').textContent = currentJob.title;
   document.getElementById('applyJobMeta').textContent = currentJob.locLabel + ' · ' + currentJob.salary + ' · ' + currentJob.type.charAt(0).toUpperCase() + currentJob.type.slice(1);
 
+  // Load screening questions for this job
+  loadScreeningQuestions(currentJob.title);
+
   openModal('applyModal');
+}
+
+// ── Screening Questions ──
+let currentScreeningQuestions = [];
+
+async function loadScreeningQuestions(jobTitle) {
+  const section = document.getElementById('screeningQuestionsSection');
+  const container = document.getElementById('screeningQuestionsContainer');
+  currentScreeningQuestions = [];
+
+  // Hide section while loading
+  section.style.display = 'none';
+  container.innerHTML = '';
+
+  try {
+    const res = await fetch(ATS_SERVER_URL + '?action=getScreeningQuestions&jobTitle=' + encodeURIComponent(jobTitle), { redirect: 'follow' });
+    const data = await res.json();
+
+    if (data.success && data.questions && data.questions.length > 0 && data.active !== false) {
+      currentScreeningQuestions = data.questions;
+      let html = '';
+      data.questions.forEach((q, i) => {
+        const isRequired = q.mustHave || q.weight >= 4;
+        html += '<div class="form-grid"><div class="form-group full" style="margin-bottom:16px;">' +
+          '<label style="font-weight:600;font-size:.85rem;line-height:1.5;margin-bottom:8px;display:block;">' +
+          (i + 1) + '. ' + q.question +
+          (isRequired ? ' <span class="req">*</span>' : '') +
+          '</label>' +
+          '<div style="display:flex;gap:6px;margin-bottom:6px;">' +
+          '<span style="font-size:.68rem;background:' + getCategoryColor(q.category) + ';color:#fff;padding:2px 8px;border-radius:10px;font-weight:600;text-transform:uppercase;">' + q.category.replace('_', ' ') + '</span>' +
+          (q.mustHave ? '<span style="font-size:.68rem;background:#fef2f2;color:#dc2626;padding:2px 8px;border-radius:10px;font-weight:600;">Must-have</span>' : '') +
+          '</div>' +
+          '<textarea id="screenQ' + i + '" rows="4" placeholder="Type your response here..." style="width:100%;padding:12px;border:1px solid var(--border);border-radius:8px;font-size:.88rem;font-family:inherit;resize:vertical;line-height:1.6;"></textarea>' +
+          '<span class="error-msg" id="screenQ' + i + 'Error" style="display:none">This is a required question — please provide a response</span>' +
+          '</div></div>';
+      });
+      container.innerHTML = html;
+      section.style.display = 'block';
+    }
+  } catch (e) {
+    console.log('Could not load screening questions:', e.message);
+  }
+}
+
+function getCategoryColor(cat) {
+  const colors = {
+    technical: '#6366f1', experience: '#2563eb', motivation: '#10b981',
+    problem_solving: '#f59e0b', cultural_fit: '#8b5cf6'
+  };
+  return colors[cat] || '#64748b';
+}
+
+function getScreeningResponses() {
+  return currentScreeningQuestions.map((q, i) => ({
+    questionIndex: i,
+    question: q.question,
+    category: q.category,
+    weight: q.weight,
+    mustHave: q.mustHave,
+    answer: (document.getElementById('screenQ' + i)?.value || '').trim()
+  }));
 }
 
 // ── Submit & Finish (single-page) ──
@@ -2517,6 +2591,18 @@ function validateForm() {
   } else {
     commErr.style.display = 'none';
   }
+  // Screening questions — validate required (must-have or weight >= 4)
+  currentScreeningQuestions.forEach((q, i) => {
+    if (q.mustHave || q.weight >= 4) {
+      const textarea = document.getElementById('screenQ' + i);
+      const errEl = document.getElementById('screenQ' + i + 'Error');
+      if (textarea && !textarea.value.trim()) {
+        if (errEl) errEl.style.display = 'block';
+        valid = false;
+        if (!firstError) firstError = textarea;
+      }
+    }
+  });
   // GDPR consent
   if (!document.getElementById('appGDPR').checked) {
     document.getElementById('gdprError').style.display = 'block'; valid = false;
@@ -2964,7 +3050,8 @@ async function submitApplication() {
       jobTags: currentJob ? currentJob.tags.join(', ') : '',
       jobSalary: currentJob ? currentJob.salary : '',
       jobLocation: currentJob ? currentJob.locLabel : '',
-      cvFileName: document.getElementById('cvFile').files.length ? document.getElementById('cvFile').files[0].name : ''
+      cvFileName: document.getElementById('cvFile').files.length ? document.getElementById('cvFile').files[0].name : '',
+      screenResponses: getScreeningResponses()
     };
 
     // POST to the ATS server — this stores the application AND sends the notification email

@@ -32,6 +32,19 @@ const SPREADSHEET_NAME = 'ATP ATS Database';
 const NOTIFICATION_EMAIL = 'simon@simonvalentine.com';
 const SENDER_NAME = 'Acquire Talent Partners';
 
+// ── Gemini AI Configuration ──
+// To enable AI-powered screening:
+// 1. Go to https://aistudio.google.com/apikey
+// 2. Create an API key and paste it below
+// 3. Re-deploy your web app
+const GEMINI_API_KEY = ''; // ← PASTE YOUR GEMINI API KEY HERE
+const GEMINI_MODEL = 'gemini-2.0-flash';
+const GEMINI_URL = 'https://generativelanguage.googleapis.com/v1beta/models/' + GEMINI_MODEL + ':generateContent';
+
+// Screening weights (Match vs Screen)
+const MATCH_WEIGHT = 0.55;  // Profile-based match score weight
+const SCREEN_WEIGHT = 0.45; // Response-based screening score weight
+
 // ═══════════ SETUP (run once) ═══════════
 function setup() {
   let ss = getOrCreateSpreadsheet();
@@ -52,16 +65,18 @@ function getOrCreateSpreadsheet() {
   // Applications sheet
   let sheet = ss.getSheetByName('Sheet1');
   sheet.setName('Applications');
-  sheet.getRange(1, 1, 1, 26).setValues([[
+  sheet.getRange(1, 1, 1, 30).setValues([[
     'id', 'firstName', 'lastName', 'email', 'phone', 'location',
     'linkedin', 'salary', 'notice', 'experience', 'visa',
     'motivation', 'source', 'job', 'department',
     'jobTags', 'jobSalary', 'jobLocation',
     'status', 'rating', 'aiRating', 'appliedDate',
-    'notes', 'timeline', 'commPreference', 'commDetails'
+    'notes', 'timeline', 'commPreference', 'commDetails',
+    'cvFileUrl', 'cvFileName', 'clFileUrl', 'clFileName',
+    'screenResponses', 'matchScore', 'screenScore', 'combinedScore', 'aiNarrative'
   ]]);
   sheet.setFrozenRows(1);
-  sheet.getRange(1, 1, 1, 26).setFontWeight('bold');
+  sheet.getRange(1, 1, 1, 30).setFontWeight('bold');
 
   // Talent Network sheet
   const tnSheet = ss.insertSheet('Talent Network');
@@ -73,8 +88,104 @@ function getOrCreateSpreadsheet() {
   tnSheet.setFrozenRows(1);
   tnSheet.getRange(1, 1, 1, 9).setFontWeight('bold');
 
+  // Screening Questions sheet (Winston Screen equivalent)
+  const sqSheet = ss.insertSheet('Screening Questions');
+  sqSheet.getRange(1, 1, 1, 8).setValues([[
+    'jobTitle', 'questions', 'weights', 'mustHaves',
+    'generatedBy', 'generatedDate', 'editedDate', 'active'
+  ]]);
+  sqSheet.setFrozenRows(1);
+  sqSheet.getRange(1, 1, 1, 8).setFontWeight('bold');
+
   Logger.log('Created spreadsheet: ' + ss.getUrl());
   return ss;
+}
+
+// ═══════════ GEMINI AI HELPER ═══════════
+
+/**
+ * Call Gemini API with a prompt and return the text response.
+ * Returns null if API key is not set or call fails.
+ */
+function callGemini(prompt, temperature) {
+  if (!GEMINI_API_KEY) {
+    Logger.log('Gemini API key not configured — skipping AI call');
+    return null;
+  }
+
+  temperature = temperature || 0.3;
+
+  try {
+    const payload = {
+      contents: [{ parts: [{ text: prompt }] }],
+      generationConfig: {
+        temperature: temperature,
+        maxOutputTokens: 2048,
+        responseMimeType: 'application/json'
+      }
+    };
+
+    const options = {
+      method: 'post',
+      contentType: 'application/json',
+      payload: JSON.stringify(payload),
+      muteHttpExceptions: true
+    };
+
+    const response = UrlFetchApp.fetch(GEMINI_URL + '?key=' + GEMINI_API_KEY, options);
+    const json = JSON.parse(response.getContentText());
+
+    if (json.candidates && json.candidates[0] && json.candidates[0].content) {
+      return json.candidates[0].content.parts[0].text;
+    }
+
+    Logger.log('Gemini response had no candidates: ' + JSON.stringify(json));
+    return null;
+  } catch (err) {
+    Logger.log('Gemini API error: ' + err.message);
+    return null;
+  }
+}
+
+/**
+ * Call Gemini without JSON response format (for free-text responses).
+ */
+function callGeminiText(prompt, temperature) {
+  if (!GEMINI_API_KEY) {
+    Logger.log('Gemini API key not configured — skipping AI call');
+    return null;
+  }
+
+  temperature = temperature || 0.4;
+
+  try {
+    const payload = {
+      contents: [{ parts: [{ text: prompt }] }],
+      generationConfig: {
+        temperature: temperature,
+        maxOutputTokens: 2048
+      }
+    };
+
+    const options = {
+      method: 'post',
+      contentType: 'application/json',
+      payload: JSON.stringify(payload),
+      muteHttpExceptions: true
+    };
+
+    const response = UrlFetchApp.fetch(GEMINI_URL + '?key=' + GEMINI_API_KEY, options);
+    const json = JSON.parse(response.getContentText());
+
+    if (json.candidates && json.candidates[0] && json.candidates[0].content) {
+      return json.candidates[0].content.parts[0].text;
+    }
+
+    return null;
+  } catch (err) {
+    Logger.log('Gemini API error: ' + err.message);
+    return null;
+  }
 }
 
 // ═══════════ WEB APP HANDLERS ═══════════
@@ -93,8 +204,14 @@ function doGet(e) {
     case 'getApplication':
       result = getApplicationById(e.parameter.id);
       break;
+    case 'getScreeningQuestions':
+      result = getScreeningQuestions(e.parameter.jobTitle);
+      break;
+    case 'getAllScreeningQuestions':
+      result = getAllScreeningQuestions();
+      break;
     default:
-      result = { success: true, status: 'ok', service: 'ATP Backend (Google Apps Script)' };
+      result = { success: true, status: 'ok', service: 'ATP Backend (Google Apps Script)', geminiConfigured: !!GEMINI_API_KEY };
   }
 
   return ContentService
@@ -129,6 +246,12 @@ function doPost(e) {
     case 'scoreApplication':
       result = scoreApplication(data);
       break;
+    case 'generateScreeningQuestions':
+      result = generateScreeningQuestions(data);
+      break;
+    case 'saveScreeningQuestions':
+      result = saveScreeningQuestions(data);
+      break;
     default:
       result = { success: false, error: 'Unknown action: ' + action };
   }
@@ -158,10 +281,10 @@ function getAllApplications() {
     headers.forEach((h, j) => {
       const val = row[j];
       // Parse JSON fields
-      if (['notes', 'timeline', 'commPreference', 'commDetails'].includes(h)) {
+      if (['notes', 'timeline', 'commPreference', 'commDetails', 'screenResponses'].includes(h)) {
         try { app[h] = typeof val === 'string' && val ? JSON.parse(val) : (val || (h === 'commPreference' ? ['Email'] : (h === 'commDetails' ? {} : []))); }
-        catch (e) { app[h] = h === 'commPreference' ? ['Email'] : (h === 'commDetails' ? {} : []); }
-      } else if (h === 'rating' || h === 'aiRating') {
+        catch (e) { app[h] = h === 'commPreference' ? ['Email'] : (h === 'commDetails' ? {} : (h === 'screenResponses' ? [] : [])); }
+      } else if (h === 'rating' || h === 'aiRating' || h === 'matchScore' || h === 'screenScore' || h === 'combinedScore') {
         app[h] = Number(val) || 0;
       } else {
         app[h] = val !== undefined && val !== null ? String(val) : '';
@@ -189,6 +312,7 @@ function submitApplication(data) {
   }
 
   const sheet = getSheet('Applications');
+  ensureApplicationHeaders(sheet);  // Auto-add any missing columns (schema upgrade)
   const appId = 'APP-' + new Date().getTime().toString(36).toUpperCase();
   const appliedDate = new Date().toISOString();
   const source = data.source || 'Careers Site';
@@ -197,6 +321,29 @@ function submitApplication(data) {
   const timeline = JSON.stringify([{ action: 'Applied via ' + source, date: appliedDate }]);
   const commPref = JSON.stringify(data.commPreference || ['Email']);
   const commDet = JSON.stringify(data.commDetails || {});
+
+  // ── Save CV / Cover Letter to Google Drive ──
+  let cvFileUrl = '';
+  let cvFileName = data.cvFileName || '';
+  let clFileUrl = '';
+  let clFileName = '';
+  try {
+    if (data.cvFile && data.cvFile.dataUrl) {
+      const saved = saveFileToDrive(data.cvFile, appId, firstName + ' ' + lastName, 'CV');
+      cvFileUrl = saved.url;
+      cvFileName = saved.name;
+    }
+    if (data.coverLetterFile && data.coverLetterFile.dataUrl) {
+      const saved = saveFileToDrive(data.coverLetterFile, appId, firstName + ' ' + lastName, 'Cover Letter');
+      clFileUrl = saved.url;
+      clFileName = saved.name;
+    }
+  } catch (err) {
+    Logger.log('File upload to Drive failed: ' + err.message);
+  }
+
+  // Screening responses (from Winston Screen questions)
+  const screenResponses = JSON.stringify(data.screenResponses || []);
 
   sheet.appendRow([
     appId,
@@ -224,7 +371,16 @@ function submitApplication(data) {
     notes,
     timeline,
     commPref,
-    commDet
+    commDet,
+    cvFileUrl,
+    cvFileName,
+    clFileUrl,
+    clFileName,
+    screenResponses,
+    0,       // matchScore
+    0,       // screenScore
+    0,       // combinedScore
+    ''       // aiNarrative
   ]);
 
   // Send notification email
@@ -432,11 +588,16 @@ const DEPT_REQUIREMENTS = {
 
 /**
  * Score a candidate application against the job they applied for.
+ * Enhanced with dual scoring: Match (profile) + Screen (responses) = Combined Score.
  * Called from the ATS "Request AI Review" button or auto-triggered on new applications.
  */
 function scoreApplication(data) {
   const { id } = data;
   if (!id) return { success: false, error: 'Missing application id' };
+
+  // Ensure all required columns exist (handles schema upgrades)
+  const appSheet = getSheet('Applications');
+  ensureApplicationHeaders(appSheet);
 
   // Fetch the application from the sheet
   const appResult = getApplicationById(id);
@@ -447,10 +608,77 @@ function scoreApplication(data) {
   const jobTitle = app.job || '';
   const job = JOB_DATABASE[jobTitle];
 
-  // Build the scorecard
+  // ── LAYER 1: MATCH SCORE (Profile-based — Winston Match equivalent) ──
   const scorecard = buildScorecard(app, job, jobTitle);
+  const matchScore = scorecard.overallPercent;
 
-  // Store scorecard as a note on the application
+  // ── LAYER 2: SCREEN SCORE (Response-based — Winston Screen equivalent) ──
+  let screenResult = { screenScore: 0, evaluations: [], narrative: '' };
+  let screenQuestions = [];
+
+  // Check if screening questions exist for this job and candidate has responses
+  const sqResult = getScreeningQuestions(jobTitle);
+  if (sqResult.success && sqResult.questions && sqResult.questions.length > 0) {
+    screenQuestions = sqResult.questions;
+    const screenResponses = app.screenResponses || [];
+    if (screenResponses.length > 0) {
+      screenResult = evaluateScreeningResponses(app, screenQuestions, screenResponses);
+    }
+  }
+
+  const screenScore = screenResult.screenScore;
+  const hasScreening = screenResult.evaluations.length > 0;
+
+  // ── COMBINED SCORE ──
+  let combinedScore = matchScore;
+  if (hasScreening) {
+    combinedScore = Math.round((matchScore * MATCH_WEIGHT) + (screenScore * SCREEN_WEIGHT));
+  }
+
+  const combinedStars = percentToStars(combinedScore);
+  const combinedLabel = combinedScore >= 80 ? 'Strong Match' :
+                        combinedScore >= 60 ? 'Good Match' :
+                        combinedScore >= 40 ? 'Partial Match' : 'Weak Match';
+
+  // ── AI NARRATIVE (Gemini-powered match explanation) ──
+  const narrativeResult = generateMatchNarrative(app, scorecard, jobTitle);
+
+  // Build the enhanced summary text including both scores
+  const starStr = function(pct) { return starsFromPercent(pct); };
+  let summaryText =
+    '───────── AI CANDIDATE SCORECARD ─────────\n' +
+    'OVERALL: ' + combinedLabel + ' — ' + combinedScore + '%\n';
+
+  if (hasScreening) {
+    summaryText += 'Match Score: ' + matchScore + '% | Screen Score: ' + screenScore + '%\n';
+  }
+
+  summaryText += '\n' +
+    'Skills Match: ' + starStr(scorecard.scores.skills.percent) + ' — ' + scorecard.scores.skills.detail + '\n' +
+    'Experience Level: ' + starStr(scorecard.scores.experience.percent) + ' — ' + scorecard.scores.experience.detail + '\n' +
+    'Location Fit: ' + starStr(scorecard.scores.location.percent) + ' — ' + scorecard.scores.location.detail + '\n' +
+    'Salary Alignment: ' + starStr(scorecard.scores.salary.percent) + ' — ' + scorecard.scores.salary.detail + '\n' +
+    'Right to Work: ' + starStr(scorecard.scores.visa.percent) + ' — ' + scorecard.scores.visa.detail + '\n' +
+    'Motivation: ' + starStr(scorecard.scores.motivation.percent) + ' — ' + scorecard.scores.motivation.detail + '\n';
+
+  if (hasScreening) {
+    summaryText += '\n── SCREENING RESPONSES ──\n';
+    screenResult.evaluations.forEach((ev, i) => {
+      const q = screenQuestions[i];
+      summaryText += (q ? q.category.toUpperCase() : 'Q' + (i+1)) + ': ' + ev.score + '% — ' + ev.evaluation + (ev.redFlag ? ' ⚠️ RED FLAG' : '') + '\n';
+    });
+  }
+
+  summaryText += '\n── KEY OBSERVATIONS ──\n' +
+    scorecard.observations.map(o => '• ' + o).join('\n') + '\n\n' +
+    '── AI NARRATIVE ──\n' +
+    (narrativeResult.narrative || scorecard.recommendation) + '\n\n' +
+    '── RECOMMENDATION ──\n' +
+    (narrativeResult.nextStep || scorecard.recommendation) + '\n\n' +
+    'Assessed against: ' + (jobTitle || 'General Application') + '\n' +
+    'Scored: ' + new Date().toISOString();
+
+  // ── WRITE TO SHEET ──
   const sheet = getSheet('Applications');
   const allData = sheet.getDataRange().getValues();
   const headers = allData[0];
@@ -461,47 +689,54 @@ function scoreApplication(data) {
   }
 
   if (rowIndex > 0) {
-    // Update the notes column with the scorecard
+    // Notes column
     const notesCol = headers.indexOf('notes') + 1;
     const existingNotes = allData[rowIndex - 1][notesCol - 1];
     let notes = [];
     try { notes = typeof existingNotes === 'string' && existingNotes ? JSON.parse(existingNotes) : []; }
     catch (e) { notes = []; }
-
-    // Remove any previous AI scorecard note
     notes = notes.filter(n => n.author !== 'AI Review Agent');
-
-    // Add the new scorecard note
-    notes.unshift({
-      text: scorecard.summaryText,
-      author: 'AI Review Agent',
-      date: new Date().toISOString()
-    });
-
+    notes.unshift({ text: summaryText, author: 'AI Review Agent', date: new Date().toISOString() });
     sheet.getRange(rowIndex, notesCol).setValue(JSON.stringify(notes));
 
-    // Update AI rating based on overall score (1-5 star scale)
-    // Note: 'rating' is the human score — we write to 'aiRating' instead
+    // AI Rating (combined score on 1-5 scale)
     const aiRatingCol = headers.indexOf('aiRating') + 1;
-    if (aiRatingCol > 0) {
-      sheet.getRange(rowIndex, aiRatingCol).setValue(scorecard.overallStars);
-    }
+    if (aiRatingCol > 0) sheet.getRange(rowIndex, aiRatingCol).setValue(combinedStars);
 
-    // Add timeline entry
+    // Match Score
+    const matchCol = headers.indexOf('matchScore') + 1;
+    if (matchCol > 0) sheet.getRange(rowIndex, matchCol).setValue(matchScore);
+
+    // Screen Score
+    const screenCol = headers.indexOf('screenScore') + 1;
+    if (screenCol > 0) sheet.getRange(rowIndex, screenCol).setValue(screenScore);
+
+    // Combined Score
+    const combCol = headers.indexOf('combinedScore') + 1;
+    if (combCol > 0) sheet.getRange(rowIndex, combCol).setValue(combinedScore);
+
+    // AI Narrative
+    const narCol = headers.indexOf('aiNarrative') + 1;
+    if (narCol > 0) sheet.getRange(rowIndex, narCol).setValue(JSON.stringify(narrativeResult));
+
+    // Timeline entry
     const timelineCol = headers.indexOf('timeline') + 1;
     const existingTimeline = allData[rowIndex - 1][timelineCol - 1];
     let timeline = [];
     try { timeline = typeof existingTimeline === 'string' && existingTimeline ? JSON.parse(existingTimeline) : []; }
     catch (e) { timeline = []; }
-    timeline.push({ action: 'AI scored: ' + scorecard.overallLabel + ' (' + scorecard.overallPercent + '%)', date: new Date().toISOString() });
+    timeline.push({
+      action: 'AI scored: ' + combinedLabel + ' (' + combinedScore + '%' + (hasScreening ? ' — Match: ' + matchScore + '% | Screen: ' + screenScore + '%' : '') + ')',
+      date: new Date().toISOString()
+    });
     sheet.getRange(rowIndex, timelineCol).setValue(JSON.stringify(timeline));
   }
 
   // Send scorecard email notification
   try {
     const candidateName = (app.firstName || '') + ' ' + (app.lastName || '');
-    const subject = '[AI Scorecard] ' + jobTitle + ' — ' + candidateName + ' (' + scorecard.overallPercent + '%)';
-    const htmlBody = buildScorecardEmail(app, scorecard, jobTitle);
+    const subject = '[AI Scorecard] ' + jobTitle + ' — ' + candidateName + ' (' + combinedScore + '%)';
+    const htmlBody = buildScorecardEmail(app, scorecard, jobTitle, screenResult, combinedScore, narrativeResult);
     GmailApp.sendEmail(NOTIFICATION_EMAIL, subject, '', {
       htmlBody: htmlBody,
       name: SENDER_NAME
@@ -510,7 +745,17 @@ function scoreApplication(data) {
     Logger.log('Scorecard email failed: ' + err.message);
   }
 
-  return { success: true, id: id, scorecard: scorecard };
+  return {
+    success: true,
+    id: id,
+    scorecard: scorecard,
+    matchScore: matchScore,
+    screenScore: screenScore,
+    combinedScore: combinedScore,
+    combinedLabel: combinedLabel,
+    narrative: narrativeResult,
+    screenEvaluations: screenResult.evaluations
+  };
 }
 
 /**
@@ -870,7 +1115,10 @@ function starsFromPercent(pct) {
 /**
  * Build a styled HTML email for the scorecard notification.
  */
-function buildScorecardEmail(app, scorecard, jobTitle) {
+function buildScorecardEmail(app, scorecard, jobTitle, screenResult, combinedScore, narrativeResult) {
+  screenResult = screenResult || { screenScore: 0, evaluations: [] };
+  combinedScore = combinedScore || scorecard.overallPercent;
+  narrativeResult = narrativeResult || {};
   const candidateName = (app.firstName || '') + ' ' + (app.lastName || '');
 
   const dimColor = function(pct) {
@@ -913,10 +1161,12 @@ function buildScorecardEmail(app, scorecard, jobTitle) {
 
         <div style="text-align:center;margin-bottom:24px;">
           <div style="display:inline-block;background:${overallColor}22;border:2px solid ${overallColor};border-radius:12px;padding:16px 32px;">
-            <div style="font-size:36px;font-weight:800;color:${overallColor};">${scorecard.overallPercent}%</div>
+            <div style="font-size:36px;font-weight:800;color:${overallColor};">${combinedScore}%</div>
             <div style="font-size:14px;font-weight:600;color:${overallColor};margin-top:4px;">${scorecard.overallLabel}</div>
+            ${screenResult.screenScore > 0 ? '<div style="font-size:11px;color:#64748b;margin-top:8px;">Match: ' + scorecard.overallPercent + '% | Screen: ' + screenResult.screenScore + '%</div>' : ''}
           </div>
         </div>
+        ${narrativeResult.narrative ? '<div style="margin:0 0 16px;padding:12px;background:#f0f9ff;border-left:3px solid #2563eb;border-radius:4px;font-size:13px;color:#1e293b;line-height:1.6;">' + narrativeResult.narrative + '</div>' : ''}
 
         <table style="width:100%;border-collapse:collapse;font-size:13px;margin-bottom:20px;">
           <tr style="background:#1a1a2e;color:#fff;">
@@ -943,7 +1193,506 @@ function buildScorecardEmail(app, scorecard, jobTitle) {
   `;
 }
 
+// ═══════════ SCREENING QUESTIONS (Winston Screen) ═══════════
+
+/**
+ * Generate AI-powered screening questions for a job title.
+ * Uses Gemini to create role-specific questions with weights and must-have flags.
+ */
+function generateScreeningQuestions(data) {
+  const { jobTitle } = data;
+  if (!jobTitle) return { success: false, error: 'Missing jobTitle' };
+
+  const job = JOB_DATABASE[jobTitle];
+  const deptKey = job ? job.dept : 'general';
+  const deptReqs = DEPT_REQUIREMENTS[deptKey] || [];
+
+  // Build the AI prompt
+  const prompt = `You are an expert recruitment screening consultant. Generate exactly 5 screening questions for the following job:
+
+Job Title: ${jobTitle}
+Department: ${deptKey}
+Required Skills/Tags: ${job ? job.tags.join(', ') : 'General'}
+Location: ${job ? job.loc : 'Not specified'}
+Salary Range: ${job ? job.salary : 'Not specified'}
+Department Requirements: ${deptReqs.join('; ')}
+
+Generate 5 screening questions that:
+1. Assess technical competency and relevant experience
+2. Evaluate cultural fit and motivation
+3. Test problem-solving ability relevant to the role
+4. Gauge the candidate's understanding of the industry/domain
+5. Assess communication quality and self-awareness
+
+For each question, specify:
+- "question": the actual question text (clear, professional, open-ended)
+- "category": one of "technical", "experience", "motivation", "problem_solving", "cultural_fit"
+- "weight": importance from 1-5 (5 = must-have, 1 = nice-to-have)
+- "mustHave": boolean — true if this is a dealbreaker
+- "idealAnswer": a brief description of what a strong answer would include (for AI evaluation)
+
+Return a JSON array of 5 question objects. Example format:
+[
+  {
+    "question": "Describe your experience with...",
+    "category": "technical",
+    "weight": 5,
+    "mustHave": true,
+    "idealAnswer": "Should mention specific technologies..."
+  }
+]`;
+
+  const aiResponse = callGemini(prompt, 0.4);
+
+  let questions = [];
+  if (aiResponse) {
+    try {
+      questions = JSON.parse(aiResponse);
+      if (!Array.isArray(questions)) questions = [];
+    } catch (e) {
+      Logger.log('Failed to parse Gemini questions response: ' + e.message);
+      questions = [];
+    }
+  }
+
+  // Fallback: generate standard questions if Gemini is not available
+  if (questions.length === 0) {
+    questions = generateFallbackQuestions(jobTitle, job, deptKey);
+  }
+
+  // Save to the Screening Questions sheet
+  saveQuestionsToSheet(jobTitle, questions, aiResponse ? 'gemini' : 'fallback');
+
+  return { success: true, jobTitle: jobTitle, questions: questions, generatedBy: aiResponse ? 'gemini' : 'fallback' };
+}
+
+/**
+ * Fallback question generation when Gemini is not available.
+ */
+function generateFallbackQuestions(jobTitle, job, deptKey) {
+  const tags = job ? job.tags : [];
+  const questions = [
+    {
+      question: 'What specific experience do you have that makes you a strong fit for the ' + jobTitle + ' role?',
+      category: 'experience',
+      weight: 5,
+      mustHave: true,
+      idealAnswer: 'Should reference relevant years of experience, specific projects, and direct skills matching the role requirements'
+    },
+    {
+      question: tags.length > 0 ?
+        'Describe your proficiency with the following technologies/skills: ' + tags.join(', ') + '. Which are you strongest in, and which would you need to develop?' :
+        'What are the key technical skills or domain knowledge you would bring to this position?',
+      category: 'technical',
+      weight: 5,
+      mustHave: true,
+      idealAnswer: 'Should demonstrate hands-on experience with at least 60% of required skills and honest self-assessment of gaps'
+    },
+    {
+      question: 'Tell us about a challenging project or problem you solved in a previous role. What was your approach and what was the outcome?',
+      category: 'problem_solving',
+      weight: 4,
+      mustHave: false,
+      idealAnswer: 'Should use STAR format, demonstrate analytical thinking, show measurable impact'
+    },
+    {
+      question: 'Why are you interested in joining Acquire Talent Partners, and what attracted you to this specific role?',
+      category: 'motivation',
+      weight: 3,
+      mustHave: false,
+      idealAnswer: 'Should show research into the company, genuine enthusiasm, career alignment with the role'
+    },
+    {
+      question: 'Describe your ideal working environment and team culture. How do you handle disagreements or conflicting priorities?',
+      category: 'cultural_fit',
+      weight: 3,
+      mustHave: false,
+      idealAnswer: 'Should demonstrate collaboration, professionalism, adaptability, and constructive conflict resolution'
+    }
+  ];
+  return questions;
+}
+
+/**
+ * Save screening questions to the sheet.
+ */
+function saveQuestionsToSheet(jobTitle, questions, generatedBy) {
+  const sheet = getOrCreateScreeningSheet();
+  const allData = sheet.getDataRange().getValues();
+  const headers = allData[0];
+  const jobCol = headers.indexOf('jobTitle');
+
+  // Find existing row for this job
+  let rowIndex = -1;
+  for (let i = 1; i < allData.length; i++) {
+    if (allData[i][jobCol] === jobTitle) { rowIndex = i + 1; break; }
+  }
+
+  const weights = questions.map(q => q.weight);
+  const mustHaves = questions.map(q => q.mustHave);
+  const now = new Date().toISOString();
+
+  if (rowIndex > 0) {
+    // Update existing row
+    sheet.getRange(rowIndex, headers.indexOf('questions') + 1).setValue(JSON.stringify(questions));
+    sheet.getRange(rowIndex, headers.indexOf('weights') + 1).setValue(JSON.stringify(weights));
+    sheet.getRange(rowIndex, headers.indexOf('mustHaves') + 1).setValue(JSON.stringify(mustHaves));
+    sheet.getRange(rowIndex, headers.indexOf('generatedBy') + 1).setValue(generatedBy);
+    sheet.getRange(rowIndex, headers.indexOf('editedDate') + 1).setValue(now);
+  } else {
+    // New row
+    sheet.appendRow([jobTitle, JSON.stringify(questions), JSON.stringify(weights), JSON.stringify(mustHaves), generatedBy, now, '', 'true']);
+  }
+}
+
+/**
+ * Get screening questions for a specific job.
+ */
+function getScreeningQuestions(jobTitle) {
+  if (!jobTitle) return { success: false, error: 'Missing jobTitle' };
+
+  const sheet = getOrCreateScreeningSheet();
+  const allData = sheet.getDataRange().getValues();
+  if (allData.length <= 1) return { success: true, jobTitle: jobTitle, questions: [], exists: false };
+
+  const headers = allData[0];
+  const jobCol = headers.indexOf('jobTitle');
+  const qCol = headers.indexOf('questions');
+  const activeCol = headers.indexOf('active');
+
+  for (let i = 1; i < allData.length; i++) {
+    if (allData[i][jobCol] === jobTitle) {
+      let questions = [];
+      try { questions = JSON.parse(allData[i][qCol]); } catch (e) { questions = []; }
+      const isActive = activeCol >= 0 ? String(allData[i][activeCol]) !== 'false' : true;
+      return { success: true, jobTitle: jobTitle, questions: questions, exists: true, active: isActive };
+    }
+  }
+
+  return { success: true, jobTitle: jobTitle, questions: [], exists: false };
+}
+
+/**
+ * Get all screening questions for all jobs.
+ */
+function getAllScreeningQuestions() {
+  const sheet = getOrCreateScreeningSheet();
+  const allData = sheet.getDataRange().getValues();
+  if (allData.length <= 1) return { success: true, jobs: [] };
+
+  const headers = allData[0];
+  const jobs = [];
+
+  for (let i = 1; i < allData.length; i++) {
+    const row = allData[i];
+    const entry = {};
+    headers.forEach((h, j) => {
+      const val = row[j];
+      if (['questions', 'weights', 'mustHaves'].includes(h)) {
+        try { entry[h] = typeof val === 'string' && val ? JSON.parse(val) : []; }
+        catch (e) { entry[h] = []; }
+      } else {
+        entry[h] = val !== undefined && val !== null ? String(val) : '';
+      }
+    });
+    jobs.push(entry);
+  }
+
+  return { success: true, jobs: jobs };
+}
+
+/**
+ * Save edited screening questions from the ATS admin.
+ */
+function saveScreeningQuestions(data) {
+  const { jobTitle, questions, active } = data;
+  if (!jobTitle || !questions) return { success: false, error: 'Missing jobTitle or questions' };
+  saveQuestionsToSheet(jobTitle, questions, 'manual');
+  if (active !== undefined) {
+    const sheet = getOrCreateScreeningSheet();
+    const allData = sheet.getDataRange().getValues();
+    const headers = allData[0];
+    const jobCol = headers.indexOf('jobTitle');
+    const activeCol = headers.indexOf('active');
+    for (let i = 1; i < allData.length; i++) {
+      if (allData[i][jobCol] === jobTitle && activeCol >= 0) {
+        sheet.getRange(i + 1, activeCol + 1).setValue(active ? 'true' : 'false');
+        break;
+      }
+    }
+  }
+  return { success: true, jobTitle: jobTitle };
+}
+
+function getOrCreateScreeningSheet() {
+  const files = DriveApp.getFilesByName(SPREADSHEET_NAME);
+  if (!files.hasNext()) { setup(); return getOrCreateScreeningSheet(); }
+  const ss = SpreadsheetApp.open(files.next());
+  let sheet = ss.getSheetByName('Screening Questions');
+  if (!sheet) {
+    sheet = ss.insertSheet('Screening Questions');
+    sheet.getRange(1, 1, 1, 8).setValues([[
+      'jobTitle', 'questions', 'weights', 'mustHaves',
+      'generatedBy', 'generatedDate', 'editedDate', 'active'
+    ]]);
+    sheet.setFrozenRows(1);
+    sheet.getRange(1, 1, 1, 8).setFontWeight('bold');
+  }
+  return sheet;
+}
+
+// ═══════════ AI SCREENING EVALUATION (Winston Screen Score) ═══════════
+
+/**
+ * Evaluate a candidate's screening responses using Gemini AI.
+ * Returns a screenScore (0-100) with per-question evaluations.
+ */
+function evaluateScreeningResponses(app, questions, responses) {
+  if (!questions || !questions.length || !responses || !responses.length) {
+    return { screenScore: 0, evaluations: [], narrative: 'No screening responses to evaluate.' };
+  }
+
+  // Build evaluation prompt
+  const qaPairs = questions.map((q, i) => {
+    const response = responses[i] || {};
+    return {
+      question: q.question,
+      category: q.category,
+      weight: q.weight,
+      mustHave: q.mustHave,
+      idealAnswer: q.idealAnswer,
+      candidateAnswer: response.answer || '(No response provided)'
+    };
+  });
+
+  const prompt = `You are an expert recruiter evaluating candidate screening responses for a ${app.job || 'role'} position.
+
+Candidate: ${app.firstName || ''} ${app.lastName || ''}
+Applied for: ${app.job || 'Unknown role'}
+
+Evaluate each question-answer pair below. For each:
+- Score 0-100 based on quality, relevance, depth, and alignment with the ideal answer
+- Flag if a must-have question was answered poorly (below 40)
+- Provide a brief evaluation (1-2 sentences)
+
+Questions and Answers:
+${qaPairs.map((qa, i) => `
+Q${i+1} [${qa.category}] (Weight: ${qa.weight}/5, Must-have: ${qa.mustHave}):
+"${qa.question}"
+Ideal: ${qa.idealAnswer}
+Candidate's answer: "${qa.candidateAnswer}"
+`).join('\n')}
+
+Return JSON:
+{
+  "evaluations": [
+    { "questionIndex": 0, "score": 75, "evaluation": "Brief assessment...", "redFlag": false }
+  ],
+  "overallScreenScore": 72,
+  "screenNarrative": "2-3 sentence overall assessment of the candidate's screening responses, highlighting strengths and concerns."
+}`;
+
+  const aiResponse = callGemini(prompt, 0.3);
+
+  if (aiResponse) {
+    try {
+      const result = JSON.parse(aiResponse);
+      return {
+        screenScore: result.overallScreenScore || 0,
+        evaluations: result.evaluations || [],
+        narrative: result.screenNarrative || ''
+      };
+    } catch (e) {
+      Logger.log('Failed to parse screening evaluation: ' + e.message);
+    }
+  }
+
+  // Fallback: basic word-count scoring
+  return evaluateScreeningFallback(questions, responses);
+}
+
+/**
+ * Fallback screening evaluation when Gemini is not available.
+ */
+function evaluateScreeningFallback(questions, responses) {
+  const evaluations = [];
+  let totalWeightedScore = 0;
+  let totalWeight = 0;
+
+  questions.forEach((q, i) => {
+    const response = responses[i] || {};
+    const answer = (response.answer || '').trim();
+    const wordCount = answer ? answer.split(/\s+/).length : 0;
+
+    let score = 0;
+    let evaluation = '';
+    let redFlag = false;
+
+    if (wordCount === 0) {
+      score = 0;
+      evaluation = 'No response provided.';
+      redFlag = q.mustHave;
+    } else if (wordCount < 10) {
+      score = 15;
+      evaluation = 'Very brief response — insufficient detail for evaluation.';
+      redFlag = q.mustHave;
+    } else if (wordCount < 30) {
+      score = 35;
+      evaluation = 'Short response. Some relevant content but lacks depth.';
+      redFlag = q.mustHave && q.weight >= 4;
+    } else if (wordCount < 80) {
+      score = 55;
+      evaluation = 'Adequate response with moderate detail.';
+    } else if (wordCount < 150) {
+      score = 72;
+      evaluation = 'Good, detailed response showing relevant knowledge.';
+    } else {
+      score = 85;
+      evaluation = 'Comprehensive response demonstrating strong engagement.';
+    }
+
+    evaluations.push({ questionIndex: i, score: score, evaluation: evaluation, redFlag: redFlag });
+    totalWeightedScore += score * q.weight;
+    totalWeight += q.weight;
+  });
+
+  const overallScore = totalWeight > 0 ? Math.round(totalWeightedScore / totalWeight) : 0;
+
+  return {
+    screenScore: overallScore,
+    evaluations: evaluations,
+    narrative: 'Screening evaluated using response length and completeness analysis. ' +
+      (overallScore >= 60 ? 'Candidate provided adequate responses overall.' : 'Candidate responses were limited — further assessment recommended.')
+  };
+}
+
+// ═══════════ AI NARRATIVE MATCH EXPLANATION (Winston Match) ═══════════
+
+/**
+ * Generate an AI-powered narrative explanation for the match score.
+ * This replaces the basic observation bullets with SmartRecruiters-style explainability.
+ */
+function generateMatchNarrative(app, scorecard, jobTitle) {
+  const prompt = `You are a senior recruitment AI producing a concise candidate assessment narrative for a recruiter.
+
+Candidate: ${app.firstName || ''} ${app.lastName || ''}
+Applied for: ${jobTitle}
+Location: ${app.location || 'Not specified'}
+Experience: ${app.experience || 'Not specified'}
+Salary expectation: ${app.salary || 'Not specified'}
+Visa/Right to work: ${app.visa || 'Not specified'}
+Motivation: ${(app.motivation || '').substring(0, 300)}
+
+Match Score Breakdown:
+- Skills Match: ${scorecard.scores.skills.percent}% — ${scorecard.scores.skills.detail}
+- Experience Level: ${scorecard.scores.experience.percent}% — ${scorecard.scores.experience.detail}
+- Location Fit: ${scorecard.scores.location.percent}% — ${scorecard.scores.location.detail}
+- Salary Alignment: ${scorecard.scores.salary.percent}% — ${scorecard.scores.salary.detail}
+- Right to Work: ${scorecard.scores.visa.percent}% — ${scorecard.scores.visa.detail}
+- Motivation: ${scorecard.scores.motivation.percent}% — ${scorecard.scores.motivation.detail}
+
+Overall Match: ${scorecard.overallPercent}% (${scorecard.overallLabel})
+
+Write a 3-4 sentence narrative assessment covering:
+1. Overall fit summary (one line)
+2. Key strengths that make this candidate stand out
+3. Areas of concern or gaps to explore further
+4. Recommended next step
+
+Return JSON: { "narrative": "The assessment text...", "strengths": ["strength1","strength2"], "concerns": ["concern1"], "nextStep": "Recommended action" }`;
+
+  const aiResponse = callGemini(prompt, 0.3);
+
+  if (aiResponse) {
+    try {
+      return JSON.parse(aiResponse);
+    } catch (e) {
+      Logger.log('Failed to parse narrative response: ' + e.message);
+    }
+  }
+
+  // Fallback narrative
+  return {
+    narrative: scorecard.overallLabel + ' at ' + scorecard.overallPercent + '%. ' + scorecard.recommendation,
+    strengths: scorecard.observations.filter(o => o.includes('Strong') || o.includes('strong') || o.includes('well-suited') || o.includes('provided')),
+    concerns: scorecard.observations.filter(o => o.includes('gap') || o.includes('mismatch') || o.includes('insufficient') || o.includes('unconfirmed')),
+    nextStep: scorecard.recommendation
+  };
+}
+
+// ═══════════ ENHANCED SCORE APPLICATION (Match + Screen + Combined) ═══════════
+
+// Override the existing scoreApplication to add Screen scoring and narrative
+// (The original is replaced below)
+
 // ═══════════ HELPERS ═══════════
+
+/**
+ * Ensure the Applications sheet has all required headers.
+ * Adds any missing columns to the right side of the sheet.
+ * Call this at the start of submitApplication to handle schema upgrades gracefully.
+ */
+function ensureApplicationHeaders(sheet) {
+  const requiredHeaders = [
+    'id', 'firstName', 'lastName', 'email', 'phone', 'location',
+    'linkedin', 'salary', 'notice', 'experience', 'visa',
+    'motivation', 'source', 'job', 'department',
+    'jobTags', 'jobSalary', 'jobLocation',
+    'status', 'rating', 'aiRating', 'appliedDate',
+    'notes', 'timeline', 'commPreference', 'commDetails',
+    'cvFileUrl', 'cvFileName', 'clFileUrl', 'clFileName',
+    'screenResponses', 'matchScore', 'screenScore', 'combinedScore', 'aiNarrative'
+  ];
+
+  const lastCol = sheet.getLastColumn();
+  const existingHeaders = lastCol > 0 ? sheet.getRange(1, 1, 1, lastCol).getValues()[0].map(String) : [];
+
+  const missing = requiredHeaders.filter(h => !existingHeaders.includes(h));
+  if (missing.length > 0) {
+    const startCol = lastCol + 1;
+    sheet.getRange(1, startCol, 1, missing.length).setValues([missing]);
+    sheet.getRange(1, startCol, 1, missing.length).setFontWeight('bold');
+    Logger.log('Added missing columns: ' + missing.join(', '));
+  }
+}
+
+/**
+ * Save a file (from base64 data URL) to Google Drive in a structured folder.
+ * Creates an "ATP Applications" folder if it doesn't exist, then a subfolder per application.
+ * Returns { url, name, id } of the saved file.
+ */
+function saveFileToDrive(fileData, appId, candidateName, docType) {
+  if (!fileData || !fileData.dataUrl) return { url: '', name: '', id: '' };
+
+  // Get or create the main "ATP Applications" folder
+  const folders = DriveApp.getFoldersByName('ATP Applications');
+  const mainFolder = folders.hasNext() ? folders.next() : DriveApp.createFolder('ATP Applications');
+
+  // Get or create a subfolder for this application
+  const subFolders = mainFolder.getFoldersByName(appId);
+  const appFolder = subFolders.hasNext() ? subFolders.next() : mainFolder.createFolder(appId + ' — ' + candidateName);
+
+  // Decode the base64 data URL → blob
+  const base64Match = fileData.dataUrl.match(/^data:([^;]+);base64,(.+)$/);
+  if (!base64Match) return { url: '', name: fileData.name || '', id: '' };
+
+  const mimeType = base64Match[1];
+  const base64Data = base64Match[2];
+  const blob = Utilities.newBlob(Utilities.base64Decode(base64Data), mimeType, fileData.name || (docType + '.' + mimeType.split('/')[1]));
+
+  // Save to Drive
+  const file = appFolder.createFile(blob);
+  file.setDescription(docType + ' for ' + candidateName + ' (' + appId + ')');
+
+  // Make viewable by anyone with the link (so ATS users can open it)
+  file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
+
+  return {
+    url: file.getUrl(),
+    name: file.getName(),
+    id: file.getId()
+  };
+}
 
 function getSheet(name) {
   const files = DriveApp.getFilesByName(SPREADSHEET_NAME);
