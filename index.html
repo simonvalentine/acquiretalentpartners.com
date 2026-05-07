@@ -98,7 +98,7 @@
     font-weight: 600; font-size: .95rem; text-decoration: none;
     transition: all .2s; cursor: pointer; border: none;
   }
-  .btn-primary { background: #fff; color: var(--primary); }
+  .btn-primary { background: #fff; color: var(--primary) !important; }
   .btn-primary:hover { background: #f0f4ff; transform: translateY(-1px); }
   .btn-secondary { background: transparent; color: #fff; border: 2px solid rgba(255,255,255,.3); margin-left: 12px; }
   .btn-secondary:hover { border-color: #fff; }
@@ -2942,26 +2942,48 @@ function extractDocText(buf) {
 
 // ═══════════ FIELD EXTRACTION ═══════════
 
-function extractFieldsFromText(text) {
+function extractFieldsFromText(rawText) {
   const r = { firstName:'', lastName:'', email:'', phone:'', location:'', linkedin:'' };
 
+  // ── Normalize pdf.js text artifacts ──
+  let text = rawText;
+  text = text.replace(/[ \t]{2,}/g, ' ');
+  // Fix emails: remove spaces around @ and dots
+  text = text.replace(/(\w) *@ *(\w)/g, '$1@$2');
+  text = text.replace(/(\w) *\. *(\w)/g, '$1.$2');
+  // Fix URLs
+  text = text.replace(/https? *: *\/\/ */gi, m => m.replace(/ /g, ''));
+  text = text.replace(/(linkedin|www) *\. *(\w)/gi, '$1.$2');
+  text = text.replace(/\/ *in *\//gi, '/in/');
+  // Fix spaced phone digits
+  text = text.replace(/(\+\s*\d(?:\s+\d){6,14})/g, m => m.replace(/\s+/g, ''));
+  text = text.replace(/^(\d(?:\s\d){6,14})$/gm, m => m.replace(/\s+/g, ''));
+
+  console.log('[CV Parser] Normalized text (first 800 chars):', text.substring(0, 800));
+
+  // ── Email ──
   const em = text.match(/[A-Za-z0-9._%+\-]+@[A-Za-z0-9.\-]+\.[A-Za-z]{2,}/);
   if (em) r.email = em[0].toLowerCase();
 
+  // ── Phone ──
   const ph = text.match(/(?:\+\d{1,3}[\s\-.]?)?\(?\d{2,5}\)?[\s\-.]?\d{2,4}[\s\-.]?\d{2,4}[\s\-.]?\d{0,4}/) ||
              text.match(/\+\d[\d\s\-().]{7,16}/) ||
              text.match(/0\d{2,4}[\s\-]?\d{3,4}[\s\-]?\d{3,4}/) ||
              text.match(/\d{3}[\s\-.]?\d{3}[\s\-.]?\d{4}/);
   if (ph) { const d = ph[0].replace(/\D/g,''); if (d.length >= 7 && d.length <= 15) r.phone = ph[0].trim(); }
 
+  // ── LinkedIn ──
   const li = text.match(/(?:https?:\/\/)?(?:www\.)?linkedin\.com\/in\/[A-Za-z0-9\-_%]+/i);
   if (li) r.linkedin = li[0].startsWith('http') ? li[0] : 'https://' + li[0];
 
+  // ── Location ──
   const loc = text.match(/(?:location|address|based in|located in)\s*:?\s*([A-Z][a-zA-Z\s]+,\s*[A-Za-z\s]+)/i) ||
-              text.match(/([A-Z][a-z]+(?:\s[A-Z][a-z]+)?\s*,\s*(?:UK|US|USA|United Kingdom|United States|Canada|Australia|Germany|France|India|Singapore|UAE|Dubai|Ireland|Netherlands|Spain|Italy|Japan|Hong Kong|China|Brazil|Sweden|Norway|Denmark|Belgium|Switzerland|Austria|Poland|Portugal|New Zealand|South Africa|Scotland|Wales|England))/i) ||
-              text.match(/([A-Z][a-z]+,\s*[A-Z]{2}\s*\d{4,5})/);
+              text.match(/([A-Z][a-z]+(?:\s[A-Z][a-z]+)?\s*,\s*(?:UK|US|USA|United Kingdom|United States|Canada|Australia|Germany|France|India|Singapore|UAE|Dubai|Ireland|Netherlands|Spain|Italy|Japan|Hong Kong|China|Brazil|Sweden|Norway|Denmark|Belgium|Switzerland|Austria|Poland|Portugal|New Zealand|South Africa|Scotland|Wales|England|Czech Republic|Finland|Luxembourg|Romania|Hungary|Croatia|Greece|Mexico|Argentina|Chile|Colombia|Israel|South Korea|Thailand|Vietnam|Philippines|Malaysia|Indonesia|Taiwan|Qatar|Saudi Arabia|Bahrain|Kuwait|Egypt|Nigeria|Kenya|Ghana|Morocco|Turkey))/i) ||
+              text.match(/([A-Z][a-z]+,\s*[A-Z]{2}\s*\d{4,5})/) ||
+              text.match(/([A-Z][a-z]+(?:\s[A-Z][a-z]+)?,\s*[A-Z][a-z]+(?:\s[A-Z][a-z]+)?(?:\s*,\s*[A-Z]{2})?)/);
   if (loc) r.location = (loc[1] || loc[0]).trim();
 
+  // ── Name (from first 15 lines) ──
   const lines = text.split(/[\n\r]+/).map(l => l.trim()).filter(l => l.length > 1 && l.length < 80);
   for (const line of lines.slice(0, 15)) {
     if (/@|http|www\.|phone|tel:|email:|address:|objective|summary|experience|education|skills|curriculum|resume|\bcv\b/i.test(line)) continue;
@@ -2983,8 +3005,10 @@ function extractFieldsFromText(text) {
     }
   }
 
+  console.log('[CV Parser] Extracted fields:', JSON.stringify(r));
   return r;
 }
+
 
 
 
