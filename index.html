@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Acquire Talent Partners — Connecting the World Through Innovation</title>
 <style>
-  :root {
+  :root 
     --primary: #0f2b46;
     --accent: #2563eb;
     --accent-light: #3b82f6;
@@ -2045,6 +2045,8 @@
   </div>
 </div>
 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+
 <script>
 // ── Page Navigation ──
 function showPage(page) {
@@ -2882,110 +2884,46 @@ async function extractDocxText(buf) {
   }
 }
 
-// ── PDF: Extract text using native DecompressionStream for FlateDecode streams ──
+// ── PDF: Extract text using pdf.js (Mozilla) ──
 async function extractPdfText(buf) {
   try {
-    const bytes = new Uint8Array(buf);
-    const raw = new TextDecoder('latin1').decode(bytes);
-    const textParts = [];
-
-    // Find all stream...endstream blocks and decompress FlateDecode ones
-    const streamPositions = [];
-    let searchFrom = 0;
-    while (true) {
-      const idx = raw.indexOf('stream\n', searchFrom);
-      const idx2 = raw.indexOf('stream\r\n', searchFrom);
-      let sIdx = -1;
-      let dataOffset = 0;
-      if (idx >= 0 && (idx2 < 0 || idx <= idx2)) { sIdx = idx; dataOffset = idx + 7; }
-      else if (idx2 >= 0) { sIdx = idx2; dataOffset = idx2 + 8; }
-      if (sIdx < 0) break;
-
-      const endIdx = raw.indexOf('endstream', dataOffset);
-      if (endIdx < 0) break;
-
-      streamPositions.push({ dictStart: Math.max(0, sIdx - 2000), sIdx, dataOffset, endIdx });
-      searchFrom = endIdx + 9;
+    if (typeof pdfjsLib === 'undefined') {
+      console.warn('pdf.js not loaded, cannot parse PDF');
+      return '';
     }
-
-    for (const sp of streamPositions) {
-      const dictText = raw.substring(sp.dictStart, sp.sIdx);
-      // Skip image/font/metadata streams
-      if (/\/Subtype\s*\/Image/i.test(dictText)) continue;
-      if (/\/Type\s*\/(?:Font|XObject|Metadata)/i.test(dictText)) continue;
-
-      const isFlate = /\/FlateDecode/i.test(dictText);
-      let streamText = '';
-
-      if (isFlate) {
-        const compData = bytes.slice(sp.dataOffset, sp.endIdx);
-        try {
-          const decompressed = await inflateRaw(compData);
-          streamText = new TextDecoder('latin1').decode(decompressed);
-        } catch (e) {
-          // Trim and retry (streams sometimes have trailing whitespace)
-          try {
-            let trimEnd = compData.length;
-            while (trimEnd > 0 && (compData[trimEnd-1] === 0x0A || compData[trimEnd-1] === 0x0D || compData[trimEnd-1] === 0x20)) trimEnd--;
-            const trimmed = compData.slice(0, trimEnd);
-            const decompressed = await inflateRaw(trimmed);
-            streamText = new TextDecoder('latin1').decode(decompressed);
-          } catch(e2) { continue; }
+    // Set worker to use CDN version
+    pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+    const pdf = await pdfjsLib.getDocument({ data: new Uint8Array(buf) }).promise;
+    const pageTexts = [];
+    for (let i = 1; i <= pdf.numPages; i++) {
+      const page = await pdf.getPage(i);
+      const content = await page.getTextContent();
+      // Group items by vertical position to reconstruct lines
+      const items = content.items.filter(item => item.str && item.str.trim());
+      if (!items.length) continue;
+      // Sort by Y (descending = top-to-bottom) then X (left-to-right)
+      items.sort((a, b) => {
+        const dy = b.transform[5] - a.transform[5];
+        if (Math.abs(dy) > 3) return dy;
+        return a.transform[4] - b.transform[4];
+      });
+      // Group into lines based on Y position
+      const lines = [];
+      let currentLine = [items[0]];
+      for (let j = 1; j < items.length; j++) {
+        const prevY = currentLine[0].transform[5];
+        const currY = items[j].transform[5];
+        if (Math.abs(prevY - currY) < 3) {
+          currentLine.push(items[j]);
+        } else {
+          lines.push(currentLine.map(it => it.str).join(' '));
+          currentLine = [items[j]];
         }
-      } else {
-        streamText = raw.substring(sp.dataOffset, sp.endIdx);
       }
-
-      if (!streamText) continue;
-
-      // Extract text from PDF text operators
-      const tjParts = [];
-      let tm;
-
-      // (text) Tj operator
-      const tj1 = /\(([^)]{1,500})\)\s*Tj/g;
-      while ((tm = tj1.exec(streamText))) tjParts.push(tm[1]);
-
-      // [(text)] TJ operator
-      const tj2 = /\[([^\]]{1,3000})\]\s*TJ/gi;
-      while ((tm = tj2.exec(streamText))) {
-        const inner = tm[1].match(/\(([^)]*)\)/g);
-        if (inner) inner.forEach(s => { const t = s.slice(1, -1); if (t.trim()) tjParts.push(t); });
-      }
-
-      if (tjParts.length) textParts.push(tjParts.join(' '));
+      lines.push(currentLine.map(it => it.str).join(' '));
+      pageTexts.push(lines.join('\n'));
     }
-
-    if (textParts.length) {
-      let text = textParts.join('\n');
-      // Unescape PDF string escapes
-      text = text.replace(/\\n/g, '\n').replace(/\\r/g, '').replace(/\\t/g, ' ');
-      text = text.replace(/\\\(/g, '(').replace(/\\\)/g, ')');
-      if (text.trim().length > 10) return text;
-    }
-
-    // Fallback: direct Tj/TJ from raw (uncompressed PDFs)
-    const directParts = [];
-    let dm;
-    const dr1 = /\(([^)]{2,300})\)\s*Tj/g;
-    while ((dm = dr1.exec(raw))) directParts.push(dm[1]);
-    const dr2 = /\[([^\]]{1,2000})\]\s*TJ/gi;
-    while ((dm = dr2.exec(raw))) {
-      const inner = dm[1].match(/\(([^)]*)\)/g);
-      if (inner) inner.forEach(s => { const t = s.slice(1,-1); if (t.trim()) directParts.push(t); });
-    }
-    if (directParts.length) {
-      let text = directParts.join(' ');
-      if (text.trim().length > 10) return text;
-    }
-
-    // Last resort: readable ASCII runs
-    const runs = raw.match(/[\x20-\x7E]{15,}/g);
-    if (runs) {
-      const filtered = runs.filter(r => !/^[\/\[\]<>{}()%#]+$/.test(r) && !/^\d+\s+\d+\s+obj/.test(r));
-      if (filtered.length > 2) return filtered.join(' ');
-    }
-
+    return pageTexts.join('\n');
   } catch (e) {
     console.warn('PDF parse error:', e.message);
   }
