@@ -130,7 +130,7 @@
     align-items: center; justify-content: center; position: relative; overflow: hidden;
   }
   .about-image-inner {
-    width: 80%; height: 80%; background: linear-gradient(135deg, var(--accent), #7c3aed);
+    width: 80%; height: 80%; background: #111111;
     border-radius: var(--radius); display: flex; align-items: center;
     justify-content: center; color: #fff; font-size: 3rem; font-weight: 800;
     letter-spacing: -1px;
@@ -587,9 +587,9 @@
   .chat-fab {
     position: fixed; bottom: 28px; right: 28px; z-index: 900;
     width: 60px; height: 60px; border-radius: 50%;
-    background: linear-gradient(135deg, var(--accent), #7c3aed);
+    background: #111111;
     color: #fff; border: none; cursor: pointer;
-    box-shadow: 0 4px 20px rgba(37,99,235,.35);
+    box-shadow: 0 4px 20px rgba(0,0,0,.3);
     display: flex; align-items: center; justify-content: center;
     font-size: 1.5rem; transition: all .3s;
   }
@@ -735,6 +735,15 @@
   }
   .chat-input-area .speaker-btn:hover { color: var(--accent); }
   .chat-input-area .speaker-btn.playing { color: var(--accent); }
+  .chat-bubble .speaker-btn {
+    width: 24px; height: 24px; border-radius: 50%;
+    background: rgba(0,0,0,.06); border: none;
+    color: var(--text-light); cursor: pointer;
+    display: inline-flex; align-items: center; justify-content: center;
+    transition: all .2s; padding: 0; opacity: 0.5;
+  }
+  .chat-bubble .speaker-btn:hover { opacity: 1; color: var(--accent); background: rgba(37,99,235,.1); }
+  .chat-bubble .speaker-btn.playing { opacity: 1; color: var(--accent); }
   .chat-send:disabled { background: #e2e8f0; cursor: not-allowed; }
 
   /* ── Rich Job Cards in Chat ── */
@@ -1590,7 +1599,7 @@
 <div class="chat-window" id="chatWindow">
   <div class="chat-header">
     <div class="chat-header-top">
-      <div class="chat-avatar">&#129302;</div>
+      <div class="chat-avatar"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.5"><circle cx="12" cy="12" r="3"/><path d="M12 2v4m0 12v4m-10-10h4m12 0h4m-2.83-7.17l-2.83 2.83m-8.48 8.48l-2.83 2.83m0-14.14l2.83 2.83m8.48 8.48l2.83 2.83"/></svg></div>
       <h3>Ava <span class="online-dot"></span></h3>
       <button class="chat-voice-toggle" id="chatVoiceToggle" onclick="toggleVoiceMode()" title="Switch to voice mode">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="22"/></svg>
@@ -3312,6 +3321,26 @@ function addBotMessage(text, quickReplies, callback) {
   const delay = Math.min(600 + text.length * 5, 1600);
   setTimeout(() => {
     typingDiv.innerHTML = text;
+    // Add speaker button for TTS
+    const speakerBtn = document.createElement('button');
+    speakerBtn.className = 'speaker-btn';
+    speakerBtn.title = 'Listen';
+    speakerBtn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/></svg>';
+    speakerBtn.onclick = function(e) {
+      e.stopPropagation();
+      const plainText = typingDiv.textContent.replace(/Listen$/, '').trim();
+      if (voiceSpeaking || elevenLabsPlaying) { stopSpeaking(); speakerBtn.classList.remove('playing'); return; }
+      speakerBtn.classList.add('playing');
+      const checkDone = setInterval(() => {
+        if (!voiceSpeaking && !elevenLabsPlaying) { speakerBtn.classList.remove('playing'); clearInterval(checkDone); }
+      }, 300);
+      speakText(plainText);
+    };
+    typingDiv.style.position = 'relative';
+    speakerBtn.style.position = 'absolute';
+    speakerBtn.style.bottom = '4px';
+    speakerBtn.style.right = '4px';
+    typingDiv.appendChild(speakerBtn);
     const time = document.createElement('div');
     time.className = 'chat-time';
     time.textContent = new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
@@ -3900,39 +3929,7 @@ function stopChatMic() {
   document.getElementById('chatMicBtn').classList.remove('recording');
 }
 
-// Add speaker button to bot messages
-const origAddBotMessage = addBotMessage;
-addBotMessage = function(text, quickReplies) {
-  origAddBotMessage(text, quickReplies);
-  // Add speaker button to the last bot message
-  const msgs = document.querySelectorAll('.chat-msg.bot');
-  const lastMsg = msgs[msgs.length - 1];
-  if (lastMsg) {
-    const bubble = lastMsg.querySelector('.chat-bubble');
-    if (bubble && !bubble.querySelector('.speaker-btn')) {
-      const btn = document.createElement('button');
-      btn.className = 'speaker-btn';
-      btn.title = 'Listen';
-      btn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/></svg>';
-      btn.onclick = function(e) {
-        e.stopPropagation();
-        const plainText = bubble.textContent.replace(/Listen$/, '').trim();
-        if (voiceSpeaking || elevenLabsPlaying) { stopSpeaking(); btn.classList.remove('playing'); return; }
-        btn.classList.add('playing');
-        const origEnd = updateVoiceUI;
-        const checkDone = setInterval(() => {
-          if (!voiceSpeaking && !elevenLabsPlaying) { btn.classList.remove('playing'); clearInterval(checkDone); }
-        }, 300);
-        speakText(plainText);
-      };
-      bubble.style.position = 'relative';
-      btn.style.position = 'absolute';
-      btn.style.bottom = '4px';
-      btn.style.right = '4px';
-      bubble.appendChild(btn);
-    }
-  }
-};
+// Speaker button is now added directly inside addBotMessage after typing delay
 
 // ═══════════ VOICE AGENT ENGINE (Unified with Chat) ═══════════
 let voiceJob = null;
