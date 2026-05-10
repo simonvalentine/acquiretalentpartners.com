@@ -709,6 +709,32 @@
     font-size: 1.1rem; transition: background .15s; flex-shrink: 0;
   }
   .chat-send:hover { background: var(--accent-light); }
+  .chat-mic-btn {
+    width: 36px; height: 36px; border-radius: 50%;
+    background: transparent; border: 1.5px solid var(--border);
+    color: var(--text-light); cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    transition: all .2s; flex-shrink: 0;
+  }
+  .chat-mic-btn:hover { border-color: var(--accent); color: var(--accent); }
+  .chat-mic-btn.recording {
+    border-color: #ef4444; color: #ef4444;
+    animation: micPulse 1.2s ease-in-out infinite;
+    background: rgba(239,68,68,.08);
+  }
+  @keyframes micPulse {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(239,68,68,.3); }
+    50% { box-shadow: 0 0 0 6px rgba(239,68,68,0); }
+  }
+  .chat-input-area .speaker-btn {
+    width: 28px; height: 28px; border-radius: 50%;
+    background: transparent; border: none;
+    color: var(--text-light); cursor: pointer;
+    display: inline-flex; align-items: center; justify-content: center;
+    transition: all .2s; margin-left: 4px; padding: 0;
+  }
+  .chat-input-area .speaker-btn:hover { color: var(--accent); }
+  .chat-input-area .speaker-btn.playing { color: var(--accent); }
   .chat-send:disabled { background: #e2e8f0; cursor: not-allowed; }
 
   /* ── Rich Job Cards in Chat ── */
@@ -1575,6 +1601,7 @@
   <div class="chat-messages" id="chatMessages"></div>
   <div class="chat-input-area">
     <input type="text" class="chat-input" id="chatInput" placeholder="Ask me anything about careers..." onkeydown="if(event.key==='Enter')sendChat()">
+    <button class="chat-mic-btn" id="chatMicBtn" onclick="toggleChatMic()" title="Voice input"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="22"/></svg></button>
     <button class="chat-send" id="chatSendBtn" onclick="sendChat()">&#10148;</button>
   </div>
   <div class="chat-powered">Powered by Acquire Talent Partners AI</div>
@@ -3823,7 +3850,89 @@ renderJobs(allJobs);
 
 <script>
 // ═══════════ ELEVENLABS CONFIG ═══════════
-const ELEVENLABS_AGENT_ID = ''; // ← Paste your ElevenLabs agent ID here
+const ELEVENLABS_API_KEY = ''; // ← Paste your ElevenLabs API key here
+const ELEVENLABS_VOICE_ID = 'EXAVITQu4vr4xnSDxMaL'; // Bella - warm, professional female voice
+const ELEVENLABS_MODEL = 'eleven_turbo_v2_5'; // Fast, low-latency model
+let elevenLabsAudioQueue = [];
+let elevenLabsPlaying = false;
+let currentAudio = null;
+
+// ═══════════ CHAT MIC & SPEAKER ═══════════
+let chatMicRecognition = null;
+let chatMicActive = false;
+
+function toggleChatMic() {
+  if (chatMicActive) { stopChatMic(); return; }
+  const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!SpeechRec) { alert('Voice input requires Chrome or Edge.'); return; }
+  chatMicActive = true;
+  const btn = document.getElementById('chatMicBtn');
+  btn.classList.add('recording');
+  chatMicRecognition = new SpeechRec();
+  chatMicRecognition.lang = 'en-GB';
+  chatMicRecognition.interimResults = true;
+  chatMicRecognition.continuous = false;
+  const input = document.getElementById('chatInput');
+  let final = '';
+  chatMicRecognition.onresult = (e) => {
+    let interim = ''; final = '';
+    for (let i = e.resultIndex; i < e.results.length; i++) {
+      if (e.results[i].isFinal) final += e.results[i][0].transcript;
+      else interim += e.results[i][0].transcript;
+    }
+    input.value = final || interim;
+  };
+  chatMicRecognition.onend = () => {
+    chatMicActive = false;
+    btn.classList.remove('recording');
+    if (final.trim()) { input.value = final.trim(); sendChat(); }
+  };
+  chatMicRecognition.onerror = () => {
+    chatMicActive = false;
+    btn.classList.remove('recording');
+  };
+  chatMicRecognition.start();
+}
+
+function stopChatMic() {
+  if (chatMicRecognition) { try { chatMicRecognition.stop(); } catch(e) {} }
+  chatMicActive = false;
+  document.getElementById('chatMicBtn').classList.remove('recording');
+}
+
+// Add speaker button to bot messages
+const origAddBotMessage = addBotMessage;
+addBotMessage = function(text, quickReplies) {
+  origAddBotMessage(text, quickReplies);
+  // Add speaker button to the last bot message
+  const msgs = document.querySelectorAll('.chat-msg.bot');
+  const lastMsg = msgs[msgs.length - 1];
+  if (lastMsg) {
+    const bubble = lastMsg.querySelector('.chat-bubble');
+    if (bubble && !bubble.querySelector('.speaker-btn')) {
+      const btn = document.createElement('button');
+      btn.className = 'speaker-btn';
+      btn.title = 'Listen';
+      btn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/></svg>';
+      btn.onclick = function(e) {
+        e.stopPropagation();
+        const plainText = bubble.textContent.replace(/Listen$/, '').trim();
+        if (voiceSpeaking || elevenLabsPlaying) { stopSpeaking(); btn.classList.remove('playing'); return; }
+        btn.classList.add('playing');
+        const origEnd = updateVoiceUI;
+        const checkDone = setInterval(() => {
+          if (!voiceSpeaking && !elevenLabsPlaying) { btn.classList.remove('playing'); clearInterval(checkDone); }
+        }, 300);
+        speakText(plainText);
+      };
+      bubble.style.position = 'relative';
+      btn.style.position = 'absolute';
+      btn.style.bottom = '4px';
+      btn.style.right = '4px';
+      bubble.appendChild(btn);
+    }
+  }
+};
 
 // ═══════════ VOICE AGENT ENGINE (Unified with Chat) ═══════════
 let voiceJob = null;
@@ -3983,8 +4092,7 @@ function exitVoiceMode() {
 
   voiceModeActive = false;
   stopVoiceListening();
-  if (voiceSynth) voiceSynth.cancel();
-  voiceSpeaking = false;
+  stopSpeaking();
   stopAudioAnalyser();
   clearTimeout(voiceAutoListenTimer);
 
@@ -4011,9 +4119,8 @@ function askHint(text) {
 }
 
 function toggleVoiceListening() {
-  if (voiceSpeaking) {
-    voiceSynth.cancel();
-    voiceSpeaking = false;
+  if (voiceSpeaking || elevenLabsPlaying) {
+    stopSpeaking();
     updateVoiceUI('idle');
     return;
   }
@@ -4103,11 +4210,103 @@ function addVoiceResponse(text) {
 }
 
 function speakText(text) {
+  const clean = text.replace(/<[^>]+>/g, '').replace(/&[a-z]+;/g, ' ').replace(/\s+/g, ' ').trim();
+  if (!clean) return;
+
+  // Stop any current playback
+  stopSpeaking();
+
+  // Try ElevenLabs first
+  if (ELEVENLABS_API_KEY) {
+    speakWithElevenLabs(clean);
+    return;
+  }
+
+  // Fallback to browser speech synthesis
+  speakWithBrowser(clean);
+}
+
+function stopSpeaking() {
+  elevenLabsPlaying = false;
+  elevenLabsAudioQueue = [];
+  if (currentAudio) {
+    currentAudio.pause();
+    currentAudio.currentTime = 0;
+    currentAudio = null;
+  }
+  if (voiceSynth) voiceSynth.cancel();
+  voiceSpeaking = false;
+}
+
+async function speakWithElevenLabs(text) {
+  voiceSpeaking = true;
+  updateVoiceUI('speaking');
+
+  try {
+    const response = await fetch(
+      'https://api.elevenlabs.io/v1/text-to-speech/' + ELEVENLABS_VOICE_ID + '/stream',
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'xi-api-key': ELEVENLABS_API_KEY
+        },
+        body: JSON.stringify({
+          text: text,
+          model_id: ELEVENLABS_MODEL,
+          voice_settings: {
+            stability: 0.5,
+            similarity_boost: 0.75,
+            style: 0.4,
+            use_speaker_boost: true
+          }
+        })
+      }
+    );
+
+    if (!response.ok) {
+      console.warn('ElevenLabs API error, falling back to browser TTS');
+      speakWithBrowser(text);
+      return;
+    }
+
+    const audioBlob = await response.blob();
+    const audioUrl = URL.createObjectURL(audioBlob);
+    const audio = new Audio(audioUrl);
+    currentAudio = audio;
+    elevenLabsPlaying = true;
+
+    audio.onplay = () => { voiceSpeaking = true; updateVoiceUI('speaking'); };
+    audio.onended = () => {
+      voiceSpeaking = false;
+      elevenLabsPlaying = false;
+      currentAudio = null;
+      URL.revokeObjectURL(audioUrl);
+      updateVoiceUI('idle');
+      if (voiceAutoListen && voiceModeActive) {
+        voiceAutoListenTimer = setTimeout(() => {
+          if (voiceModeActive && !voiceSpeaking) startVoiceListening();
+        }, 1200);
+      }
+    };
+    audio.onerror = () => {
+      voiceSpeaking = false;
+      elevenLabsPlaying = false;
+      currentAudio = null;
+      updateVoiceUI('idle');
+    };
+    audio.play();
+  } catch (e) {
+    console.warn('ElevenLabs fetch error:', e);
+    speakWithBrowser(text);
+  }
+}
+
+function speakWithBrowser(text) {
   if (!voiceSynth) return;
   voiceSynth.cancel();
   clearTimeout(voiceAutoListenTimer);
-  const clean = text.replace(/<[^>]+>/g, '').replace(/&[a-z]+;/g, ' ').replace(/\s+/g, ' ').trim();
-  const utt = new SpeechSynthesisUtterance(clean);
+  const utt = new SpeechSynthesisUtterance(text);
   utt.voice = voicePreferredVoice || pickVoice();
   utt.rate = 1.0; utt.pitch = 1.05; utt.volume = 1;
   utt.onstart = () => { voiceSpeaking = true; updateVoiceUI('speaking'); };
@@ -4118,8 +4317,8 @@ function speakText(text) {
     }
   };
   utt.onerror = () => { voiceSpeaking = false; updateVoiceUI('idle'); };
-  if (clean.length > 200) {
-    const sentences = clean.match(/[^.!?]+[.!?]+/g) || [clean];
+  if (text.length > 200) {
+    const sentences = text.match(/[^.!?]+[.!?]+/g) || [text];
     let i = 0;
     function speakNext() {
       if (i >= sentences.length) {
