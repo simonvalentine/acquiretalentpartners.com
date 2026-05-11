@@ -3894,33 +3894,67 @@ function toggleChatMic() {
   if (chatMicActive) { stopChatMic(); return; }
   const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
   if (!SpeechRec) { alert('Voice input requires Chrome or Edge.'); return; }
-  chatMicActive = true;
   const btn = document.getElementById('chatMicBtn');
-  btn.classList.add('recording');
-  chatMicRecognition = new SpeechRec();
-  chatMicRecognition.lang = 'en-GB';
-  chatMicRecognition.interimResults = true;
-  chatMicRecognition.continuous = false;
   const input = document.getElementById('chatInput');
-  let final = '';
-  chatMicRecognition.onresult = (e) => {
-    let interim = ''; final = '';
-    for (let i = e.resultIndex; i < e.results.length; i++) {
-      if (e.results[i].isFinal) final += e.results[i][0].transcript;
-      else interim += e.results[i][0].transcript;
-    }
-    input.value = final || interim;
-  };
-  chatMicRecognition.onend = () => {
-    chatMicActive = false;
-    btn.classList.remove('recording');
-    if (final.trim()) { input.value = final.trim(); sendChat(); }
-  };
-  chatMicRecognition.onerror = () => {
-    chatMicActive = false;
-    btn.classList.remove('recording');
-  };
-  chatMicRecognition.start();
+
+  // Request mic permission first, then start recognition
+  navigator.mediaDevices.getUserMedia({ audio: true }).then(stream => {
+    // Stop the stream immediately — we just needed permission
+    stream.getTracks().forEach(t => t.stop());
+
+    chatMicActive = true;
+    btn.classList.add('recording');
+    input.placeholder = 'Listening... speak now';
+
+    chatMicRecognition = new SpeechRec();
+    chatMicRecognition.lang = 'en-GB';
+    chatMicRecognition.interimResults = true;
+    chatMicRecognition.continuous = true;
+    let final = '';
+    let silenceTimer = null;
+
+    chatMicRecognition.onstart = () => {
+      console.log('Chat mic: listening started');
+    };
+    chatMicRecognition.onresult = (e) => {
+      let interim = ''; final = '';
+      for (let i = e.resultIndex; i < e.results.length; i++) {
+        if (e.results[i].isFinal) final += e.results[i][0].transcript;
+        else interim += e.results[i][0].transcript;
+      }
+      input.value = final || interim;
+      // Reset silence timer on each result
+      clearTimeout(silenceTimer);
+      if (final.trim()) {
+        silenceTimer = setTimeout(() => { stopChatMic(); }, 1500);
+      }
+    };
+    chatMicRecognition.onend = () => {
+      chatMicActive = false;
+      btn.classList.remove('recording');
+      input.placeholder = 'Ask me anything about careers...';
+      clearTimeout(silenceTimer);
+      if (final.trim()) { input.value = final.trim(); sendChat(); }
+    };
+    chatMicRecognition.onerror = (e) => {
+      chatMicActive = false;
+      btn.classList.remove('recording');
+      input.placeholder = 'Ask me anything about careers...';
+      clearTimeout(silenceTimer);
+      if (e.error === 'not-allowed') {
+        alert('Microphone access was denied. Please allow microphone access in your browser settings and try again.');
+      } else if (e.error === 'no-speech') {
+        input.placeholder = 'No speech detected — try again';
+        setTimeout(() => { input.placeholder = 'Ask me anything about careers...'; }, 2000);
+      } else {
+        console.warn('Speech recognition error:', e.error);
+      }
+    };
+    chatMicRecognition.start();
+  }).catch(err => {
+    console.warn('Microphone access error:', err);
+    alert('Microphone access is required for voice input. Please allow microphone access in your browser settings and try again.');
+  });
 }
 
 function stopChatMic() {
