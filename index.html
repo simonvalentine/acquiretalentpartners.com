@@ -3897,64 +3897,47 @@ let chatMicActive = false;
 let voiceConvoMode = false;
 
 function toggleChatMic() {
-  if (chatMicActive) { stopChatMic(); voiceConvoMode = false; return; }
+  if (chatMicActive) { stopChatMic(); return; }
   const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
-  if (!SpeechRec) { alert('Voice input requires Chrome or Edge.'); return; }
+  if (!SpeechRec) return;
   voiceConvoMode = true;
-  startChatListening();
-}
-
-function startChatListening() {
-  const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
-  if (!SpeechRec || !voiceConvoMode) return;
-  const btn = document.getElementById('chatMicBtn');
-  const input = document.getElementById('chatInput');
-
   chatMicActive = true;
+  const btn = document.getElementById('chatMicBtn');
   btn.classList.add('recording');
-  input.placeholder = 'Listening... speak now';
-
   chatMicRecognition = new SpeechRec();
   chatMicRecognition.lang = 'en-GB';
   chatMicRecognition.interimResults = true;
   chatMicRecognition.continuous = false;
-  let finalTranscript = '';
-
-  chatMicRecognition.onstart = () => { console.log('Chat mic: listening'); };
+  const input = document.getElementById('chatInput');
+  input.placeholder = 'Listening...';
+  let final = '';
   chatMicRecognition.onresult = (e) => {
-    let interim = '';
+    let interim = ''; final = '';
     for (let i = e.resultIndex; i < e.results.length; i++) {
-      if (e.results[i].isFinal) finalTranscript += e.results[i][0].transcript;
+      if (e.results[i].isFinal) final += e.results[i][0].transcript;
       else interim += e.results[i][0].transcript;
     }
-    input.value = finalTranscript || interim;
+    input.value = final || interim;
   };
   chatMicRecognition.onend = () => {
     chatMicActive = false;
     btn.classList.remove('recording');
-    if (finalTranscript.trim()) {
-      input.value = finalTranscript.trim();
-      input.placeholder = 'Ask me anything about careers...';
-      sendChat();
-    } else {
-      input.placeholder = 'No speech detected — tap mic to try again';
-      setTimeout(() => { input.placeholder = 'Ask me anything about careers...'; }, 2000);
-      voiceConvoMode = false;
-    }
+    input.placeholder = 'Ask me anything about careers...';
+    if (final.trim()) { input.value = final.trim(); sendChat(); }
+    else { voiceConvoMode = false; }
   };
   chatMicRecognition.onerror = (e) => {
     chatMicActive = false;
     btn.classList.remove('recording');
     input.placeholder = 'Ask me anything about careers...';
-    if (e.error === 'not-allowed') {
-      voiceConvoMode = false;
-      alert('Please allow microphone access: click the lock icon in your address bar, set Microphone to Allow, then reload the page.');
-    } else if (e.error !== 'no-speech' && e.error !== 'aborted') {
-      console.warn('Speech error:', e.error);
-      voiceConvoMode = false;
-    }
+    voiceConvoMode = false;
   };
   chatMicRecognition.start();
+}
+
+function startChatListening() {
+  if (!voiceConvoMode) return;
+  toggleChatMic();
 }
 
 function stopChatMic() {
