@@ -1221,6 +1221,7 @@
 
 </style>
 <!-- Resume parsing libraries loaded on-demand in JS -->
+<script src="https://elevenlabs.io/convai-widget/index.js" async></script>
 </head>
 <body>
 
@@ -3892,34 +3893,41 @@ const ELEVENLABS_AGENT_ID = 'agent_6501kr914wdmfxkvtq4k4kf4pfk6';
 let elevenLabsWidgetActive = false;
 
 function launchElevenLabsAgent() {
+  // If widget already active, remove it
   if (elevenLabsWidgetActive) {
-    // Remove existing widget
     const existing = document.querySelector('elevenlabs-convai');
     if (existing) existing.remove();
     elevenLabsWidgetActive = false;
+    // Re-show chat FAB
+    document.getElementById('chatFab').style.display = '';
     return;
   }
 
-  // Close chat window if open
+  // Close chat window
   const chatWin = document.getElementById('chatWindow');
-  if (chatWin.classList.contains('open')) {
-    chatWin.classList.remove('open');
-    document.getElementById('chatFab').classList.remove('open');
-  }
+  chatWin.classList.remove('open');
+  document.getElementById('chatFab').classList.remove('open');
+  document.getElementById('chatFab').style.display = 'none';
 
-  // Create the widget as a direct child of body (standalone floating mode)
+  // Create widget on body
   const widget = document.createElement('elevenlabs-convai');
   widget.setAttribute('agent-id', ELEVENLABS_AGENT_ID);
   document.body.appendChild(widget);
   elevenLabsWidgetActive = true;
 
-  // Load the widget script if not already loaded
-  if (!document.querySelector('script[src*="convai-widget"]')) {
-    const s = document.createElement('script');
-    s.src = 'https://elevenlabs.io/convai-widget/index.js';
-    s.async = true;
-    document.head.appendChild(s);
-  }
+  // Auto-click the widget's start button once it renders
+  const autoStart = setInterval(() => {
+    const el = document.querySelector('elevenlabs-convai');
+    if (!el || !el.shadowRoot) return;
+    // Try to find and click the call button inside shadow DOM
+    const btn = el.shadowRoot.querySelector('button');
+    if (btn) {
+      clearInterval(autoStart);
+      btn.click();
+    }
+  }, 300);
+  // Safety: stop trying after 5 seconds
+  setTimeout(() => clearInterval(autoStart), 5000);
 }
 let elevenLabsAudioQueue = [];
 let elevenLabsPlaying = false;
