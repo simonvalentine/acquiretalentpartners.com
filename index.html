@@ -1601,7 +1601,7 @@
     <div class="chat-header-top">
       <div class="chat-avatar"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.5"><circle cx="12" cy="12" r="3"/><path d="M12 2v4m0 12v4m-10-10h4m12 0h4m-2.83-7.17l-2.83 2.83m-8.48 8.48l-2.83 2.83m0-14.14l2.83 2.83m8.48 8.48l2.83 2.83"/></svg></div>
       <h3>Ava <span class="online-dot"></span></h3>
-      <button class="chat-voice-toggle" id="chatVoiceToggle" onclick="toggleVoiceMode()" title="Voice conversation">
+      <button class="chat-voice-toggle" id="chatVoiceToggle" onclick="launchElevenLabsAgent()" title="Voice conversation">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="22"/></svg>
       </button>
     </div>
@@ -1610,7 +1610,7 @@
   <div class="chat-messages" id="chatMessages"></div>
   <div class="chat-input-area">
     <input type="text" class="chat-input" id="chatInput" placeholder="Ask me anything about careers..." onkeydown="if(event.key==='Enter')sendChat()">
-    <button class="chat-mic-btn" id="chatMicBtn" onclick="toggleVoiceMode()" title="Voice input"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="22"/></svg></button>
+    <button class="chat-mic-btn" id="chatMicBtn" onclick="launchElevenLabsAgent()" title="Voice input"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="22"/></svg></button>
     <button class="chat-send" id="chatSendBtn" onclick="sendChat()">&#10148;</button>
   </div>
   <div class="chat-powered">Powered by Acquire Talent Partners AI</div>
@@ -3888,6 +3888,39 @@ const ELEVENLABS_API_KEY = 'sk_296af9d484f95d7bb37e713100b2a7e2dc0ec4a129d21f49'
 const ELEVENLABS_VOICE_ID = 'EXAVITQu4vr4xnSDxMaL'; // Bella - warm, professional female voice
 const ELEVENLABS_MODEL = 'eleven_turbo_v2_5'; // Fast, low-latency model
 const ELEVENLABS_AGENT_ID = 'agent_6501kr914wdmfxkvtq4k4kf4pfk6';
+
+let elevenLabsWidgetActive = false;
+
+function launchElevenLabsAgent() {
+  if (elevenLabsWidgetActive) {
+    // Remove existing widget
+    const existing = document.querySelector('elevenlabs-convai');
+    if (existing) existing.remove();
+    elevenLabsWidgetActive = false;
+    return;
+  }
+
+  // Close chat window if open
+  const chatWin = document.getElementById('chatWindow');
+  if (chatWin.classList.contains('open')) {
+    chatWin.classList.remove('open');
+    document.getElementById('chatFab').classList.remove('open');
+  }
+
+  // Create the widget as a direct child of body (standalone floating mode)
+  const widget = document.createElement('elevenlabs-convai');
+  widget.setAttribute('agent-id', ELEVENLABS_AGENT_ID);
+  document.body.appendChild(widget);
+  elevenLabsWidgetActive = true;
+
+  // Load the widget script if not already loaded
+  if (!document.querySelector('script[src*="convai-widget"]')) {
+    const s = document.createElement('script');
+    s.src = 'https://elevenlabs.io/convai-widget/index.js';
+    s.async = true;
+    document.head.appendChild(s);
+  }
+}
 let elevenLabsAudioQueue = [];
 let elevenLabsPlaying = false;
 let currentAudio = null;
