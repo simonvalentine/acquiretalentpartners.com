@@ -1601,7 +1601,7 @@
   <div class="chat-header">
     <div class="chat-header-top">
       <div class="chat-avatar"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.5"><circle cx="12" cy="12" r="3"/><path d="M12 2v4m0 12v4m-10-10h4m12 0h4m-2.83-7.17l-2.83 2.83m-8.48 8.48l-2.83 2.83m0-14.14l2.83 2.83m8.48 8.48l2.83 2.83"/></svg></div>
-      <h3>Ava <span class="online-dot"></span></h3>
+      <h3>Andrew <span class="online-dot"></span></h3>
       <button class="chat-voice-toggle" id="chatVoiceToggle" onclick="launchVoiceAgent()" title="Voice conversation">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="22"/></svg>
       </button>
@@ -3299,7 +3299,7 @@ function toggleChat() {
 }
 
 function initChat() {
-  addBotMessage("Hi there! I'm <strong>Ava</strong>, your AI careers assistant at Acquire Talent Partners. I can answer questions about our roles, benefits, and culture — or I can <strong>help you apply right here in the chat</strong>. What would you like to do?", [
+  addBotMessage("Hi there! I'm <strong>Andrew</strong>, your AI careers assistant at Acquire Talent Partners. I can answer questions about our roles, benefits, and culture — or I can <strong>help you apply right here in the chat</strong>. What would you like to do?", [
     "Apply via chat",
     "What jobs are available?",
     "Tell me about benefits",
@@ -4097,7 +4097,7 @@ function enterVoiceMode(jobIdx) {
     setTimeout(() => {
       const greeting = voiceJob
         ? `Hello! I'm here to answer any questions about the ${voiceJob.title} role. What would you like to know?`
-        : `Hello! I'm Ava, your AI recruitment assistant. Ask me anything about our open roles, benefits, culture, or the application process.`;
+        : `Hello! I'm Andrew, your AI recruitment assistant. Ask me anything about our open roles, benefits, culture, or the application process.`;
       addVoiceResponse(greeting);
       conversationHistory.push({ role: 'assistant', text: greeting });
       speakText(greeting);
@@ -4224,7 +4224,7 @@ function addVoiceUserBubble(text) {
 }
 function addVoiceResponse(text) {
   const t = document.getElementById('voiceTranscript');
-  t.innerHTML += `<div class="vt-msg"><div class="vt-label">Ava</div><div class="vt-bubble bot">${text}</div></div>`;
+  t.innerHTML += `<div class="vt-msg"><div class="vt-label">Andrew</div><div class="vt-bubble bot">${text}</div></div>`;
   t.scrollTop = t.scrollHeight;
 }
 
@@ -4520,10 +4520,10 @@ function processVoiceQuery(query) {
 </style>
 
 <div class="voice-overlay" id="voiceAgentOverlay">
-  <div class="voice-overlay-brand"><span>Ava</span><span class="dot"></span></div>
+  <div class="voice-overlay-brand"><span>Andrew</span><span class="dot"></span></div>
   <button class="voice-overlay-close" onclick="closeVoiceAgent()" title="Close">&times;</button>
   <div class="voice-overlay-center">
-    <div class="voice-overlay-title">Speak with Ava</div>
+    <div class="voice-overlay-title">Speak with Andrew</div>
     <div class="voice-overlay-subtitle">Your AI recruitment assistant</div>
     <div class="voice-overlay-widget" id="voiceWidgetContainer">
       <div class="voice-overlay-rings"><div class="ring"></div><div class="ring"></div><div class="ring"></div></div>
