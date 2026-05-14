@@ -2648,6 +2648,25 @@ function markCommManual(input) {
   if (input.value) input.dataset.synced = 'false';
 }
 
+// Auto-check a comm preference checkbox and prefill its input
+function autoCheckCommPref(method, value) {
+  var cfg = commFieldMap[method];
+  if (!cfg) return;
+  var checkbox = document.querySelector('input[name="commPref"][value="' + method + '"]');
+  if (!checkbox || checkbox.checked) return;
+  checkbox.checked = true;
+  var row = checkbox.closest('.comm-pref-row');
+  if (row) row.classList.add('checked');
+  var input = document.getElementById(cfg.inputId);
+  if (input) {
+    input.disabled = false;
+    if (!input.value) {
+      input.value = value;
+      input.dataset.synced = 'true';
+    }
+  }
+}
+
 // Wire up live sync on the main phone and email fields
 document.addEventListener('DOMContentLoaded', function() {
   const phoneField = document.getElementById('appPhone');
@@ -2782,8 +2801,20 @@ async function parseResume(file) {
     fill('appLocation', parsed.location);
     fill('appLinkedIn', parsed.linkedin);
 
-    if (parsed.phone) syncCommFields('appPhone');
-    if (parsed.email) syncCommFields('appEmail');
+    // Auto-check comm preference boxes and prefill their fields
+    if (parsed.phone) {
+      autoCheckCommPref('Phone', parsed.phone);
+      autoCheckCommPref('Text/SMS', parsed.phone);
+      autoCheckCommPref('WhatsApp', parsed.phone);
+      syncCommFields('appPhone');
+    }
+    if (parsed.email) {
+      autoCheckCommPref('Email', parsed.email);
+      syncCommFields('appEmail');
+    }
+    if (parsed.linkedin) {
+      autoCheckCommPref('LinkedIn Messages', parsed.linkedin);
+    }
 
     // Populate skills
     if (parsed.skills && parsed.skills.length > 0) {
