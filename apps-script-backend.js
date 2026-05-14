@@ -333,6 +333,26 @@ function submitApplication(data) {
       cvFileUrl = saved.url;
       cvFileName = saved.name;
     }
+    // --- CV PARSING: Extract structured data from uploaded CV ---
+    var cvParsedNotes = '';
+    if (saved && saved.id) {
+      try {
+        var cvData = { email: email || '', phone: data.phone || '', linkedin: data.linkedin || '', location: data.location || '', firstName: firstName || '', lastName: lastName || '' };
+        var enriched = parseCVAndEnrich(saved.id, cvData);
+        // Update data properties (allowed since data is an object)
+        if (enriched.phone && (!data.phone || data.phone.trim() === '')) data.phone = enriched.phone;
+        if (enriched.linkedin && (!data.linkedin || data.linkedin.trim() === '')) data.linkedin = enriched.linkedin;
+        if (enriched.location && (!data.location || data.location.trim() === '')) data.location = enriched.location;
+        if (enriched.cvParsedData) cvParsedNotes = enriched.cvParsedData;
+        // Store parsed email/name for row update after write
+        var parsedEmail = enriched.email || '';
+        var parsedFirstName = enriched.firstName || '';
+        var parsedLastName = enriched.lastName || '';
+      } catch (parseErr) {
+        Logger.log('CV parsing failed (non-fatal): ' + parseErr.toString());
+      }
+    }
+
     if (data.coverLetterFile && data.coverLetterFile.dataUrl) {
       const saved = saveFileToDrive(data.coverLetterFile, appId, firstName + ' ' + lastName, 'Cover Letter');
       clFileUrl = saved.url;
@@ -382,6 +402,39 @@ function submitApplication(data) {
     0,       // combinedScore
     ''       // aiNarrative
   ]);
+    // --- UPDATE ROW WITH CV-PARSED DATA ---
+    try {
+      var lastRow = sheet.getLastRow();
+      var rowRange = sheet.getRange(lastRow, 1, 1, sheet.getLastColumn());
+      var rowValues = rowRange.getValues()[0];
+      var changed = false;
+
+      // Col 3 (index 3) = email, Col 1 = firstName, Col 2 = lastName
+      if ((!rowValues[3] || rowValues[3].toString().trim() === '') && typeof parsedEmail !== 'undefined' && parsedEmail) {
+        rowValues[3] = parsedEmail;
+        changed = true;
+      }
+      if ((!rowValues[1] || rowValues[1].toString().trim() === '') && typeof parsedFirstName !== 'undefined' && parsedFirstName) {
+        rowValues[1] = parsedFirstName;
+        changed = true;
+      }
+      if ((!rowValues[2] || rowValues[2].toString().trim() === '') && typeof parsedLastName !== 'undefined' && parsedLastName) {
+        rowValues[2] = parsedLastName;
+        changed = true;
+      }
+      // Col 22 (index 22) = notes - append CV parsed data
+      if (cvParsedNotes) {
+        var existingNotes = rowValues[22] ? rowValues[22].toString() : '';
+        rowValues[22] = existingNotes ? existingNotes + ' | ' + cvParsedNotes : cvParsedNotes;
+        changed = true;
+      }
+      if (changed) {
+        rowRange.setValues([rowValues]);
+      }
+    } catch (updateErr) {
+      Logger.log('CV row update failed (non-fatal): ' + updateErr.toString());
+    }
+
 
   // Send notification email
   try {
@@ -1661,6 +1714,286 @@ function ensureApplicationHeaders(sheet) {
  * Creates an "ATP Applications" folder if it doesn't exist, then a subfolder per application.
  * Returns { url, name, id } of the saved file.
  */
+
+// ============================================================
+// WORLD-CLASS CV/RESUME PARSER
+// Extracts structured data from uploaded CV files (PDF, DOCX)
+// ============================================================
+
+function extractTextFromDriveFile(fileId) {
+  try {
+    var file = DriveApp.getFileById(fileId);
+    var mimeType = file.getMimeType();
+    var blob = file.getBlob();
+    var tempDocId = null;
+    var text = '';
+
+    // Convert PDF or DOCX to Google Doc for text extraction
+    if (mimeType === 'application/pdf') {
+      var resource = { title: 'temp_cv_parse_' + fileId, mimeType: 'application/vnd.google-apps.document' };
+      var options = { ocr: true, ocrLanguage: 'en' };
+      var tempFile = Drive.Files.insert(resource, blob, options);
+      tempDocId = tempFile.id;
+    } else if (mimeType === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' || mimeType === 'application/msword') {
+      var resource = { title: 'temp_cv_parse_' + fileId, mimeType: 'application/vnd.google-apps.document' };
+      var tempFile = Drive.Files.insert(resource, blob, { convert: true });
+      tempDocId = tempFile.id;
+    } else if (mimeType === 'text/plain' || mimeType === 'text/rtf') {
+      text = blob.getDataAsString();
+    }
+
+    if (tempDocId) {
+      var tempDoc = DocumentApp.openById(tempDocId);
+      text = tempDoc.getBody().getText();
+      // Clean up temp file
+      DriveApp.getFileById(tempDocId).setTrashed(true);
+    }
+
+    return text;
+  } catch (e) {
+    Logger.log('CV text extraction error: ' + e.toString());
+    return '';
+  }
+}
+
+function parseCVFields(text) {
+  if (!text || text.trim().length < 10) return {};
+
+  var result = {};
+
+  // --- EMAIL EXTRACTION ---
+  var emailPatterns = [
+    /[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}/g
+  ];
+  for (var i = 0; i < emailPatterns.length; i++) {
+    var matches = text.match(emailPatterns[i]);
+    if (matches && matches.length > 0) {
+      // Filter out common non-personal emails
+      var validEmails = matches.filter(function(e) {
+        var lower = e.toLowerCase();
+        return lower.indexOf('noreply') === -1 && lower.indexOf('example.com') === -1 && lower.indexOf('test@') === -1;
+      });
+      if (validEmails.length > 0) {
+        result.email = validEmails[0];
+      }
+      break;
+    }
+  }
+
+  // --- PHONE EXTRACTION ---
+  var phonePatterns = [
+    /(?:\+?\d{1,3}[\s.-]?)?(?:\(?\d{2,4}\)?[\s.-]?)\d{3,4}[\s.-]?\d{3,4}/g,
+    /\+?\d[\d\s.-]{8,15}\d/g
+  ];
+  for (var i = 0; i < phonePatterns.length; i++) {
+    var matches = text.match(phonePatterns[i]);
+    if (matches) {
+      var validPhones = matches.filter(function(p) {
+        var digits = p.replace(/\D/g, '');
+        return digits.length >= 7 && digits.length <= 15;
+      });
+      if (validPhones.length > 0) {
+        result.phone = validPhones[0].trim();
+        break;
+      }
+    }
+  }
+
+  // --- LINKEDIN EXTRACTION ---
+  var linkedinMatch = text.match(/(?:linkedin\.com\/in\/|linkedin:\s*)([a-zA-Z0-9_-]+)/i);
+  if (linkedinMatch) {
+    result.linkedin = 'linkedin.com/in/' + linkedinMatch[1];
+  }
+
+  // --- NAME EXTRACTION ---
+  var lines = text.split('\n').map(function(l) { return l.trim(); }).filter(function(l) { return l.length > 0; });
+  if (lines.length > 0) {
+    // First non-empty line is often the name
+    var firstLine = lines[0];
+    // Check it looks like a name (2-5 words, no special chars, not a section header)
+    var sectionHeaders = ['summary', 'experience', 'education', 'skills', 'objective', 'profile', 'contact', 'curriculum', 'resume'];
+    var isHeader = sectionHeaders.some(function(h) { return firstLine.toLowerCase().indexOf(h) > -1; });
+    if (!isHeader && firstLine.length < 60 && firstLine.split(/\s+/).length <= 5) {
+      var nameParts = firstLine.replace(/[^a-zA-Z\s'-]/g, '').trim().split(/\s+/);
+      if (nameParts.length >= 2 && nameParts.length <= 5) {
+        result.firstName = nameParts[0];
+        result.lastName = nameParts[nameParts.length - 1];
+      }
+    }
+  }
+
+  // --- LOCATION EXTRACTION ---
+  var locationPatterns = [
+    /(?:location|address|based in|located in|city|residing)[:\s]+([^\n]{3,60})/i,
+    /([A-Z][a-z]+(?:\s+[A-Z][a-z]+)?),\s*([A-Z]{2}(?:\s+\d{5})?)/,
+    /([A-Z][a-z]+(?:\s+[A-Z][a-z]+)?),\s*(United Kingdom|United States|UK|US|USA|Canada|Australia|Germany|France|Netherlands|Ireland|Singapore|UAE|India|Spain|Italy|Switzerland|Sweden|Norway|Denmark|Belgium|Japan)/
+  ];
+  for (var i = 0; i < locationPatterns.length; i++) {
+    var match = text.match(locationPatterns[i]);
+    if (match) {
+      result.location = match[0].replace(/^(location|address|based in|located in|city|residing)[:\s]+/i, '').trim();
+      if (result.location.length > 80) result.location = result.location.substring(0, 80);
+      break;
+    }
+  }
+
+  // --- SKILLS EXTRACTION ---
+  var skillsSection = '';
+  var skillsStart = text.search(/\b(skills|technical skills|core competencies|technologies|tech stack|proficiencies|competencies)\b/i);
+  if (skillsStart > -1) {
+    var nextSection = text.substring(skillsStart + 10).search(/\b(experience|education|employment|work history|projects|certifications|references|awards|publications|languages)\b/i);
+    skillsSection = nextSection > -1 ? text.substring(skillsStart, skillsStart + 10 + nextSection) : text.substring(skillsStart, skillsStart + 1000);
+  }
+
+  var knownSkills = [
+    'JavaScript','TypeScript','Python','Java','C#','C\\+\\+','Go','Golang','Rust','Ruby','PHP','Swift','Kotlin','Scala','R','SQL','NoSQL',
+    'React','Angular','Vue','Next\\.js','Node\\.js','Express','Django','Flask','FastAPI','Spring','Laravel','.NET','Rails',
+    'AWS','Azure','GCP','Google Cloud','Docker','Kubernetes','Terraform','Jenkins','CI/CD','Git','GitHub','GitLab',
+    'MongoDB','PostgreSQL','MySQL','Redis','DynamoDB','Elasticsearch','Cassandra','Oracle',
+    'Machine Learning','Deep Learning','NLP','Computer Vision','TensorFlow','PyTorch','Scikit-learn','Pandas','NumPy',
+    'REST','GraphQL','gRPC','Microservices','API','WebSocket',
+    'Agile','Scrum','Kanban','JIRA','Confluence','Figma','Sketch',
+    'HTML','CSS','Sass','Tailwind','Bootstrap','Webpack','Vite',
+    'Linux','Unix','Bash','PowerShell','Ansible','Chef','Puppet',
+    'Salesforce','SAP','HubSpot','Marketo','Tableau','Power BI','Looker',
+    'Cybersecurity','SIEM','Penetration Testing','SOC','OWASP',
+    'Project Management','PMP','Prince2','Six Sigma','Lean',
+    'Data Engineering','ETL','Spark','Hadoop','Kafka','Airflow','dbt',
+    'iOS','Android','React Native','Flutter','Xamarin',
+    'Blockchain','Solidity','Web3','Smart Contracts',
+    'UX','UI','Design Thinking','Wireframing','Prototyping',
+    'Communication','Leadership','Problem Solving','Team Management','Stakeholder Management'
+  ];
+
+  var foundSkills = [];
+  var searchText = skillsSection || text;
+  for (var i = 0; i < knownSkills.length; i++) {
+    try {
+      var skillRegex = new RegExp('\\b' + knownSkills[i] + '\\b', 'i');
+      if (skillRegex.test(searchText)) {
+        foundSkills.push(knownSkills[i].replace(/\\\\/g, ''));
+      }
+    } catch(e) {}
+  }
+  if (foundSkills.length > 0) {
+    result.skills = foundSkills.join(', ');
+  }
+
+  // --- EXPERIENCE EXTRACTION ---
+  var expSection = '';
+  var expStart = text.search(/\b(experience|employment|work history|professional experience|career history)\b/i);
+  if (expStart > -1) {
+    var nextSec = text.substring(expStart + 10).search(/\b(education|skills|certifications|references|awards|publications|languages|interests|hobbies)\b/i);
+    expSection = nextSec > -1 ? text.substring(expStart, expStart + 10 + nextSec) : text.substring(expStart, Math.min(expStart + 3000, text.length));
+  }
+
+  // Extract years of experience
+  var yearMatch = text.match(/(\d+)\+?\s*(?:years?|yrs?)\s*(?:of)?\s*(?:experience|exp)/i);
+  if (yearMatch) {
+    result.yearsExperience = parseInt(yearMatch[1]);
+  }
+
+  // Extract job titles from experience section
+  if (expSection) {
+    var titlePatterns = /(?:^|\n)\s*([A-Z][A-Za-z\s]+(?:Engineer|Developer|Manager|Director|Analyst|Designer|Architect|Consultant|Lead|Head|VP|Officer|Specialist|Coordinator|Administrator|Scientist|Recruiter|Partner))\s*(?:\n|$|[|–-])/gm;
+    var titles = [];
+    var tm;
+    while ((tm = titlePatterns.exec(expSection)) !== null && titles.length < 5) {
+      titles.push(tm[1].trim());
+    }
+    if (titles.length > 0) result.jobTitles = titles;
+    result.experienceSummary = expSection.substring(0, 500).trim();
+  }
+
+  // --- EDUCATION EXTRACTION ---
+  var eduStart = text.search(/\b(education|qualifications|academic|degrees)\b/i);
+  if (eduStart > -1) {
+    var nextSec = text.substring(eduStart + 10).search(/\b(experience|skills|certifications|references|awards|publications|interests)\b/i);
+    var eduSection = nextSec > -1 ? text.substring(eduStart, eduStart + 10 + nextSec) : text.substring(eduStart, Math.min(eduStart + 1000, text.length));
+
+    var degrees = [];
+    var degreePatterns = [
+      /(?:Bachelor|Master|PhD|Doctorate|MBA|BSc|MSc|BA|MA|BEng|MEng|LLB|LLM|BBA|MFA|MD|JD|DBA)[\s.]+(?:of\s+)?[A-Za-z\s,]+/gi,
+      /(?:Degree|Diploma|Certificate)\s+in\s+[A-Za-z\s,]+/gi
+    ];
+    for (var i = 0; i < degreePatterns.length; i++) {
+      var dms = eduSection.match(degreePatterns[i]);
+      if (dms) {
+        for (var j = 0; j < dms.length && degrees.length < 3; j++) {
+          degrees.push(dms[j].trim());
+        }
+      }
+    }
+    if (degrees.length > 0) result.education = degrees.join('; ');
+    result.educationSummary = eduSection.substring(0, 300).trim();
+  }
+
+  // --- CERTIFICATIONS ---
+  var certMatch = text.match(/(?:certifications?|accreditations?|licenses?)[:\s]*([^\n]+(?:\n[^\n]+){0,5})/i);
+  if (certMatch) {
+    result.certifications = certMatch[0].substring(0, 300).trim();
+  }
+
+  // --- LANGUAGES ---
+  var langMatch = text.match(/(?:languages?)[:\s]*([^\n]+(?:\n[^\n]+){0,3})/i);
+  if (langMatch) {
+    result.languages = langMatch[0].substring(0, 200).trim();
+  }
+
+  return result;
+}
+
+function parseCVAndEnrich(fileId, existingData) {
+  try {
+    var text = extractTextFromDriveFile(fileId);
+    if (!text || text.length < 20) {
+      Logger.log('CV text too short or empty for file: ' + fileId);
+      return existingData;
+    }
+
+    var parsed = parseCVFields(text);
+    Logger.log('CV parsed fields: ' + JSON.stringify(Object.keys(parsed)));
+
+    // Enrich existing data - only fill in missing/empty fields
+    if (parsed.email && (!existingData.email || existingData.email.trim() === '')) {
+      existingData.email = parsed.email;
+    }
+    if (parsed.phone && (!existingData.phone || existingData.phone.trim() === '')) {
+      existingData.phone = parsed.phone;
+    }
+    if (parsed.linkedin && (!existingData.linkedin || existingData.linkedin.trim() === '')) {
+      existingData.linkedin = parsed.linkedin;
+    }
+    if (parsed.location && (!existingData.location || existingData.location.trim() === '')) {
+      existingData.location = parsed.location;
+    }
+    if (parsed.firstName && (!existingData.firstName || existingData.firstName.trim() === '')) {
+      existingData.firstName = parsed.firstName;
+    }
+    if (parsed.lastName && (!existingData.lastName || existingData.lastName.trim() === '')) {
+      existingData.lastName = parsed.lastName;
+    }
+
+    // Always enrich these parsed fields (append to notes or store)
+    var enrichedNotes = [];
+    if (parsed.skills) enrichedNotes.push('SKILLS: ' + parsed.skills);
+    if (parsed.education) enrichedNotes.push('EDUCATION: ' + parsed.education);
+    if (parsed.yearsExperience) enrichedNotes.push('YEARS EXP: ' + parsed.yearsExperience);
+    if (parsed.jobTitles) enrichedNotes.push('TITLES: ' + parsed.jobTitles.join(', '));
+    if (parsed.certifications) enrichedNotes.push('CERTS: ' + parsed.certifications);
+    if (parsed.languages) enrichedNotes.push('LANGUAGES: ' + parsed.languages);
+
+    if (enrichedNotes.length > 0) {
+      existingData.cvParsedData = enrichedNotes.join(' | ');
+    }
+
+    return existingData;
+  } catch (e) {
+    Logger.log('CV parse and enrich error: ' + e.toString());
+    return existingData;
+  }
+}
+
 function saveFileToDrive(fileData, appId, candidateName, docType) {
   if (!fileData || !fileData.dataUrl) return { url: '', name: '', id: '' };
 
