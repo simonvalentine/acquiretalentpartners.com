@@ -526,6 +526,37 @@
   }
   .parse-result.error { background: #fff0f0; color: #c62828; }
 
+  /* ── Skills Tags ── */
+  .skills-section { margin-bottom: 8px; }
+  .skills-tags { display: flex; flex-wrap: wrap; gap: 8px; min-height: 40px; }
+  .skill-tag {
+    display: inline-flex; align-items: center; gap: 5px;
+    padding: 5px 12px; border-radius: 20px; font-size: .78rem; font-weight: 600;
+    background: linear-gradient(135deg, #eef2ff 0%, #f0f4ff 100%);
+    color: var(--accent); border: 1px solid #d4ddff;
+    animation: fadeInTag .3s ease;
+  }
+  .skill-tag .remove-skill {
+    cursor: pointer; font-size: .7rem; opacity: .5; margin-left: 2px;
+    transition: opacity .2s;
+  }
+  .skill-tag .remove-skill:hover { opacity: 1; }
+  @keyframes fadeInTag { from { opacity: 0; transform: scale(.9); } to { opacity: 1; transform: scale(1); } }
+  .skills-empty {
+    font-size: .8rem; color: var(--text-light); font-style: italic;
+    padding: 12px 0;
+  }
+  .add-skill-row { display: flex; gap: 8px; margin-top: 8px; }
+  .add-skill-row input {
+    flex: 1; padding: 6px 10px; border: 1px solid var(--border);
+    border-radius: 8px; font-size: .8rem;
+  }
+  .add-skill-row button {
+    padding: 6px 14px; border: none; border-radius: 8px;
+    background: var(--accent); color: #fff; font-size: .78rem;
+    font-weight: 600; cursor: pointer;
+  }
+
   /* ── Section Labels ── */
   .form-section-label {
     font-size: .78rem; font-weight: 700; text-transform: uppercase;
@@ -1824,23 +1855,17 @@
             <label>Salary Expectation</label>
             <input type="text" id="appSalary" placeholder="e.g. £100,000">
           </div>
-          <div class="form-group full">
-            <label>How did you hear about this role?</label>
-            <select id="appSource">
-              <option value="">Select...</option>
-              <option>Acquire Talent Partners Careers Site</option>
-              <option>LinkedIn</option>
-              <option>Indeed</option>
-              <option>Glassdoor</option>
-              <option>Employee Referral</option>
-              <option>Recruitment Agency</option>
-              <option>University / Campus Event</option>
-              <option>Other</option>
-            </select>
+                  </div>
+
+        <div class="form-section-label" style="margin-top:8px">Skills</div>
+        <div class="skills-section">
+          <p style="font-size:.8rem;color:var(--text-light);margin:-4px 0 10px">Skills are auto-detected from your CV. You can add or remove as needed.</p>
+          <div class="skills-tags" id="skillsTagsContainer">
+            <div class="skills-empty" id="skillsEmpty">Upload your CV above to auto-detect skills</div>
           </div>
-          <div class="form-group full">
-            <label>Why are you interested in this role?</label>
-            <textarea id="appMotivation" placeholder="Tell us what excites you about this opportunity and what you'd bring to the team..." rows="4"></textarea>
+          <div class="add-skill-row">
+            <input type="text" id="addSkillInput" placeholder="Add a skill..." onkeydown="if(event.key==='Enter'){event.preventDefault();addManualSkill();}">
+            <button type="button" onclick="addManualSkill()">+ Add</button>
           </div>
         </div>
 
@@ -1891,20 +1916,7 @@
           </div>
         </div>
 
-        <div class="form-section-label" style="margin-top:8px">Additional Documents</div>
-        <div class="form-grid">
-          <div class="form-group full">
-            <label>Cover Letter (optional)</label>
-            <div class="file-upload" id="clUploadZone" style="padding:16px">
-              <div class="upload-icon" style="font-size:1.2rem">&#128221;</div>
-              <div class="upload-text" style="font-size:.82rem">Drag & drop or <strong>click to browse</strong> — PDF, DOCX, or DOC (max 5MB)</div>
-              <div class="file-name" id="clFileName"></div>
-              <input type="file" accept=".pdf,.doc,.docx" id="clFile" onchange="handleFileUpload(this, 'clFileName')">
-            </div>
-          </div>
-        </div>
-
-        <!-- Screening Questions (loaded dynamically per job) -->
+                <!-- Screening Questions (loaded dynamically per job) -->
         <div id="screeningQuestionsSection" style="display:none;">
           <div class="form-section-label" style="margin-top:8px;display:flex;align-items:center;gap:8px;">
             Screening Questions
@@ -2773,11 +2785,20 @@ async function parseResume(file) {
     if (parsed.phone) syncCommFields('appPhone');
     if (parsed.email) syncCommFields('appEmail');
 
+    // Populate skills
+    if (parsed.skills && parsed.skills.length > 0) {
+      populateSkills(parsed.skills);
+    }
+
     statusEl.style.display = 'none';
 
     if (filled > 0) {
       resultEl.className = 'parse-result';
-      resultEl.textContent = '\u2705 Filled ' + filled + ' field' + (filled > 1 ? 's' : '') + ' from your CV. Please review and complete any remaining fields.';
+      var skillCount = parsed.skills ? parsed.skills.length : 0;
+      var parts = [];
+      if (filled > 0) parts.push(filled + ' field' + (filled > 1 ? 's' : ''));
+      if (skillCount > 0) parts.push(skillCount + ' skill' + (skillCount > 1 ? 's' : ''));
+      resultEl.textContent = '\u2705 Detected ' + parts.join(' and ') + ' from your CV. Please review and complete any remaining fields.';
     } else {
       resultEl.className = 'parse-result';
       resultEl.textContent = 'CV uploaded. Could not auto-detect fields \u2014 please fill in the form below.';
@@ -2980,7 +3001,7 @@ function extractDocText(buf) {
 // ═══════════ FIELD EXTRACTION ═══════════
 
 function extractFieldsFromText(rawText) {
-  const r = { firstName:'', lastName:'', email:'', phone:'', location:'', linkedin:'' };
+  const r = { firstName:'', lastName:'', email:'', phone:'', location:'', linkedin:'', skills:[] };
 
   // ── Normalize pdf.js text artifacts ──
   let text = rawText;
@@ -3042,12 +3063,104 @@ function extractFieldsFromText(rawText) {
     }
   }
 
+  // ── Skills ──
+  const knownSkills = [
+    'JavaScript','TypeScript','Python','Java','C#','C\\+\\+','Ruby','PHP','Go','Rust','Swift','Kotlin','Scala','R',
+    'SQL','NoSQL','MongoDB','PostgreSQL','MySQL','Redis','DynamoDB','Elasticsearch',
+    'React','Angular','Vue','Next\\.js','Node\\.js','Express','Django','Flask','Spring Boot','ASP\\.NET','.NET',
+    'AWS','Azure','GCP','Google Cloud','Docker','Kubernetes','Terraform','CI/CD','Jenkins','GitHub Actions',
+    'HTML','CSS','SASS','Tailwind','Bootstrap',
+    'REST','GraphQL','API','Microservices','Serverless',
+    'Git','Agile','Scrum','Kanban','Jira','Confluence',
+    'Machine Learning','Deep Learning','NLP','AI','Data Science','TensorFlow','PyTorch',
+    'Tableau','Power BI','Excel','Google Sheets',
+    'Figma','Sketch','Adobe','Photoshop','Illustrator','InDesign',
+    'Salesforce','HubSpot','SAP','Oracle',
+    'Linux','Windows Server','Networking','Cybersecurity','ITIL',
+    'Project Management','PMP','PRINCE2','Six Sigma','Lean',
+    'Leadership','Communication','Problem Solving','Teamwork','Stakeholder Management',
+    'Business Analysis','Requirements Gathering','Process Improvement',
+    'Marketing','SEO','SEM','Google Analytics','Content Marketing','Social Media',
+    'Financial Analysis','Accounting','Budgeting','Forecasting',
+    'Recruitment','Talent Acquisition','Employee Relations','HRIS','ATS',
+    'Customer Service','Account Management','CRM','B2B','B2C',
+    'Supply Chain','Logistics','Procurement','Inventory Management',
+    'Compliance','Risk Management','GDPR','Data Protection','ISO',
+    'AutoCAD','SolidWorks','MATLAB','CAD',
+    'Pandas','NumPy','Spark','Hadoop','ETL','Data Engineering',
+    'Blockchain','Web3','Solidity','Smart Contracts',
+    'Unity','Unreal Engine','Game Development',
+    'iOS','Android','React Native','Flutter','Mobile Development',
+    'DevOps','SRE','Observability','Monitoring','Grafana','Prometheus',
+    'Snowflake','Databricks','BigQuery','Redshift','Airflow','dbt'
+  ];
+  knownSkills.forEach(function(skill) {
+    var re = new RegExp('\\b' + skill + '\\b', 'i');
+    if (re.test(text)) {
+      var clean = skill.replace(/\\\\\+/g, '+').replace(/\\\\\./, '.');
+      if (r.skills.indexOf(clean) === -1) r.skills.push(clean);
+    }
+  });
+
   console.log('[CV Parser] Extracted fields:', JSON.stringify(r));
   return r;
 }
 
 
 
+
+// ── Skills Management ──
+function populateSkills(skillsArr) {
+  var container = document.getElementById('skillsTagsContainer');
+  var emptyEl = document.getElementById('skillsEmpty');
+  if (emptyEl) emptyEl.style.display = 'none';
+  container.querySelectorAll('.skill-tag').forEach(function(t) { t.remove(); });
+  skillsArr.forEach(function(skill) { addSkillTag(skill); });
+}
+
+function addSkillTag(skill) {
+  var container = document.getElementById('skillsTagsContainer');
+  var emptyEl = document.getElementById('skillsEmpty');
+  var existing = container.querySelectorAll('.skill-tag');
+  for (var i = 0; i < existing.length; i++) {
+    if (existing[i].dataset.skill.toLowerCase() === skill.toLowerCase()) return;
+  }
+  if (emptyEl) emptyEl.style.display = 'none';
+  var tag = document.createElement('span');
+  tag.className = 'skill-tag';
+  tag.dataset.skill = skill;
+  tag.innerHTML = skill + ' <span class="remove-skill" onclick="removeSkillTag(this)">&times;</span>';
+  container.appendChild(tag);
+}
+
+function removeSkillTag(btn) {
+  var tag = btn.parentElement;
+  tag.style.animation = 'none';
+  tag.style.opacity = '0';
+  tag.style.transform = 'scale(.8)';
+  tag.style.transition = 'all .2s';
+  setTimeout(function() {
+    tag.remove();
+    var container = document.getElementById('skillsTagsContainer');
+    if (!container.querySelector('.skill-tag')) {
+      document.getElementById('skillsEmpty').style.display = 'block';
+    }
+  }, 200);
+}
+
+function addManualSkill() {
+  var input = document.getElementById('addSkillInput');
+  var skill = input.value.trim();
+  if (skill) {
+    addSkillTag(skill);
+    input.value = '';
+  }
+}
+
+function getSkillsList() {
+  var tags = document.querySelectorAll('#skillsTagsContainer .skill-tag');
+  return Array.from(tags).map(function(t) { return t.dataset.skill; });
+}
 
 // ── Submit to ATS (Google Apps Script backend) ──
 // PASTE YOUR GOOGLE APPS SCRIPT WEB APP URL HERE:
@@ -3079,7 +3192,6 @@ async function submitApplication() {
   try {
     // Read CV and cover letter files as base64
     const cvData = await readFileAsDataURL(document.getElementById('cvFile'));
-    const clData = await readFileAsDataURL(document.getElementById('clFile'));
 
     const payload = {
       firstName: document.getElementById('appFirstName').value.trim(),
@@ -3092,12 +3204,10 @@ async function submitApplication() {
       notice: document.getElementById('appNotice').value,
       experience: document.getElementById('appExperience').value,
       visa: document.getElementById('appVisa').value,
-      motivation: document.getElementById('appMotivation').value.trim(),
-      source: document.getElementById('appSource').value || 'Careers Site',
+      skills: getSkillsList().join(', '),
       commPreference: getCommPrefs(),
       commDetails: getCommDetails(),
       cvFile: cvData,
-      coverLetterFile: clData,
       jobTitle: currentJob ? currentJob.title : 'General Application',
       department: currentJob ? currentJob.dept.charAt(0).toUpperCase() + currentJob.dept.slice(1) : 'General',
       jobTags: currentJob ? currentJob.tags.join(', ') : '',
