@@ -4,7 +4,10 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>ATS — Acquire Talent Partners</title>
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons+Outlined" rel="stylesheet">
 <style>
+.material-icons-outlined { font-size:20px; line-height:1; vertical-align:middle; }
+.sidebar-nav a .mi { font-size:20px; width:20px; text-align:center; }
 /* ── Login Screen ── */
 .login-overlay {
   position:fixed; inset:0; z-index:9999;
@@ -691,17 +694,17 @@ tr { cursor:pointer; transition:background .1s; }
   </div>
   <nav class="sidebar-nav">
     <div class="section-label">Recruitment</div>
-    <a href="#" class="active" onclick="setView('dashboard')"><span class="icon">&#9776;</span> Dashboard</a>
-    <a href="#" onclick="setView('pipeline')"><span class="icon">&#9654;</span> Pipeline</a>
-    <a href="#" onclick="setView('candidates')"><span class="icon">&#128100;</span> All Candidates</a>
+    <a href="#" class="active" onclick="setView('dashboard')"><span class="mi material-icons-outlined">dashboard</span> Dashboard</a>
+    <a href="#" onclick="setView('pipeline')"><span class="mi material-icons-outlined">filter_alt</span> Pipeline</a>
+    <a href="#" onclick="setView('candidates')"><span class="mi material-icons-outlined">person</span> All Candidates</a>
     <div class="section-label">Manage</div>
-    <a href="#" onclick="setView('jobs')"><span class="icon">&#128188;</span> Jobs</a>
-    <a href="#" onclick="setView('interviews')"><span class="icon">&#128197;</span> Interviews</a>
-    <a href="#" onclick="setView('emails')"><span class="icon">&#9993;</span> Email Templates</a>
-    <a href="#" onclick="setView('reports')"><span class="icon">&#128200;</span> Reports</a>
+    <a href="#" onclick="setView('jobs')"><span class="mi material-icons-outlined">work_outline</span> Jobs</a>
+    <a href="#" onclick="setView('interviews')"><span class="mi material-icons-outlined">event</span> Interviews</a>
+    <a href="#" onclick="setView('emails')"><span class="mi material-icons-outlined">mail_outline</span> Email Templates</a>
+    <a href="#" onclick="setView('reports')"><span class="mi material-icons-outlined">bar_chart</span> Reports</a>
     <div class="section-label">Settings</div>
-    <a href="#" onclick="setView('settings')"><span class="icon">&#9881;</span> Configuration</a>
-    <a href="#" onclick="setView('team')"><span class="icon">&#128101;</span> Team</a>
+    <a href="#" onclick="setView('settings')"><span class="mi material-icons-outlined">settings</span> Configuration</a>
+    <a href="#" onclick="setView('team')"><span class="mi material-icons-outlined">group</span> Team</a>
   </nav>
   <div class="sidebar-user">
     <div class="avatar">SV</div>
@@ -721,8 +724,8 @@ tr { cursor:pointer; transition:background .1s; }
     <h1 id="pageTitle">Dashboard</h1>
     <div class="topbar-actions">
       <input type="text" class="topbar-search" placeholder="Search candidates..." id="globalSearch" onkeyup="handleGlobalSearch()">
-      <button class="btn btn-sm" onclick="scoreAllUnscored()" style="font-size:.78rem;background:linear-gradient(135deg,#8b5cf6,#6366f1);color:#fff;border:none;white-space:nowrap;" title="Score all unscored candidates with AI">&#9733; AI Score All</button>
-      <a href="acquire-talent-partners.html" target="_blank" class="btn btn-secondary btn-sm">&#127760; View Careers Site</a>
+      <button class="btn btn-sm" onclick="scoreAllUnscored()" style="font-size:.78rem;background:#1a73e8;color:#fff;border:none;white-space:nowrap;" title="Score all unscored candidates with AI"><span class="material-icons-outlined" style="font-size:16px;vertical-align:text-bottom;">auto_awesome</span> AI Score All</button>
+      <a href="acquire-talent-partners.html" target="_blank" class="btn btn-secondary btn-sm"><span class="material-icons-outlined" style="font-size:16px;vertical-align:text-bottom;">language</span> View Careers Site</a>
     </div>
   </div>
 
@@ -953,12 +956,12 @@ function renderDashboard() {
 
   if (total === 0) {
     return `<div class="empty-state" style="padding:60px 20px;">
-      <div class="empty-icon" style="font-size:3rem;">&#128640;</div>
+      <div class="empty-icon" style="font-size:3rem;"><span class="material-icons-outlined" style="font-size:48px;color:#1a73e8;">rocket_launch</span></div>
       <h3 style="margin:16px 0 8px;font-weight:700;font-size:1.15rem;color:var(--primary);">Welcome to Acquire Talent Partners ATS</h3>
       <p style="color:var(--text-light);font-size:.92rem;max-width:500px;margin:0 auto 20px;line-height:1.7;">Your applicant tracking system is ready. Candidates will appear here as they apply through your careers site.</p>
       <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;">
-        <button class="btn btn-primary btn-sm" onclick="testServerConnection()">&#128268; Test Server Connection</button>
-        <a href="acquire-talent-partners.html" target="_blank" class="btn btn-secondary btn-sm">&#127760; Open Careers Site</a>
+        <button class="btn btn-primary btn-sm" onclick="testServerConnection()"><span class="material-icons-outlined" style="font-size:16px;vertical-align:text-bottom;">sync</span> Test Server Connection</button>
+        <a href="acquire-talent-partners.html" target="_blank" class="btn btn-secondary btn-sm"><span class="material-icons-outlined" style="font-size:16px;vertical-align:text-bottom;">language</span> Open Careers Site</a>
       </div>
       <div id="serverTestResult" style="margin-top:16px;"></div>
     </div>`;
@@ -1032,8 +1035,8 @@ function renderPipeline() {
           <div class="kc-name">${c.firstName} ${c.lastName}</div>
           <div class="kc-role">${c.job}</div>
           <div class="kc-meta">
-            <span>&#128205; ${c.location}</span>
-            <span>&#128197; ${formatDate(c.appliedDate)}</span>
+            <span><span class="material-icons-outlined" style="font-size:14px;vertical-align:text-bottom;">location_on</span> ${c.location}</span>
+            <span><span class="material-icons-outlined" style="font-size:14px;vertical-align:text-bottom;">event</span> ${formatDate(c.appliedDate)}</span>
           </div>
           <div style="display:flex;gap:12px;align-items:center;margin-top:4px;">
             ${(c.aiRating||0) > 0 ? '<span style="font-size:.65rem;color:var(--text-xs)">AI</span>' + renderStarsHTML(c.aiRating, aiCol) : ''}
@@ -1053,10 +1056,10 @@ function renderCandidateList() {
   const filtered = getFilteredCandidates();
   if (candidates.length === 0) {
     return `<div class="empty-state">
-      <div class="empty-icon">&#128100;</div>
+      <div class="empty-icon"><span class="material-icons-outlined" style="font-size:48px;color:#5f6368;">person</span></div>
       <h3 style="margin:12px 0 8px;font-weight:700;color:var(--text);">No Candidates Yet</h3>
       <p style="color:var(--text-light);font-size:.88rem;max-width:440px;margin:0 auto;">Candidates will appear here when they apply through the careers site. Share your careers page to start receiving applications.</p>
-      <button class="btn btn-primary btn-sm" style="margin-top:16px;" onclick="testServerConnection().then(()=>fetchServerApplications())">&#128260; Check Server</button>
+      <button class="btn btn-primary btn-sm" style="margin-top:16px;" onclick="testServerConnection().then(()=>fetchServerApplications())"><span class="material-icons-outlined" style="font-size:14px;vertical-align:text-bottom;">refresh</span> Check Server</button>
     </div>`;
   }
   return `
@@ -1070,7 +1073,7 @@ function renderCandidateList() {
         ${departments.map(d => `<option value="${d}" ${deptFilter===d?'selected':''}>${d}</option>`).join('')}
       </select>
       <span style="flex:1"></span>
-      <button class="btn btn-sm btn-secondary" onclick="exportCandidatesCSV()" style="margin-right:10px;">&#128229; Export CSV</button>
+      <button class="btn btn-sm btn-secondary" onclick="exportCandidatesCSV()" style="margin-right:10px;"><span class="material-icons-outlined" style="font-size:14px;vertical-align:text-bottom;">download</span> Export CSV</button>
       <span style="font-size:.82rem;color:var(--text-light)">${filtered.length} candidates</span>
     </div>
     ${renderTable(filtered)}
@@ -1104,7 +1107,7 @@ function renderTable(data) {
   const totalPages = Math.ceil(data.length / pageSize);
 
   if (data.length === 0) {
-    return '<div class="empty-state"><div class="empty-icon">&#128269;</div><p>No candidates match your filters.</p></div>';
+    return '<div class="empty-state"><div class="empty-icon"><span class="material-icons-outlined" style="font-size:48px;color:#5f6368;">search</span></div><p>No candidates match your filters.</p></div>';
   }
 
   let html = '<div class="table-wrapper"><table><thead><tr>';
@@ -1120,7 +1123,7 @@ function renderTable(data) {
     const aiCol = (c.aiRating||0) >= 4 ? '#10b981' : (c.aiRating||0) >= 3 ? '#f59e0b' : (c.aiRating||0) >= 2 ? '#f97316' : (c.aiRating||0) >= 1 ? '#ef4444' : '#5f6368';
     html += `<tr onclick="openDrawer('${c.id}')">
       <td><div class="candidate-name">${c.firstName} ${c.lastName}</div><div class="candidate-email">${c.email}</div></td>
-      <td><div class="candidate-job">${c.job}</div><div class="candidate-loc">&#128205; ${c.location}</div></td>
+      <td><div class="candidate-job">${c.job}</div><div class="candidate-loc"><span class="material-icons-outlined" style="font-size:14px;vertical-align:text-bottom;">location_on</span> ${c.location}</div></td>
       <td><span class="status-badge status-${c.status}"><span class="status-dot dot-${c.status}"></span>${statusLabels[c.status]}</span></td>
       <td>${(c.aiRating||0) > 0 ? renderStarsHTML(c.aiRating, aiCol) : '<span style="font-size:.75rem;color:var(--text-xs)">—</span>'}</td>
       <td>${renderStarsHTML(c.rating)}</td>
@@ -1245,7 +1248,7 @@ function openDrawer(id) {
     <div style="display:flex;flex-direction:column;gap:10px">
       ${hasCv ? `
       <div style="display:flex;align-items:center;gap:12px;background:var(--bg);padding:12px 16px;border-radius:8px;border:1px solid var(--border)">
-        <span style="font-size:1.4rem">&#128196;</span>
+        <span class="material-icons-outlined" style="font-size:22px;color:#5f6368;">description</span>
         <div style="flex:1;min-width:0">
           <p style="font-weight:600;font-size:.88rem;margin-bottom:2px">${c.cvFileName || 'CV / Resume'}</p>
           <p style="font-size:.72rem;color:var(--text-xs)">Stored in Google Drive &middot; CV / Resume</p>
@@ -1253,12 +1256,12 @@ function openDrawer(id) {
         <a href="${c.cvFileUrl}" target="_blank" style="padding:6px 14px;border-radius:6px;background:var(--accent);color:#fff;font-size:.78rem;font-weight:600;text-decoration:none;white-space:nowrap">Open</a>
       </div>` : `
       <div style="display:flex;align-items:center;gap:12px;background:var(--bg);padding:12px 16px;border-radius:8px;border:1px solid var(--border)">
-        <span style="font-size:1.4rem;opacity:.4">&#128196;</span>
+        <span class="material-icons-outlined" style="font-size:22px;color:#5f6368;opacity:.4;">description</span>
         <div style="flex:1"><p style="font-size:.88rem;color:var(--text-xs)">No CV / Resume uploaded</p></div>
       </div>`}
       ${hasCl ? `
       <div style="display:flex;align-items:center;gap:12px;background:var(--bg);padding:12px 16px;border-radius:8px;border:1px solid var(--border)">
-        <span style="font-size:1.4rem">&#128221;</span>
+        <span class="material-icons-outlined" style="font-size:22px;color:#5f6368;">edit_note</span>
         <div style="flex:1;min-width:0">
           <p style="font-weight:600;font-size:.88rem;margin-bottom:2px">${c.clFileName || 'Cover Letter'}</p>
           <p style="font-size:.72rem;color:var(--text-xs)">Stored in Google Drive &middot; Cover Letter</p>
@@ -1266,7 +1269,7 @@ function openDrawer(id) {
         <a href="${c.clFileUrl}" target="_blank" style="padding:6px 14px;border-radius:6px;background:var(--accent);color:#fff;font-size:.78rem;font-weight:600;text-decoration:none;white-space:nowrap">Open</a>
       </div>` : `
       <div style="display:flex;align-items:center;gap:12px;background:var(--bg);padding:12px 16px;border-radius:8px;border:1px solid var(--border)">
-        <span style="font-size:1.4rem;opacity:.4">&#128221;</span>
+        <span class="material-icons-outlined" style="font-size:22px;color:#5f6368;opacity:.4;">edit_note</span>
         <div style="flex:1"><p style="font-size:.88rem;color:var(--text-xs)">No cover letter uploaded</p></div>
       </div>`}
     </div>
@@ -1291,7 +1294,7 @@ function openDrawer(id) {
     <div class="d-section-title" style="display:flex;align-items:center;justify-content:space-between;">
       Email Communications
       <div class="send-email-dropdown" id="sendEmailDropdown">
-        <button class="btn btn-primary btn-sm" onclick="event.stopPropagation();document.getElementById('sendEmailMenu').classList.toggle('open')">&#9993; Send Email</button>
+        <button class="btn btn-primary btn-sm" onclick="event.stopPropagation();document.getElementById('sendEmailMenu').classList.toggle('open')"><span class="material-icons-outlined" style="font-size:16px;vertical-align:text-bottom;">send</span> Send Email</button>
         <div class="send-email-menu" id="sendEmailMenu">
           <div class="send-email-menu-title">Choose Template</div>
           ${emailTemplates.map(t => `<button class="send-email-option" onclick="event.stopPropagation();document.getElementById('sendEmailMenu').classList.remove('open');previewEmail('${t.id}','${c.id}')">
@@ -1330,7 +1333,7 @@ function openDrawer(id) {
       AI Assessment
       <div style="display:flex;gap:8px;align-items:center;">
         ${aiNote ? `<span style="font-size:.72rem;color:${aiColor};font-weight:600">Auto-scored</span>` : ''}
-        ${c._serverManaged ? `<button class="btn btn-sm" style="font-size:.72rem;padding:4px 10px;min-height:auto;background:linear-gradient(135deg,#8b5cf6,#6366f1);color:#fff;border:none;border-radius:6px;cursor:pointer;" onclick="requestAIScore('${c.id}')">${aiNote ? '&#x21bb; Re-score' : '&#9733; Score Now'}</button>` : ''}
+        ${c._serverManaged ? `<button class="btn btn-sm" style="font-size:.72rem;padding:4px 10px;min-height:auto;background:#1a73e8;color:#fff;border:none;border-radius:6px;cursor:pointer;" onclick="requestAIScore('${c.id}')">${aiNote ? '&#x21bb; Re-score' : '&#9733; Score Now'}</button>` : ''}
       </div>
     </div>
     <div id="aiReviewPanel">`;
@@ -1679,7 +1682,7 @@ function renderJobsPage() {
 
   if (jobs.length === 0) {
     return `<div class="empty-state">
-      <div class="empty-icon">&#128188;</div>
+      <div class="empty-icon"><span class="material-icons-outlined" style="font-size:48px;color:#5f6368;">work_outline</span></div>
       <h3 style="margin:12px 0 8px;font-weight:700;color:var(--text);">No Active Jobs</h3>
       <p style="color:var(--text-light);font-size:.88rem;max-width:400px;margin:0 auto;">Jobs will appear here automatically when candidates apply through the careers site. Each unique job title creates an entry.</p>
     </div>`;
@@ -1689,8 +1692,8 @@ function renderJobsPage() {
     <div><h2 style="font-size:1.1rem;font-weight:700;">Active Positions</h2>
     <p style="font-size:.82rem;color:var(--text-light);margin-top:2px;">${jobs.length} roles with ${candidates.length} total candidates</p></div>
     <div style="display:flex;gap:8px;">
-      <button class="btn btn-sm" onclick="generateAllScreeningQuestions()" style="font-size:.78rem;background:linear-gradient(135deg,#8b5cf6,#6366f1);color:#fff;border:none;">&#9733; Generate All Screening Questions</button>
-      <button class="btn btn-primary btn-sm" onclick="exportJobsCSV()">&#128229; Export CSV</button>
+      <button class="btn btn-sm" onclick="generateAllScreeningQuestions()" style="font-size:.78rem;background:#1a73e8;color:#fff;border:none;">&#9733; Generate All Screening Questions</button>
+      <button class="btn btn-primary btn-sm" onclick="exportJobsCSV()"><span class="material-icons-outlined" style="font-size:14px;vertical-align:text-bottom;">download</span> Export CSV</button>
     </div>
   </div>`;
 
@@ -1707,7 +1710,7 @@ function renderJobsPage() {
     html += `<tr>
       <td>
         <strong style="color:var(--primary)">${j.title}</strong>
-        <div style="font-size:.72rem;color:var(--text-xs);margin-top:2px;">${j.department} &middot; &#128205; ${j.location}</div>
+        <div style="font-size:.72rem;color:var(--text-xs);margin-top:2px;">${j.department} &middot; <span class="material-icons-outlined" style="font-size:14px;vertical-align:text-bottom;">location_on</span> ${j.location}</div>
       </td>
       <td style="font-size:.82rem;color:var(--text-light)">${j.department}</td>
       <td style="font-size:.82rem;color:var(--text-light)">${j.location}</td>
@@ -1787,7 +1790,7 @@ function renderScreeningEditor(jobTitle, questions) {
           <input type="checkbox" id="screeningActive" ${isActive ? 'checked' : ''} onchange="toggleScreeningActive('${jobTitle.replace(/'/g, "\\'")}', this.checked)">
           Active
         </label>
-        <button class="btn btn-sm" onclick="regenerateQuestions('${jobTitle.replace(/'/g, "\\'")}')" style="font-size:.72rem;background:linear-gradient(135deg,#8b5cf6,#6366f1);color:#fff;border:none;">&#8635; Regenerate</button>
+        <button class="btn btn-sm" onclick="regenerateQuestions('${jobTitle.replace(/'/g, "\\'")}')" style="font-size:.72rem;background:#1a73e8;color:#fff;border:none;">&#8635; Regenerate</button>
         <button class="btn btn-sm btn-secondary" onclick="document.getElementById('screeningEditorPanel').style.display='none'" style="font-size:.72rem;">Close</button>
       </div>
     </div>`;
@@ -1944,7 +1947,7 @@ function renderInterviewsPage() {
 
   if (interviewCandidates.length === 0) {
     return `<div class="empty-state">
-      <div class="empty-icon">&#128197;</div>
+      <div class="empty-icon"><span class="material-icons-outlined" style="font-size:48px;color:#5f6368;">event</span></div>
       <h3 style="margin:12px 0 8px;font-weight:700;color:var(--text);">No Active Interviews</h3>
       <p style="color:var(--text-light);font-size:.88rem;max-width:400px;margin:0 auto;">When candidates are moved to the Interview stage, they'll appear here. Move candidates from the Pipeline or their profile.</p>
     </div>`;
@@ -1971,8 +1974,8 @@ function renderInterviewsPage() {
         ${aiR > 0 ? `<span style="font-size:.72rem;background:${aiColor}15;color:${aiColor};padding:3px 10px;border-radius:10px;font-weight:700;">${aiR}/5 AI</span>` : ''}
       </div>
       <div style="display:flex;gap:16px;font-size:.78rem;color:var(--text-light);margin-bottom:12px;">
-        <span>&#128205; ${c.location}</span>
-        <span>&#128197; Applied ${formatDate(c.appliedDate)}</span>
+        <span><span class="material-icons-outlined" style="font-size:14px;vertical-align:text-bottom;">location_on</span> ${c.location}</span>
+        <span><span class="material-icons-outlined" style="font-size:14px;vertical-align:text-bottom;">event</span> Applied ${formatDate(c.appliedDate)}</span>
       </div>
       ${lastAction ? `<div style="font-size:.75rem;color:var(--text-xs);background:var(--bg);padding:8px 10px;border-radius:6px;">Last: ${lastAction.action} — ${formatDate(lastAction.date)}</div>` : ''}
       <div style="display:flex;gap:8px;margin-top:12px;">
@@ -1992,7 +1995,7 @@ function renderReportsPage() {
   const total = candidates.length;
   if (total === 0) {
     return `<div class="empty-state">
-      <div class="empty-icon">&#128200;</div>
+      <div class="empty-icon"><span class="material-icons-outlined" style="font-size:48px;color:#5f6368;">bar_chart</span></div>
       <h3 style="margin:12px 0 8px;font-weight:700;color:var(--text);">No Data Yet</h3>
       <p style="color:var(--text-light);font-size:.88rem;max-width:400px;margin:0 auto;">Reports will generate automatically as candidates apply. Share the careers site to start receiving applications.</p>
     </div>`;
@@ -2026,7 +2029,7 @@ function renderReportsPage() {
   let html = `<div style="margin-bottom:24px;display:flex;justify-content:space-between;align-items:center;">
     <div><h2 style="font-size:1.1rem;font-weight:700;">Recruitment Reports</h2>
     <p style="font-size:.82rem;color:var(--text-light);margin-top:2px;">Analytics from ${total} candidate${total !== 1 ? 's' : ''}</p></div>
-    <button class="btn btn-primary btn-sm" onclick="exportReportCSV()">&#128229; Export Report</button>
+    <button class="btn btn-primary btn-sm" onclick="exportReportCSV()"><span class="material-icons-outlined" style="font-size:14px;vertical-align:text-bottom;">download</span> Export Report</button>
   </div>`;
 
   // KPI cards
@@ -2117,8 +2120,8 @@ function renderSettingsPage() {
         <p style="font-size:.72rem;color:var(--text-xs);margin-top:4px;">This is your backend endpoint. To change it, edit the ATS_SERVER_URL variable in the source code.</p>
       </div>
       <div style="display:flex;gap:10px;">
-        <button class="btn btn-sm btn-primary" onclick="testServerConnection()">&#128268; Test Connection</button>
-        <button class="btn btn-sm btn-secondary" onclick="fetchServerApplications().then(()=>alert('Data refreshed — ' + candidates.length + ' candidates loaded.'))">&#128260; Refresh Data</button>
+        <button class="btn btn-sm btn-primary" onclick="testServerConnection()"><span class="material-icons-outlined" style="font-size:14px;vertical-align:text-bottom;">sync</span> Test Connection</button>
+        <button class="btn btn-sm btn-secondary" onclick="fetchServerApplications().then(()=>alert('Data refreshed — ' + candidates.length + ' candidates loaded.'))"><span class="material-icons-outlined" style="font-size:14px;vertical-align:text-bottom;">refresh</span> Refresh Data</button>
       </div>
       <div id="serverTestResult" style="margin-top:12px;"></div>
     </div>
@@ -2675,7 +2678,7 @@ function previewEmail(templateId, candidateId, opts) {
   }
   footerHTML += `<div style="display:flex;gap:10px;">
     <button class="btn btn-secondary" onclick="closeEmailModal()">Close</button>
-    ${!opts.justSent ? `<button class="btn btn-primary" onclick="sendEmail('${templateId}','${candidateId}')">&#9993; Send Email</button>` : ''}
+    ${!opts.justSent ? `<button class="btn btn-primary" onclick="sendEmail('${templateId}','${candidateId}')"><span class="material-icons-outlined" style="font-size:16px;vertical-align:text-bottom;">send</span> Send Email</button>` : ''}
   </div>`;
   document.getElementById('emailModalFooter').innerHTML = footerHTML;
 
