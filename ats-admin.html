@@ -2327,6 +2327,18 @@ const emailTemplates = [
     badgeColor: '#fef2f2', badgeText: '#dc2626', icon: '&#128172;',
     statusBadge: 'Application Update',
     statusBg: '#fef2f2', statusColor: '#dc2626'
+  },
+  {
+    id: 'hiring-survey',
+    name: 'Hiring Manager Survey',
+    subject: 'How was your hiring experience? — {{job_title}}',
+    description: 'Sent to the hiring manager when a candidate is moved to Hired. Collects feedback on the recruitment process.',
+    trigger: 'auto',
+    triggerStatus: 'hired',
+    recipientType: 'hiring-manager',
+    badgeColor: '#e8f0fe', badgeText: '#1a73e8', icon: '&#9733;',
+    statusBadge: '&#9733; Hired',
+    statusBg: '#e6f4ea', statusColor: '#1e8e3e'
   }
 ];
 
@@ -2632,6 +2644,44 @@ function buildEmailHTML(templateId, tpl, data) {
         </table>
       </td></tr>`;
       break;
+
+    case 'hiring-survey':
+      body = `<tr><td style="padding:36px 40px 0;text-align:center;">
+        <div style="display:inline-block;width:56px;height:56px;line-height:56px;border-radius:50%;background:#e8f0fe;font-size:28px;margin-bottom:16px;">&#9733;</div>
+        <p style="margin:0 0 4px;font-family:${font};font-size:12px;font-weight:600;color:#1a73e8;text-transform:uppercase;letter-spacing:1.5px;">Hiring Survey</p>
+        <h1 style="margin:0 0 12px;font-family:${font};font-size:24px;font-weight:800;color:#0f2b46;">How was your hiring experience?</h1>
+        <p style="margin:0;font-family:${font};font-size:15px;color:#64748b;line-height:1.6;">We recently filled the <strong style="color:#1e293b;">${m.job_title}</strong> position. Please take a moment to rate your experience working with the Talent Acquisition team.</p>
+      </td></tr>
+      <tr><td style="padding:32px 40px 0;text-align:center;">
+        <p style="margin:0 0 16px;font-family:${font};font-size:14px;font-weight:700;color:#0f2b46;text-transform:uppercase;letter-spacing:1px;">Rate Your Experience</p>
+        <table role="presentation" style="margin:0 auto;"><tr>
+          <td><a href="#" style="display:inline-block;padding:12px 16px;font-size:32px;text-decoration:none;color:#fbbf24;">&#9733;</a></td>
+          <td><a href="#" style="display:inline-block;padding:12px 16px;font-size:32px;text-decoration:none;color:#fbbf24;">&#9733;</a></td>
+          <td><a href="#" style="display:inline-block;padding:12px 16px;font-size:32px;text-decoration:none;color:#fbbf24;">&#9733;</a></td>
+          <td><a href="#" style="display:inline-block;padding:12px 16px;font-size:32px;text-decoration:none;color:#fbbf24;">&#9733;</a></td>
+          <td><a href="#" style="display:inline-block;padding:12px 16px;font-size:32px;text-decoration:none;color:#fbbf24;">&#9733;</a></td>
+        </tr><tr>
+          <td style="font-family:${font};font-size:11px;color:#94a3b8;text-align:center;">Poor</td>
+          <td></td><td></td><td></td>
+          <td style="font-family:${font};font-size:11px;color:#94a3b8;text-align:center;">Excellent</td>
+        </tr></table>
+      </td></tr>
+      <tr><td style="padding:28px 40px 0;">
+        <table role="presentation" width="100%" style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;">
+          <tr><td style="padding:20px 24px;">
+            <p style="margin:0 0 4px;font-family:${font};font-size:12px;font-weight:700;color:#1a73e8;text-transform:uppercase;letter-spacing:1.5px;">Position Filled</p>
+            <p style="margin:0 0 12px;font-family:${font};font-size:17px;font-weight:700;color:#0f2b46;">${m.job_title}</p>
+            <table role="presentation" width="100%"><tr>
+              <td width="50%"><p style="margin:0 0 2px;font-family:${font};font-size:12px;color:#64748b;text-transform:uppercase;letter-spacing:1px;">Candidate</p><p style="margin:0;font-family:${font};font-size:14px;font-weight:600;color:#1e293b;">${m.first_name} ${m.last_name}</p></td>
+              <td width="50%"><p style="margin:0 0 2px;font-family:${font};font-size:12px;color:#64748b;text-transform:uppercase;letter-spacing:1px;">Department</p><p style="margin:0;font-family:${font};font-size:14px;font-weight:600;color:#1e293b;">${m.department}</p></td>
+            </tr></table>
+          </td></tr>
+        </table>
+      </td></tr>
+      <tr><td style="padding:24px 40px 0;">
+        <p style="margin:0;font-family:${font};font-size:14px;color:#64748b;line-height:1.7;text-align:center;">This survey is anonymous and takes approximately 2 minutes. Your feedback helps us improve the hiring experience for everyone.</p>
+      </td></tr>`;
+      break;
   }
 
   // Wrap in full email HTML document
@@ -2658,10 +2708,12 @@ function previewEmail(templateId, candidateId, opts) {
   document.getElementById('emailModalTitle').textContent = tpl.name;
 
   // Meta info
+  const isHMEmail = tpl.recipientType === 'hiring-manager';
   document.getElementById('emailModalMeta').innerHTML = `
-    <div class="email-meta-row"><span class="email-meta-label">To</span><span class="email-meta-value">${c.firstName} ${c.lastName} &lt;${c.email}&gt;</span></div>
+    <div class="email-meta-row"><span class="email-meta-label">To</span><span class="email-meta-value">${isHMEmail ? 'Hiring Manager — Sarah Chen &lt;sarah.chen@acquiretp.com&gt;' : c.firstName + ' ' + c.lastName + ' &lt;' + c.email + '&gt;'}</span></div>
     <div class="email-meta-row"><span class="email-meta-label">From</span><span class="email-meta-value">Acquire Talent Partners &lt;careers@acquiretp.com&gt;</span></div>
     <div class="email-meta-row"><span class="email-meta-label">Subject</span><span class="email-meta-value" style="font-weight:600">${subject}</span></div>
+    ${isHMEmail ? '<div class="email-meta-row"><span class="email-meta-label">Re</span><span class="email-meta-value">Candidate: ' + c.firstName + ' ' + c.lastName + ' — ' + c.job + '</span></div>' : ''}
   `;
 
   // Write HTML to iframe
@@ -2767,7 +2819,7 @@ function triggerEmailForStatus(candidateId, newStatus) {
 
 // Email Templates view
 function renderEmailTemplatesPage() {
-  let html = '<div style="margin-bottom:24px;"><h2 style="font-size:1.1rem;font-weight:700;margin-bottom:4px;">Email Templates</h2><p style="font-size:.88rem;color:var(--text-light);">Preview and manage candidate email notifications. Auto-triggered emails are sent when a candidate\'s status changes.</p></div>';
+  let html = '<div style="margin-bottom:24px;"><h2 style="font-size:1.1rem;font-weight:700;margin-bottom:4px;">Email Templates</h2><p style="font-size:.88rem;color:var(--text-light);">Preview and manage email notifications. Auto-triggered emails are sent when a candidate\'s status changes. Most emails go to candidates; the Hiring Manager Survey goes to the hiring manager.</p></div>';
 
   html += '<div class="email-templates-grid">';
   emailTemplates.forEach(tpl => {
@@ -2783,6 +2835,7 @@ function renderEmailTemplatesPage() {
         <h4>${tpl.name}</h4>
         <p>${tpl.description}</p>
         <span class="tpl-trigger ${tpl.trigger}">${tpl.trigger === 'auto' ? '&#9889; Auto-triggered' : '&#9998; Manual send'}</span>
+        ${tpl.recipientType === 'hiring-manager' ? '<span style="display:inline-block;margin-left:6px;padding:2px 8px;border-radius:4px;background:#e8f0fe;color:#1a73e8;font-size:.72rem;font-weight:600;">Hiring Manager</span>' : ''}
       </div>
     </div>`;
   });
@@ -2798,11 +2851,13 @@ function previewTemplateOnly(templateId) {
   const subject = tpl.subject.replace(/\{\{first_name\}\}/g, 'Alex').replace(/\{\{job_title\}\}/g, 'Senior Software Engineer — Cloud Platform');
 
   document.getElementById('emailModalTitle').textContent = tpl.name + ' (Preview)';
+  const isHM = tpl.recipientType === 'hiring-manager';
   document.getElementById('emailModalMeta').innerHTML = `
-    <div class="email-meta-row"><span class="email-meta-label">To</span><span class="email-meta-value" style="color:var(--text-xs);font-style:italic;">Sample candidate — Alex Johnson &lt;alex.johnson@email.com&gt;</span></div>
+    <div class="email-meta-row"><span class="email-meta-label">To</span><span class="email-meta-value" style="color:var(--text-xs);font-style:italic;">${isHM ? 'Sample hiring manager — Sarah Chen &lt;sarah.chen@acquiretp.com&gt;' : 'Sample candidate — Alex Johnson &lt;alex.johnson@email.com&gt;</span></div>
     <div class="email-meta-row"><span class="email-meta-label">From</span><span class="email-meta-value">Acquire Talent Partners &lt;careers@acquiretp.com&gt;</span></div>
     <div class="email-meta-row"><span class="email-meta-label">Subject</span><span class="email-meta-value" style="font-weight:600">${subject}</span></div>
     <div class="email-meta-row"><span class="email-meta-label">Trigger</span><span class="email-meta-value">${tpl.trigger === 'auto' ? '&#9889; Automatically sent when status changes to <strong>' + (tpl.triggerStatus ? statusLabels[tpl.triggerStatus] || tpl.triggerStatus : 'N/A') + '</strong>' : '&#9998; Manually triggered by recruiter'}</span></div>
+    ${isHM ? '<div class="email-meta-row"><span class="email-meta-label">Note</span><span class="email-meta-value" style="color:#1a73e8;font-weight:600;">This email is sent to the hiring manager, not the candidate</span></div>' : ''}
   `;
   document.getElementById('emailPreviewFrame').srcdoc = html;
   document.getElementById('emailModalFooter').innerHTML = `<div style="font-size:.85rem;color:var(--text-light);">This is a preview with sample data. Send from a candidate\'s profile.</div><button class="btn btn-secondary" onclick="closeEmailModal()">Close</button>`;
