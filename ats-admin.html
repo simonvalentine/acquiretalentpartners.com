@@ -637,6 +637,28 @@ tr { cursor:pointer; transition:background .1s; }
 
   /* Content padding */
   .content { padding:16px 12px; }
+
+  /* Reports 2-col grid → stack */
+  .resp-2col { grid-template-columns:1fr !important; }
+
+  /* Settings 3-col grid → 2 on tablet */
+  .resp-3col { grid-template-columns:1fr 1fr !important; }
+
+  /* Send email menu → bottom sheet */
+  .send-email-menu {
+    position:fixed !important; bottom:0 !important; left:0 !important; right:0 !important;
+    min-width:100% !important; border-radius:14px 14px 0 0 !important; margin-bottom:0 !important;
+    max-height:60vh; overflow-y:auto;
+  }
+
+  /* Page headers → stack on mobile */
+  .resp-page-header { flex-direction:column !important; align-items:flex-start !important; gap:12px !important; }
+  .resp-page-header > div:last-child { flex-wrap:wrap; width:100%; }
+  .resp-page-header .btn, .resp-page-header button { font-size:.75rem !important; flex:1; min-width:0; white-space:nowrap; }
+}
+
+@media (max-width:480px) {
+  .resp-3col { grid-template-columns:1fr !important; }
 }
 
 @keyframes spin { to { transform:rotate(360deg); } }
@@ -1571,7 +1593,7 @@ function renderAIReview(text) {
 
   // 3-column grid for breakdown — compact cards
   if (breakdownItems.length) {
-    html += '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-bottom:10px;">';
+    html += '<div class="resp-3col" style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-bottom:10px;">';
     breakdownItems.forEach(b => {
       html += `<div style="background:rgba(255,255,255,.5);border-radius:6px;padding:6px 8px;">
         <div style="font-size:.68rem;color:var(--text-light);font-weight:600;margin-bottom:2px;">${b.dim}</div>
@@ -1688,7 +1710,7 @@ function renderJobsPage() {
     </div>`;
   }
 
-  let html = `<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
+  let html = `<div class="resp-page-header" style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
     <div><h2 style="font-size:1.1rem;font-weight:700;">Active Positions</h2>
     <p style="font-size:.82rem;color:var(--text-light);margin-top:2px;">${jobs.length} roles with ${candidates.length} total candidates</p></div>
     <div style="display:flex;gap:8px;">
@@ -1780,7 +1802,7 @@ function renderScreeningEditor(jobTitle, questions) {
   const catColors = { technical: '#6366f1', experience: '#2563eb', motivation: '#10b981', problem_solving: '#f59e0b', cultural_fit: '#8b5cf6' };
 
   let html = `<div style="background:var(--bg-white);border:1px solid var(--border);border-radius:var(--radius);padding:24px;">
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
+    <div class="resp-page-header" style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
       <div>
         <h3 style="font-size:1rem;font-weight:700;margin-bottom:4px;">Screening Questions: ${jobTitle}</h3>
         <p style="font-size:.78rem;color:var(--text-light);">These questions appear on the careers site when candidates apply for this role. Edit questions, adjust weights, or toggle must-have flags.</p>
@@ -1958,7 +1980,7 @@ function renderInterviewsPage() {
     <p style="font-size:.82rem;color:var(--text-light);margin-top:2px;">Manage interviews and track progress</p>
   </div>`;
 
-  html += '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:16px;">';
+  html += '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px;">';
 
   interviewCandidates.sort((a, b) => b.appliedDate - a.appliedDate).forEach(c => {
     const aiR = c.aiRating || 0;
@@ -2043,7 +2065,7 @@ function renderReportsPage() {
   </div>`;
 
   // Funnel
-  html += `<div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:24px;">
+  html += `<div class="resp-2col" style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:24px;">
     <div style="background:var(--bg-white);border:1px solid var(--border);border-radius:var(--radius);padding:20px;">
       <h3 style="font-size:.92rem;font-weight:700;margin-bottom:16px;">Pipeline Funnel</h3>
       ${['new','reviewing','interview','offer','hired'].map(s => {
@@ -2143,7 +2165,7 @@ function renderSettingsPage() {
     <div style="background:var(--bg-white);border:1px solid var(--border);border-radius:var(--radius);padding:24px;margin-bottom:20px;">
       <h3 style="font-size:.92rem;font-weight:700;margin-bottom:16px;">AI Scoring</h3>
       <p style="font-size:.85rem;color:var(--text-light);margin-bottom:12px;">AI candidate scoring uses Gemini via the Google Apps Script backend. Scores are generated automatically when applications are submitted and can also be triggered manually.</p>
-      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;font-size:.82rem;">
+      <div class="resp-3col" style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;font-size:.82rem;">
         <div style="background:var(--bg);padding:12px;border-radius:6px;text-align:center;">
           <div style="font-weight:700;font-size:1rem;color:var(--primary);">${candidates.filter(c => (c.aiRating||0) > 0).length}</div>
           <div style="color:var(--text-light);font-size:.72rem;">Scored</div>
@@ -2197,7 +2219,7 @@ function renderTeamPage() {
     <p style="font-size:.82rem;color:var(--text-light);margin-top:2px;">Your recruitment team members.</p>
   </div>`;
 
-  html += '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px;">';
+  html += '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:16px;">';
   teamMembers.forEach(m => {
     // Count notes by this team member
     const noteCount = candidates.reduce((sum, c) => sum + c.notes.filter(n => n.author === m.name).length, 0);
