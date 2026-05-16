@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Acquire Talent Partners — Connecting the World Through Innovation</title>
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons+Outlined" rel="stylesheet">
 <style>
   :root {
     --primary: #202124;
@@ -180,6 +181,10 @@
     width: 120px; height: 120px; border-radius: 50%; margin: 0 auto 16px;
     display: flex; align-items: center; justify-content: center;
     font-size: 2rem; font-weight: 700; color: #fff;
+    overflow: hidden; background: #f1f3f4;
+  }
+  .leader-avatar img {
+    width: 100%; height: 100%; object-fit: cover;
   }
   .leader-card h4 { font-size: 1.05rem; font-weight: 500; color: var(--primary); }
   .leader-card p { font-size: .85rem; color: var(--text-light); }
@@ -923,8 +928,8 @@
   .voice-orb {
     width: 80px; height: 80px; border-radius: 50%;
     background: radial-gradient(circle at 35% 35%,
-      #60a5fa 0%, #3b82f6 25%, #2563eb 50%, #1d4ed8 75%, #1e40af 100%);
-    box-shadow: 0 0 30px rgba(37,99,235,.4), 0 0 60px rgba(37,99,235,.15),
+      #4285f4 0%, #1a73e8 25%, #1967d2 50%, #185abc 75%, #174ea6 100%);
+    box-shadow: 0 0 30px rgba(26,115,232,.4), 0 0 60px rgba(26,115,232,.15),
       inset 0 -3px 10px rgba(0,0,0,.2), inset 0 3px 10px rgba(255,255,255,.12);
     transition: all .5s cubic-bezier(.4,0,.2,1);
     animation: orbIdle 4s ease-in-out infinite;
@@ -935,18 +940,18 @@
     50% { transform: scale(1.04); }
   }
   .voice-orb-ring {
-    position: absolute; border-radius: 50%; border: 1.5px solid rgba(96,165,250,.15);
+    position: absolute; border-radius: 50%; border: 1.5px solid rgba(26,115,232,.15);
     top: 50%; left: 50%; transform: translate(-50%, -50%);
     transition: all .5s; pointer-events: none;
   }
   .voice-orb-ring:nth-child(1) { width: 96px; height: 96px; }
-  .voice-orb-ring:nth-child(2) { width: 110px; height: 110px; border-color: rgba(96,165,250,.08); }
+  .voice-orb-ring:nth-child(2) { width: 110px; height: 110px; border-color: rgba(26,115,232,.08); }
 
   /* Listening */
   .voice-orb-wrapper.listening .voice-orb {
     animation: orbListening 1.5s ease-in-out infinite;
     background: radial-gradient(circle at 35% 35%,
-      #93c5fd 0%, #60a5fa 25%, #3b82f6 50%, #2563eb 75%, #1d4ed8 100%);
+      #669df6 0%, #4285f4 25%, #1a73e8 50%, #1967d2 75%, #185abc 100%);
     box-shadow: 0 0 50px rgba(59,130,246,.6), 0 0 90px rgba(59,130,246,.2);
   }
   @keyframes orbListening {
@@ -1087,10 +1092,10 @@
   /* Voice footer */
   .voice-footer {
     padding: 8px 16px 10px; text-align: center;
-    border-top: 1px solid rgba(255,255,255,.04);
+    border-top: 1px solid #dadce0;
   }
-  .voice-footer-text { font-size: .65rem; color: rgba(255,255,255,.2); }
-  .voice-footer-text span { color: rgba(96,165,250,.5); }
+  .voice-footer-text { font-size: .65rem; color: #9aa0a6; }
+  .voice-footer-text span { color: #1a73e8; }
 
 
   /* ── Responsive: Tablet ── */
@@ -1257,7 +1262,8 @@
     <a href="#" class="logo" onclick="showPage('home')">Acquire<span>TP</span></a>
     <ul class="nav-links" id="navLinks">
       <li><a href="#about" onclick="showPage('home')">About</a></li>
-      <li><a href="#services" onclick="showPage('home')">What We Do</a></li>
+      <li><a href="#products" onclick="showPage('home')">Products</a></li>
+      <li><a href="#services" onclick="showPage('home')">Solutions</a></li>
       <li><a href="#global" onclick="showPage('home')">Global Reach</a></li>
       <li><a href="#news" onclick="showPage('home')">Newsroom</a></li>
       <li><a href="#" onclick="showPage('careers')" class="nav-cta">Careers</a></li>
@@ -1278,8 +1284,8 @@
   <!-- Hero -->
   <section class="hero">
     <div class="hero-content">
-      <h1>Connecting the World Through Innovation</h1>
-      <p>Acquire Talent Partners delivers transformative technology solutions, sustainable infrastructure, and strategic consulting to enterprises across six continents.</p>
+      <h1>Technology That Powers Business and Life</h1>
+      <p>From enterprise servers and cloud platforms to the laptops and devices people use every day — Acquire Talent Partners designs, builds, and supports the technology the world depends on.</p>
       <div>
         <a href="#about" class="btn btn-primary">Discover More</a>
         <a href="#" onclick="showPage('careers')" class="btn btn-secondary">Join Our Team</a>
@@ -1303,8 +1309,8 @@
         <div class="about-text">
           <p class="section-label">About Acquire Talent Partners</p>
           <h2 class="section-title">Building What's Next Since 1987</h2>
-          <p>Founded in Singapore and now headquartered in London, Acquire Talent Partners has grown from a regional systems integrator into one of the world's leading technology and infrastructure companies. We partner with governments, enterprises, and communities to solve complex challenges through innovation.</p>
-          <p>Our 102,000-strong team combines deep local expertise with global capability, delivering solutions that create lasting value for our clients and the communities where we operate.</p>
+          <p>Founded in Singapore as a regional systems integrator, Acquire Talent Partners has grown into one of the world's leading technology companies — designing enterprise servers, consumer PCs and tablets, cloud platforms, and cybersecurity solutions used by millions of people and thousands of organisations worldwide.</p>
+          <p>Headquartered in London since 2004, ATP is a Fortune 50 company with $38.2 billion in revenue. Our 102,000-strong team operates across 48 countries, serving enterprises, governments, and consumers who depend on reliable, secure, and sustainable technology.</p>
           <div class="about-facts">
             <div class="about-fact"><strong>1987</strong><span>Year founded</span></div>
             <div class="about-fact"><strong>48</strong><span>Countries of operation</span></div>
@@ -1316,12 +1322,151 @@
     </div>
   </section>
 
+
+  <!-- Our Values -->
+  <section id="values" style="background:var(--bg-alt)">
+    <div class="container text-center">
+      <p class="section-label">Our Values</p>
+      <h2 class="section-title">What Drives Us</h2>
+      <p class="section-subtitle mx-auto">Four principles guide every decision we make — from boardroom strategy to the way we treat each other every day.</p>
+      <div class="services-grid">
+        <div class="service-card">
+          <div class="service-icon" style="background:#e8f0fe;color:#1a73e8;">
+            <span class="material-icons-outlined" style="font-size:28px">lightbulb</span>
+          </div>
+          <h3>Innovation</h3>
+          <p>We invest $4.2B annually in R&D across 23 labs worldwide. Innovation isn't a buzzword here — it's how we stay ahead. From edge AI to quantum-safe encryption, our teams are building what comes next.</p>
+        </div>
+        <div class="service-card">
+          <div class="service-icon" style="background:#e6f4ea;color:#1e8e3e;">
+            <span class="material-icons-outlined" style="font-size:28px">verified</span>
+          </div>
+          <h3>Integrity</h3>
+          <p>Transparency in everything. We publish annual ethics reports, maintain an independent compliance board, and hold ourselves to the highest standards of corporate governance. Trust is earned — we earn it every day.</p>
+        </div>
+        <div class="service-card">
+          <div class="service-icon" style="background:#fce8e6;color:#d93025;">
+            <span class="material-icons-outlined" style="font-size:28px">diversity_3</span>
+          </div>
+          <h3>Inclusion</h3>
+          <p>52% of leadership roles are held by women. 90+ nationalities across the business. Eight active employee resource groups. We don't just welcome difference — we're built on it.</p>
+        </div>
+        <div class="service-card">
+          <div class="service-icon" style="background:#fef7e0;color:#e37400;">
+            <span class="material-icons-outlined" style="font-size:28px">public</span>
+          </div>
+          <h3>Impact</h3>
+          <p>We measure success beyond the balance sheet. Carbon neutral by 2030 across all operations. $180M invested in STEM education. 42,000 volunteer hours logged last year by our people worldwide.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Product Lines -->
+  <section id="products">
+    <div class="container text-center">
+      <p class="section-label">Our Products</p>
+      <h2 class="section-title">Enterprise to Consumer. Hardware to Cloud.</h2>
+      <p class="section-subtitle mx-auto">ATP designs, manufactures, and supports technology that powers businesses and enriches daily life — from hyperscale data centres to the devices in your pocket.</p>
+      <div class="services-grid">
+        <div class="service-card">
+          <div class="service-icon" style="background:#e8f0fe;color:#1a73e8;">
+            <span class="material-icons-outlined" style="font-size:28px">dns</span>
+          </div>
+          <h3>Enterprise Servers & Storage</h3>
+          <p>Rack, tower, and blade servers trusted by 80% of Fortune 100 companies. Our FlexScale platform delivers AI-optimised compute for the largest workloads on Earth.</p>
+        </div>
+        <div class="service-card">
+          <div class="service-icon" style="background:#e6f4ea;color:#1e8e3e;">
+            <span class="material-icons-outlined" style="font-size:28px">router</span>
+          </div>
+          <h3>Networking & Infrastructure</h3>
+          <p>Switches, routers, and software-defined networking for campus, data centre, and edge deployments. Powering 340,000+ enterprise networks globally.</p>
+        </div>
+        <div class="service-card">
+          <div class="service-icon" style="background:#fce8e6;color:#d93025;">
+            <span class="material-icons-outlined" style="font-size:28px">laptop_mac</span>
+          </div>
+          <h3>Consumer & Commercial PCs</h3>
+          <p>The ProBook laptop line and Vertex desktop range — world's #3 PC brand by shipments. Award-winning design, enterprise-grade security, and all-day battery life.</p>
+        </div>
+        <div class="service-card">
+          <div class="service-icon" style="background:#fef7e0;color:#e37400;">
+            <span class="material-icons-outlined" style="font-size:28px">tablet_mac</span>
+          </div>
+          <h3>Tablets & Smart Devices</h3>
+          <p>From the VersaPad tablet to ATP SmartDisplay — our consumer electronics earned 14 CES Innovation Awards since 2020 and ship to 62 countries.</p>
+        </div>
+        <div class="service-card">
+          <div class="service-icon" style="background:#f3e8fd;color:#7627bb;">
+            <span class="material-icons-outlined" style="font-size:28px">cloud</span>
+          </div>
+          <h3>ATP Cloud Services</h3>
+          <p>A full-stack public cloud with 28 availability zones across 5 continents. IaaS, PaaS, and managed Kubernetes — growing 44% year-over-year with $6.1B in cloud revenue.</p>
+        </div>
+        <div class="service-card">
+          <div class="service-icon" style="background:#e8f7f0;color:#137333;">
+            <span class="material-icons-outlined" style="font-size:28px">security</span>
+          </div>
+          <h3>Cybersecurity Solutions</h3>
+          <p>ATP SecureShield protects 28 million endpoints globally. Managed detection & response, zero-trust architecture, and 24/7 SOC operations from six global centres.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Innovation & R&D -->
+  <section id="innovation" style="background:var(--bg-alt)">
+    <div class="container">
+      <div class="about-grid">
+        <div class="about-text">
+          <p class="section-label">Innovation & R&D</p>
+          <h2 class="section-title">$4.2 Billion. 23 Labs. One Mission.</h2>
+          <p>Our research and development engine is the heartbeat of ATP. With 23 R&D labs across 12 countries, we employ 14,000 engineers and scientists working on problems that matter — from quantum computing and AI accelerators to sustainable battery chemistry and next-generation silicon.</p>
+          <p>In 2025 alone, ATP filed 2,840 patents, making us the 8th most prolific patent filer globally. Our Singapore AI Research Campus, opening in 2027, will be the largest dedicated AI research facility in Southeast Asia.</p>
+          <div class="about-facts">
+            <div class="about-fact"><strong>2,840</strong><span>Patents filed (2025)</span></div>
+            <div class="about-fact"><strong>14,000</strong><span>R&D engineers</span></div>
+            <div class="about-fact"><strong>23</strong><span>Research labs</span></div>
+            <div class="about-fact"><strong>$4.2B</strong><span>Annual R&D spend</span></div>
+          </div>
+        </div>
+        <div class="about-image">
+          <div class="about-image-inner" style="background:#1a73e8;font-size:1.5rem">R&D</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Sustainability -->
+  <section id="sustainability">
+    <div class="container">
+      <div class="about-grid">
+        <div class="about-image">
+          <div class="about-image-inner" style="background:#1e8e3e;font-size:1.2rem">ESG</div>
+        </div>
+        <div class="about-text">
+          <p class="section-label">Sustainability</p>
+          <h2 class="section-title">Net Zero by 2030. No Exceptions.</h2>
+          <p>We've committed to carbon-neutral operations across every office, factory, and data centre by 2030 — and we're ahead of schedule. 74% of our energy already comes from renewable sources, and our circular manufacturing programme recycles 92% of production waste.</p>
+          <p>Beyond our own operations, ATP's energy-efficient server hardware has helped clients avoid an estimated 12 million tonnes of CO₂ emissions since 2020. Our annual Sustainability Report is audited by an independent third party and published in full on our investor relations portal.</p>
+          <div class="about-facts">
+            <div class="about-fact"><strong>74%</strong><span>Renewable energy</span></div>
+            <div class="about-fact"><strong>92%</strong><span>Waste recycled</span></div>
+            <div class="about-fact"><strong>12M</strong><span>Tonnes CO₂ avoided</span></div>
+            <div class="about-fact"><strong>2030</strong><span>Net-zero target</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
   <!-- Services -->
   <section id="services" style="background:var(--bg-alt)">
     <div class="container text-center">
-      <p class="section-label">What We Do</p>
+      <p class="section-label">Solutions & Services</p>
       <h2 class="section-title">Six Divisions. One Mission.</h2>
-      <p class="section-subtitle mx-auto">Our integrated business model brings together expertise from across industries to deliver end-to-end solutions for a complex world.</p>
+      <p class="section-subtitle mx-auto">Beyond products, our service divisions bring together deep expertise to deliver end-to-end solutions for a complex world.</p>
       <div class="services-grid">
         <div class="service-card">
           <div class="service-icon" style="background:#eff6ff;color:#2563eb;">&#9729;</div>
@@ -1381,27 +1526,47 @@
     <div class="container text-center">
       <p class="section-label">Leadership</p>
       <h2 class="section-title">Executive Committee</h2>
-      <p class="section-subtitle mx-auto">Our leadership team brings decades of global experience across technology, finance, and operations.</p>
+      <p class="section-subtitle mx-auto">Our executive committee brings decades of global experience across technology, finance, operations, and sustainability.</p>
       <div class="leadership-grid">
         <div class="leader-card">
-          <div class="leader-avatar" style="background:linear-gradient(135deg,#0f2b46,#2563eb)">MK</div>
+          <div class="leader-avatar"><img src="https://randomuser.me/api/portraits/women/44.jpg" alt="Dr. Maya Krishnamurthy"></div>
           <h4>Dr. Maya Krishnamurthy</h4>
           <p>Chief Executive Officer</p>
         </div>
         <div class="leader-card">
-          <div class="leader-avatar" style="background:linear-gradient(135deg,#7c3aed,#a855f7)">JW</div>
+          <div class="leader-avatar"><img src="https://randomuser.me/api/portraits/men/32.jpg" alt="James Whitfield"></div>
           <h4>James Whitfield</h4>
           <p>Chief Financial Officer</p>
         </div>
         <div class="leader-card">
-          <div class="leader-avatar" style="background:linear-gradient(135deg,#059669,#10b981)">LC</div>
+          <div class="leader-avatar"><img src="https://randomuser.me/api/portraits/women/68.jpg" alt="Dr. Lin Chen"></div>
           <h4>Dr. Lin Chen</h4>
           <p>Chief Technology Officer</p>
         </div>
         <div class="leader-card">
-          <div class="leader-avatar" style="background:linear-gradient(135deg,#d97706,#f59e0b)">AO</div>
+          <div class="leader-avatar"><img src="https://randomuser.me/api/portraits/women/90.jpg" alt="Amara Okonkwo"></div>
           <h4>Amara Okonkwo</h4>
           <p>Chief People Officer</p>
+        </div>
+        <div class="leader-card">
+          <div class="leader-avatar"><img src="https://randomuser.me/api/portraits/men/75.jpg" alt="Marcus Rivera"></div>
+          <h4>Marcus Rivera</h4>
+          <p>Chief Operating Officer</p>
+        </div>
+        <div class="leader-card">
+          <div class="leader-avatar"><img src="https://randomuser.me/api/portraits/women/26.jpg" alt="Sarah Johansson"></div>
+          <h4>Sarah Johansson</h4>
+          <p>Chief Marketing Officer</p>
+        </div>
+        <div class="leader-card">
+          <div class="leader-avatar"><img src="https://randomuser.me/api/portraits/men/52.jpg" alt="David Nakamura"></div>
+          <h4>David Nakamura</h4>
+          <p>General Counsel</p>
+        </div>
+        <div class="leader-card">
+          <div class="leader-avatar"><img src="https://randomuser.me/api/portraits/women/57.jpg" alt="Priya Mehta"></div>
+          <h4>Priya Mehta</h4>
+          <p>Chief Sustainability Officer</p>
         </div>
       </div>
     </div>
@@ -1414,27 +1579,27 @@
       <h2 class="section-title">Latest Updates</h2>
       <div class="news-grid">
         <div class="news-card">
-          <div class="news-img" style="background:linear-gradient(135deg,#2563eb,#7c3aed)">Sustainability</div>
+          <div class="news-img" style="background:linear-gradient(135deg,#1a73e8,#174ea6)">Product Launch</div>
+          <div class="news-body">
+            <p class="news-date">3 March 2026</p>
+            <h4>ATP Unveils FlexScale G7 — The World's Most Energy-Efficient AI Server Platform</h4>
+            <p>The FlexScale G7 delivers 40% better performance per watt than its predecessor, setting a new industry benchmark for AI training infrastructure.</p>
+          </div>
+        </div>
+        <div class="news-card">
+          <div class="news-img" style="background:linear-gradient(135deg,#1e8e3e,#34a853)">Sustainability</div>
           <div class="news-body">
             <p class="news-date">12 February 2026</p>
-            <h4>Acquire Talent Partners Achieves Carbon Neutral Operations Across All EMEA Offices</h4>
-            <p>Marking a major milestone in our 2030 sustainability roadmap, all 14 EMEA offices now operate at net-zero carbon emissions.</p>
+            <h4>ATP Achieves Carbon Neutral Operations Across All EMEA Facilities</h4>
+            <p>All 14 EMEA offices and 3 manufacturing sites now operate at net-zero carbon emissions — two years ahead of our 2030 roadmap.</p>
           </div>
         </div>
         <div class="news-card">
-          <div class="news-img" style="background:linear-gradient(135deg,#059669,#10b981)">Innovation</div>
-          <div class="news-body">
-            <p class="news-date">5 February 2026</p>
-            <h4>$2.1B Investment in Next-Generation AI Research Campus in Singapore</h4>
-            <p>The new 50-acre campus will house 3,000 researchers and engineers focused on responsible AI development and deployment.</p>
-          </div>
-        </div>
-        <div class="news-card">
-          <div class="news-img" style="background:linear-gradient(135deg,#d97706,#f59e0b)">Partnership</div>
+          <div class="news-img" style="background:linear-gradient(135deg,#e37400,#f9ab00)">Investment</div>
           <div class="news-body">
             <p class="news-date">28 January 2026</p>
-            <h4>Strategic Partnership with European Space Agency for Satellite Data Platform</h4>
-            <p>A five-year agreement to build and operate a next-generation Earth observation data processing platform.</p>
+            <h4>$2.1B Investment in Singapore AI Research Campus — 3,000 New Roles</h4>
+            <p>The 50-acre campus will be the largest dedicated AI research facility in Southeast Asia, creating thousands of engineering and research positions.</p>
           </div>
         </div>
       </div>
@@ -1682,7 +1847,7 @@
   <div class="footer-grid">
     <div class="footer-brand">
       <a href="#" class="logo" style="color:#fff" onclick="showPage('home')">Acquire<span>TP</span></a>
-      <p>Connecting the world through innovation. Building sustainable solutions for the challenges of tomorrow.</p>
+      <p>Enterprise servers, consumer devices, cloud platforms, and cybersecurity solutions — technology that powers business and life.</p>
       <p style="margin-top:8px;font-size:.8rem;">London &bull; New York &bull; Singapore &bull; Frankfurt &bull; Tokyo &bull; Dubai</p>
     </div>
     <div class="footer-col">
@@ -1692,17 +1857,17 @@
         <li><a href="#leadership" onclick="showPage('home')">Leadership</a></li>
         <li><a href="#news" onclick="showPage('home')">Newsroom</a></li>
         <li><a href="#">Investor Relations</a></li>
-        <li><a href="#">Sustainability</a></li>
+        <li><a href="#sustainability" onclick="showPage('home')">Sustainability</a></li>
       </ul>
     </div>
     <div class="footer-col">
-      <h4>Services</h4>
+      <h4>Products</h4>
       <ul>
-        <li><a href="#">Cloud & Digital</a></li>
-        <li><a href="#">Manufacturing</a></li>
-        <li><a href="#">Energy</a></li>
-        <li><a href="#">Consulting</a></li>
-        <li><a href="#">Healthcare</a></li>
+        <li><a href="#products" onclick="showPage('home')">Enterprise Servers</a></li>
+        <li><a href="#products" onclick="showPage('home')">Consumer PCs</a></li>
+        <li><a href="#products" onclick="showPage('home')">ATP Cloud</a></li>
+        <li><a href="#products" onclick="showPage('home')">Cybersecurity</a></li>
+        <li><a href="#products" onclick="showPage('home')">Networking</a></li>
       </ul>
     </div>
     <div class="footer-col">
@@ -1872,37 +2037,37 @@
             <div class="comm-pref-list">
               <div class="comm-pref-row" id="cpfRow_Phone">
                 <input type="checkbox" name="commPref" value="Phone" id="cpfCheck_Phone" onchange="toggleCommRow(this)">
-                <span class="cpf-icon">&#128222;</span>
+                <span class="cpf-icon"><span class="material-icons-outlined" style="font-size:20px;color:#5f6368">phone</span></span>
                 <span class="cpf-label">Phone</span>
                 <input type="text" class="cpf-input" id="commPhone" placeholder="e.g. +44 7700 900000" disabled oninput="markCommManual(this)">
               </div>
               <div class="comm-pref-row" id="cpfRow_SMS">
                 <input type="checkbox" name="commPref" value="Text/SMS" id="cpfCheck_SMS" onchange="toggleCommRow(this)">
-                <span class="cpf-icon">&#128172;</span>
+                <span class="cpf-icon"><span class="material-icons-outlined" style="font-size:20px;color:#5f6368">sms</span></span>
                 <span class="cpf-label">Text / SMS</span>
                 <input type="text" class="cpf-input" id="commSMS" placeholder="e.g. +44 7700 900000" disabled oninput="markCommManual(this)">
               </div>
               <div class="comm-pref-row" id="cpfRow_Email">
                 <input type="checkbox" name="commPref" value="Email" id="cpfCheck_Email" onchange="toggleCommRow(this)">
-                <span class="cpf-icon">&#9993;</span>
+                <span class="cpf-icon"><span class="material-icons-outlined" style="font-size:20px;color:#5f6368">email</span></span>
                 <span class="cpf-label">Email</span>
                 <input type="text" class="cpf-input" id="commEmail" placeholder="e.g. you@email.com" disabled oninput="markCommManual(this)">
               </div>
               <div class="comm-pref-row" id="cpfRow_WhatsApp">
                 <input type="checkbox" name="commPref" value="WhatsApp" id="cpfCheck_WhatsApp" onchange="toggleCommRow(this)">
-                <span class="cpf-icon">&#128241;</span>
+                <span class="cpf-icon"><span class="material-icons-outlined" style="font-size:20px;color:#5f6368">chat</span></span>
                 <span class="cpf-label">WhatsApp</span>
                 <input type="text" class="cpf-input" id="commWhatsApp" placeholder="e.g. +44 7700 900000" disabled oninput="markCommManual(this)">
               </div>
               <div class="comm-pref-row" id="cpfRow_LinkedIn">
                 <input type="checkbox" name="commPref" value="LinkedIn Messages" id="cpfCheck_LinkedIn" onchange="toggleCommRow(this)">
-                <span class="cpf-icon">&#128101;</span>
+                <span class="cpf-icon"><span class="material-icons-outlined" style="font-size:20px;color:#5f6368">group</span></span>
                 <span class="cpf-label">LinkedIn</span>
                 <input type="text" class="cpf-input" id="commLinkedIn" placeholder="e.g. linkedin.com/in/yourprofile" disabled oninput="markCommManual(this)">
               </div>
               <div class="comm-pref-row" id="cpfRow_WeChat">
                 <input type="checkbox" name="commPref" value="WeChat" id="cpfCheck_WeChat" onchange="toggleCommRow(this)">
-                <span class="cpf-icon">&#127760;</span>
+                <span class="cpf-icon"><span class="material-icons-outlined" style="font-size:20px;color:#5f6368">language</span></span>
                 <span class="cpf-label">WeChat</span>
                 <input type="text" class="cpf-input" id="commWeChat" placeholder="e.g. your_wechat_id" disabled>
               </div>
@@ -3953,7 +4118,31 @@ function processMessage(msg) {
 
   // Company info
   if (m.includes('about') || m.includes('company') || m.includes('who are') || m.includes('tell me about acquire') || m.includes('what does acquire do') || m.includes('what do you do')) {
-    addBotMessage("Acquire Talent Partners is a global technology and infrastructure company with <strong>102,000 employees</strong> across <strong>48 countries</strong>. Founded in 1987, we're a Fortune 50 company with $38.2B revenue.<br><br>Six divisions: Cloud & Digital, Advanced Manufacturing, Energy & Sustainability, Strategic Consulting, Healthcare Technology, and Defence & Security.", ["What jobs are available?", "Apply via chat", "Tell me about the culture"]);
+    addBotMessage("Acquire Talent Partners is a Fortune 50 technology company with <strong>102,000 employees</strong> across <strong>48 countries</strong> and $38.2B revenue. Founded in 1987 in Singapore, now headquartered in London.<br><br>We design and manufacture <strong>enterprise servers, consumer PCs and tablets, networking equipment, cloud platforms, and cybersecurity solutions</strong>. Our FlexScale server line is trusted by 80% of Fortune 100 companies, and our ProBook laptops are the world's #3 PC brand by shipments.<br><br>We also run six service divisions: Cloud & Digital Infrastructure, Advanced Manufacturing, Energy & Sustainability, Strategic Consulting, Healthcare Technology, and Defence & Security.", ["Tell me about products", "What jobs are available?", "Tell me about the culture"]);
+    return;
+  }
+
+  // Products
+  if (m.includes('product') || m.includes('server') || m.includes('laptop') || m.includes('hardware') || m.includes('device') || m.includes('cloud') || m.includes('flexscale') || m.includes('probook')) {
+    addBotMessage("We build technology across the full stack:<br><br><strong>Enterprise:</strong> FlexScale servers & storage (used by 80% of Fortune 100), networking gear powering 340,000+ enterprise networks, and ATP Cloud with 28 availability zones.<br><br><strong>Consumer:</strong> ProBook laptops (#3 PC brand globally), Vertex desktops, VersaPad tablets, and SmartDisplay devices — shipped to 62 countries with 14 CES Innovation Awards.<br><br><strong>Security:</strong> ATP SecureShield protects 28 million endpoints globally with 24/7 managed detection & response.", ["What jobs are available?", "Tell me about R&D", "Apply via chat"]);
+    return;
+  }
+
+  // R&D / Innovation
+  if (m.includes('r&d') || m.includes('research') || m.includes('innovation') || m.includes('patent') || m.includes('lab')) {
+    addBotMessage("Innovation is in our DNA. We invest <strong>$4.2B annually</strong> in R&D across <strong>23 labs in 12 countries</strong>, employing 14,000 engineers and scientists.<br><br>In 2025 we filed 2,840 patents — making us the 8th most prolific filer globally. Our teams work on quantum computing, AI accelerators, sustainable battery chemistry, and next-gen silicon.<br><br>Our new $2.1B Singapore AI Research Campus opens in 2027 — it'll be the largest dedicated AI facility in Southeast Asia.", ["What jobs are available?", "Tell me about sustainability", "Apply via chat"]);
+    return;
+  }
+
+  // Sustainability / ESG
+  if (m.includes('sustainab') || m.includes('esg') || m.includes('carbon') || m.includes('green') || m.includes('environment') || m.includes('renewable') || m.includes('net zero')) {
+    addBotMessage("We're committed to <strong>net zero by 2030</strong> — and we're ahead of schedule.<br><br>74% of our energy comes from renewables. 92% of manufacturing waste is recycled. Our energy-efficient servers have helped clients avoid 12 million tonnes of CO₂ since 2020.<br><br>Our Chief Sustainability Officer, Priya Mehta, publishes an annual independently-audited Sustainability Report. We've also invested $180M in STEM education and our people logged 42,000 volunteer hours last year.", ["What jobs are available?", "Tell me about the culture", "Apply via chat"]);
+    return;
+  }
+
+  // Values
+  if (m.includes('value') || m.includes('principle') || m.includes('mission') || m.includes('what drives')) {
+    addBotMessage("Four values guide everything we do:<br><br><strong>Innovation</strong> — $4.2B in R&D, 2,840 patents in 2025<br><strong>Integrity</strong> — independent compliance board, annual ethics reports<br><strong>Inclusion</strong> — 52% women in leadership, 90+ nationalities<br><strong>Impact</strong> — net zero by 2030, $180M invested in STEM education", ["Tell me about the culture", "What jobs are available?", "Apply via chat"]);
     return;
   }
 
@@ -4583,7 +4772,19 @@ function processVoiceQuery(query) {
       answer = `We've got ${allJobs.length} roles open right now across loads of teams — Engineering, Product, Consulting, and more, in forty-eight countries. Are you looking for something specific? I can help narrow it down!`;
     }
     else if (m.includes('about') || m.includes('company') || m.includes('who are') || m.includes('tell me about acquire') || m.includes('what do')) {
-      answer = `${pickRandom(voiceOpeners.positive)} Acquire Talent Partners is a global tech and infrastructure company — over a hundred thousand people in forty-eight countries. We work across cloud, manufacturing, energy, consulting, healthcare, and security. Would you like to hear about what it's like to work here, or jump straight to the open roles?`;
+      answer = `${pickRandom(voiceOpeners.positive)} Acquire Talent Partners is a Fortune 50 technology company — over a hundred thousand people in forty-eight countries, with thirty-eight billion in revenue. We design and build enterprise servers, consumer laptops and tablets, cloud platforms, and cybersecurity solutions. Our FlexScale servers are used by eighty percent of the Fortune 100, and our ProBook laptops are the world's third-biggest PC brand. Would you like to hear about what it's like to work here, or jump straight to the open roles?`;
+    }
+    else if (m.includes('product') || m.includes('server') || m.includes('laptop') || m.includes('hardware') || m.includes('device') || m.includes('flexscale') || m.includes('probook')) {
+      answer = `${pickRandom(voiceOpeners.positive)} We build tech across the full stack! Enterprise side, our FlexScale servers power eighty percent of Fortune 100 companies, and our networking gear runs three hundred and forty thousand enterprise networks. Consumer side, ProBook laptops are the world's number three PC brand, and our VersaPad tablets have won fourteen CES awards. Plus we run ATP Cloud with twenty-eight availability zones globally. What area interests you most?`;
+    }
+    else if (m.includes('r&d') || m.includes('research') || m.includes('innovation') || m.includes('patent') || m.includes('lab')) {
+      answer = `${pickRandom(voiceOpeners.info)} we invest four point two billion dollars a year in R&D across twenty-three labs in twelve countries. Fourteen thousand engineers and scientists working on quantum computing, AI accelerators, sustainable batteries, and next-gen silicon. We filed nearly three thousand patents last year! And our new two billion dollar AI Research Campus in Singapore opens in twenty-twenty-seven. Pretty exciting stuff — want to hear about open engineering roles?`;
+    }
+    else if (m.includes('sustainab') || m.includes('esg') || m.includes('carbon') || m.includes('green') || m.includes('net zero')) {
+      answer = `${pickRandom(voiceOpeners.positive)} Sustainability is huge here. We're targeting net zero by twenty-thirty and we're actually ahead of schedule — seventy-four percent of our energy is renewable already. Ninety-two percent of manufacturing waste gets recycled, and our energy-efficient servers have helped clients avoid twelve million tonnes of CO2 since twenty-twenty. ${pickRandom(voiceOpeners.followUp)}`;
+    }
+    else if (m.includes('value') || m.includes('principle') || m.includes('mission')) {
+      answer = `Our four values are Innovation, Integrity, Inclusion, and Impact. Innovation means four point two billion in R&D. Integrity means independent compliance oversight. Inclusion means fifty-two percent of leadership are women and over ninety nationalities. And Impact means we're going net zero by twenty-thirty and investing a hundred and eighty million in STEM education. Would you like to know about the culture day to day?`;
     }
     else if (m.includes('location') || m.includes('office') || m.includes('where') || m.includes('country') || m.includes('countries')) {
       answer = `We're all over the world! Major hubs are London, New York, Singapore, Frankfurt, Tokyo, and Dubai. Many roles offer remote or hybrid working too. Are you based somewhere specific? I can check what's available near you!`;
@@ -4633,26 +4834,27 @@ function processVoiceQuery(query) {
 
 
 <style>
-.voice-overlay{display:none;position:fixed;inset:0;z-index:10000;background:linear-gradient(135deg,#0a1628 0%,#0f2b46 40%,#1a365d 100%);flex-direction:column;align-items:center;justify-content:center}
+.voice-overlay{display:none;position:fixed;inset:0;z-index:10000;background:#ffffff;flex-direction:column;align-items:center;justify-content:center}
 .voice-overlay.active{display:flex}
 .voice-overlay elevenlabs-convai{position:static!important;width:100%!important;height:auto!important}
-.voice-overlay-close{position:absolute;top:24px;right:24px;width:48px;height:48px;border-radius:50%;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);color:#fff;font-size:20px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .3s;z-index:10}
-.voice-overlay-close:hover{background:rgba(255,255,255,.2);transform:scale(1.1)}
-.voice-overlay-brand{position:absolute;top:28px;left:32px;display:flex;align-items:center;gap:12px;color:rgba(255,255,255,.8);font-size:1.1rem;font-weight:600;letter-spacing:.5px}
-.voice-overlay-brand .dot{width:8px;height:8px;border-radius:50%;background:#22c55e;animation:pulse-dot 2s ease infinite}
-@keyframes pulse-dot{0%,100%{opacity:1;box-shadow:0 0 0 0 rgba(34,197,94,.6)}50%{opacity:.8;box-shadow:0 0 0 8px rgba(34,197,94,0)}}
+.voice-overlay-close{position:absolute;top:24px;right:24px;width:48px;height:48px;border-radius:50%;background:#f8f9fa;border:1px solid #dadce0;color:#5f6368;font-size:20px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .3s;z-index:10}
+.voice-overlay-close:hover{background:#e8eaed;transform:scale(1.1)}
+.voice-overlay-brand{position:absolute;top:28px;left:32px;display:flex;align-items:center;gap:12px;color:#202124;font-size:1.1rem;font-weight:600;letter-spacing:.5px}
+.voice-overlay-brand .dot{width:8px;height:8px;border-radius:50%;background:#34a853;animation:pulse-dot 2s ease infinite}
+@keyframes pulse-dot{0%,100%{opacity:1;box-shadow:0 0 0 0 rgba(52,168,83,.6)}50%{opacity:.8;box-shadow:0 0 0 8px rgba(52,168,83,0)}}
 .voice-overlay-center{display:flex;flex-direction:column;align-items:center;gap:32px}
-.voice-overlay-title{color:#fff;font-size:1.6rem;font-weight:600;letter-spacing:-.5px;text-align:center}
-.voice-overlay-subtitle{color:rgba(255,255,255,.5);font-size:.95rem;margin-top:-20px;text-align:center}
+.voice-overlay-title{color:#202124;font-size:1.6rem;font-weight:600;letter-spacing:-.5px;text-align:center}
+.voice-overlay-subtitle{color:#5f6368;font-size:.95rem;margin-top:-20px;text-align:center}
 .voice-overlay-widget{width:320px;height:320px;display:flex;align-items:center;justify-content:center;position:relative}
 .voice-overlay-rings{position:absolute;inset:-40px;pointer-events:none}
-.voice-overlay-rings .ring{position:absolute;inset:0;border-radius:50%;border:1px solid rgba(37,99,235,.15);animation:ring-pulse 4s ease-in-out infinite}
-.voice-overlay-rings .ring:nth-child(2){inset:-20px;animation-delay:1s;border-color:rgba(37,99,235,.1)}
-.voice-overlay-rings .ring:nth-child(3){inset:-40px;animation-delay:2s;border-color:rgba(37,99,235,.06)}
+.voice-overlay-rings .ring{position:absolute;inset:0;border-radius:50%;border:1px solid rgba(26,115,232,.12);animation:ring-pulse 4s ease-in-out infinite}
+.voice-overlay-rings .ring:nth-child(2){inset:-20px;animation-delay:1s;border-color:rgba(26,115,232,.08)}
+.voice-overlay-rings .ring:nth-child(3){inset:-40px;animation-delay:2s;border-color:rgba(26,115,232,.04)}
 @keyframes ring-pulse{0%,100%{transform:scale(1);opacity:1}50%{transform:scale(1.05);opacity:.5}}
 .voice-overlay-hints{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;max-width:500px}
-.voice-overlay-hint{padding:8px 16px;border-radius:20px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.12);color:rgba(255,255,255,.7);font-size:.82rem;cursor:default}
-.voice-overlay-footer{position:absolute;bottom:24px;color:rgba(255,255,255,.3);font-size:.75rem;letter-spacing:.5px}
+.voice-overlay-hint{padding:8px 16px;border-radius:20px;background:#f8f9fa;border:1px solid #dadce0;color:#3c4043;font-size:.82rem;cursor:default;transition:background .2s}
+.voice-overlay-hint:hover{background:#e8eaed}
+.voice-overlay-footer{position:absolute;bottom:24px;color:#9aa0a6;font-size:.75rem;letter-spacing:.5px}
 </style>
 
 <div class="voice-overlay" id="voiceAgentOverlay">
