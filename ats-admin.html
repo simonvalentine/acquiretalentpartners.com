@@ -2875,7 +2875,7 @@ function previewTemplateOnly(templateId) {
   document.getElementById('emailModalTitle').textContent = tpl.name + ' (Preview)';
   const isHM = tpl.recipientType === 'hiring-manager';
   document.getElementById('emailModalMeta').innerHTML = `
-    <div class="email-meta-row"><span class="email-meta-label">To</span><span class="email-meta-value" style="color:var(--text-xs);font-style:italic;">${isHM ? 'Sample hiring manager — Sarah Chen &lt;sarah.chen@acquiretp.com&gt;' : 'Sample candidate — Alex Johnson &lt;alex.johnson@email.com&gt;</span></div>
+    <div class="email-meta-row"><span class="email-meta-label">To</span><span class="email-meta-value" style="color:var(--text-xs);font-style:italic;">${isHM ? 'Sample hiring manager — Sarah Chen &lt;sarah.chen@acquiretp.com&gt;' : 'Sample candidate — Alex Johnson &lt;alex.johnson@email.com&gt;'}</span></div>
     <div class="email-meta-row"><span class="email-meta-label">From</span><span class="email-meta-value">Acquire Talent Partners &lt;careers@acquiretp.com&gt;</span></div>
     <div class="email-meta-row"><span class="email-meta-label">Subject</span><span class="email-meta-value" style="font-weight:600">${subject}</span></div>
     <div class="email-meta-row"><span class="email-meta-label">Trigger</span><span class="email-meta-value">${tpl.trigger === 'auto' ? '&#9889; Automatically sent when status changes to <strong>' + (tpl.triggerStatus ? statusLabels[tpl.triggerStatus] || tpl.triggerStatus : 'N/A') + '</strong>' : '&#9998; Manually triggered by recruiter'}</span></div>
