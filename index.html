@@ -2946,9 +2946,33 @@ async function parseResume(file) {
       return;
     }
 
-    const parsed = extractFieldsFromText(text);
-    let filled = 0;
+    // Try AI-powered parsing via backend first, fall back to regex
+    let parsed;
+    let usedAI = false;
+    try {
+      const spinnerText = statusEl.querySelector('span');
+      if (spinnerText) spinnerText.textContent = 'AI is reading your CV...';
+      const aiRes = await fetch(ATS_SERVER_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain' },
+        body: JSON.stringify({ action: 'parseCV', cvText: text }),
+        redirect: 'follow'
+      });
+      const aiData = await aiRes.json();
+      if (aiData.success && aiData.parsed) {
+        parsed = aiData.parsed;
+        usedAI = true;
+        console.log('[CV Parser] AI extraction result:', JSON.stringify(parsed));
+      } else {
+        console.warn('[CV Parser] AI parsing unavailable, using regex:', aiData.error);
+        parsed = extractFieldsFromText(text);
+      }
+    } catch (aiErr) {
+      console.warn('[CV Parser] AI call failed, using regex:', aiErr.message);
+      parsed = extractFieldsFromText(text);
+    }
 
+    let filled = 0;
     const fill = (id, val) => {
       if (!val) return;
       const el = document.getElementById(id);
@@ -2984,13 +3008,13 @@ async function parseResume(file) {
 
     statusEl.style.display = 'none';
 
-    if (filled > 0) {
+    const skillCount = parsed.skills ? parsed.skills.length : 0;
+    if (filled > 0 || skillCount > 0) {
       resultEl.className = 'parse-result';
-      var skillCount = parsed.skills ? parsed.skills.length : 0;
-      var parts = [];
+      const parts = [];
       if (filled > 0) parts.push(filled + ' field' + (filled > 1 ? 's' : ''));
       if (skillCount > 0) parts.push(skillCount + ' skill' + (skillCount > 1 ? 's' : ''));
-      resultEl.textContent = '\u2705 Detected ' + parts.join(' and ') + ' from your CV. Please review and complete any remaining fields.';
+      resultEl.textContent = '\u2705 ' + (usedAI ? 'AI detected ' : 'Detected ') + parts.join(' and ') + ' from your CV. Please review and complete any remaining fields.';
     } else {
       resultEl.className = 'parse-result';
       resultEl.textContent = 'CV uploaded. Could not auto-detect fields \u2014 please fill in the form below.';
