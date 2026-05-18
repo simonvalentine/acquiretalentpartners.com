@@ -2946,63 +2946,26 @@ async function parseResume(file) {
       return;
     }
 
-    // Try AI-powered parsing via Gemini directly, fall back to regex
+    // AI-powered parsing via secure server-side proxy (API key kept server-side)
     let parsed;
     let usedAI = false;
     try {
       const spinnerText = statusEl.querySelector('span');
       if (spinnerText) spinnerText.textContent = 'AI is reading your CV...';
-      const geminiKey = 'AIzaSyDupQCBs5jhdElNZSnR6N_L9qGWUSBwML8';
-      const geminiUrl = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=' + geminiKey;
-      const cvPrompt = `You are an expert CV/resume parser. Extract structured data from the following CV text.
-
-IMPORTANT RULES:
-- Extract ONLY information that is explicitly stated in the CV text
-- Do NOT guess or infer information that isn't present
-- For location: extract the candidate's city/country, NOT their job function
-- For skills: extract both technical and soft skills mentioned anywhere
-- For experience: count total years based on dates
-- Return empty string "" for any field you cannot find
-- Return empty array [] for skills if none found
-
-Return a JSON object with exactly these fields:
-{
-  "firstName": "first/given name",
-  "lastName": "last/family name",
-  "email": "email address",
-  "phone": "phone number",
-  "location": "city, country or city, state",
-  "linkedin": "full LinkedIn URL if present",
-  "currentTitle": "most recent job title",
-  "currentCompany": "most recent employer",
-  "experienceYears": "total years as number or empty string",
-  "education": "highest qualification and institution",
-  "skills": ["skill1", "skill2", "skill3"],
-  "languages": ["language1", "language2"],
-  "summary": "1-2 sentence professional summary"
-}
-
-CV TEXT:
-"""
-${text.substring(0, 8000)}
-"""
-`;
-      const aiRes = await fetch(geminiUrl, {
+      const cvParserUrl = 'https://script.google.com/macros/s/AKfycbzwNOfZZn4Yr9umDIGpco5ftOftZPHFa8nS8vhuKg-RGwBG-jnPAdCVl8cLzAR4IMR-/exec';
+      const aiRes = await fetch(cvParserUrl, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          contents: [{ parts: [{ text: cvPrompt }] }],
-          generationConfig: { temperature: 0.1, maxOutputTokens: 2048, responseMimeType: 'application/json' }
-        })
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify({ action: 'parseCV', cvText: text.substring(0, 8000) }),
+        redirect: 'follow'
       });
       const aiData = await aiRes.json();
-      if (aiData.candidates && aiData.candidates[0] && aiData.candidates[0].content) {
-        const aiText = aiData.candidates[0].content.parts[0].text;
-        parsed = JSON.parse(aiText);
+      if (aiData.success && aiData.parsed) {
+        parsed = aiData.parsed;
         usedAI = true;
-        console.log('[CV Parser] Gemini AI extraction result:', JSON.stringify(parsed));
+        console.log('[CV Parser] Server-side AI extraction result:', JSON.stringify(parsed));
       } else {
-        console.warn('[CV Parser] Gemini returned no candidates:', JSON.stringify(aiData));
+        console.warn('[CV Parser] Server returned error:', aiData.error || 'Unknown error');
         parsed = extractFieldsFromText(text);
       }
     } catch (aiErr) {
