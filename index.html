@@ -508,18 +508,27 @@
   }
   .cv-parse-zone .upload-icon { font-size: 2rem; margin-bottom: 6px; }
 
-  /* ── Parse Status ── */
+  /* ── Parse Status — Modern Progress Bar ── */
   .parse-status {
-    display: flex; align-items: center; gap: 10px;
-    padding: 10px 14px; margin-top: 8px;
-    background: #f0f7ff; border-radius: 8px; font-size: .84rem; color: var(--accent);
+    display: flex; flex-direction: column; gap: 6px;
+    padding: 14px 16px; margin-top: 8px;
+    background: #f0f7ff; border-radius: 10px; font-size: .84rem; color: var(--accent);
   }
-  .parse-spinner {
-    width: 18px; height: 18px; border: 2.5px solid var(--border);
-    border-top-color: var(--accent); border-radius: 50%;
-    animation: spin .7s linear infinite; flex-shrink: 0;
+  .parse-progress-header {
+    display: flex; justify-content: space-between; align-items: center;
   }
-  @keyframes spin { to { transform: rotate(360deg); } }
+  .parse-progress-label { font-weight: 600; }
+  .parse-progress-pct { font-weight: 700; font-size: .9rem; font-variant-numeric: tabular-nums; }
+  .parse-progress-track {
+    width: 100%; height: 6px; background: #dce8f7; border-radius: 3px; overflow: hidden;
+  }
+  .parse-progress-fill {
+    height: 100%; width: 0%; background: linear-gradient(90deg, var(--accent), #34a853);
+    border-radius: 3px; transition: width .4s ease;
+  }
+  .parse-progress-step {
+    font-size: .78rem; color: #5f6368; margin-top: 2px;
+  }
   .parse-result {
     padding: 10px 14px; margin-top: 8px;
     background: #eefff4; border-radius: 8px; font-size: .84rem;
@@ -1935,8 +1944,14 @@
             <input type="file" accept=".pdf,.doc,.docx" id="cvFile" onchange="handleCvUpload(this)">
           </div>
           <div class="parse-status" id="parseStatus" style="display:none">
-            <span class="parse-spinner"></span>
-            <span class="parse-text">Extracting details from your CV...</span>
+            <div class="parse-progress-header">
+              <span class="parse-progress-label" id="parseLabel">Reading your CV...</span>
+              <span class="parse-progress-pct" id="parsePct">0%</span>
+            </div>
+            <div class="parse-progress-track">
+              <div class="parse-progress-fill" id="parseBar"></div>
+            </div>
+            <div class="parse-progress-step" id="parseStep">Preparing...</div>
           </div>
           <div class="parse-result" id="parseResult" style="display:none"></div>
           <span class="error-msg" id="cvError" style="display:none">Please upload your CV</span>
@@ -2142,8 +2157,14 @@
             <input type="file" accept=".pdf,.doc,.docx" id="tnFile" onchange="handleTnUpload(this)">
           </div>
           <div class="parse-status" id="tnParseStatus" style="display:none">
-            <span class="parse-spinner"></span>
-            <span class="parse-text">Extracting details from your CV...</span>
+            <div class="parse-progress-header">
+              <span class="parse-progress-label" id="tnParseLabel">Reading your CV...</span>
+              <span class="parse-progress-pct" id="tnParsePct">0%</span>
+            </div>
+            <div class="parse-progress-track">
+              <div class="parse-progress-fill" id="tnParseBar"></div>
+            </div>
+            <div class="parse-progress-step" id="tnParseStep">Preparing...</div>
           </div>
           <div class="parse-result" id="tnParseResult" style="display:none"></div>
         </div>
@@ -2933,11 +2954,26 @@ function handleCvUpload(input) {
 async function parseResume(file) {
   const statusEl = document.getElementById('parseStatus');
   const resultEl = document.getElementById('parseResult');
+  const barEl = document.getElementById('parseBar');
+  const pctEl = document.getElementById('parsePct');
+  const labelEl = document.getElementById('parseLabel');
+  const stepEl = document.getElementById('parseStep');
   statusEl.style.display = 'flex';
   resultEl.style.display = 'none';
   resultEl.className = 'parse-result';
 
+  function setProgress(pct, label, step) {
+    barEl.style.width = pct + '%';
+    pctEl.textContent = pct + '%';
+    if (label) labelEl.textContent = label;
+    if (step) stepEl.textContent = step;
+  }
+
   try {
+    setProgress(5, 'Reading your CV...', 'Opening file: ' + file.name);
+    await new Promise(r => setTimeout(r, 100));
+
+    setProgress(15, 'Extracting text...', 'Parsing document structure');
     const text = await extractTextFromFile(file);
 
     if (!text || text.trim().length < 10) {
@@ -2948,12 +2984,14 @@ async function parseResume(file) {
       return;
     }
 
+    setProgress(30, 'Extracting text...', 'Extracted ' + text.length + ' characters');
+    await new Promise(r => setTimeout(r, 200));
+
     // AI-powered parsing via secure server-side proxy (API key kept server-side)
     let parsed;
     let usedAI = false;
     try {
-      const spinnerText = statusEl.querySelector('span');
-      if (spinnerText) spinnerText.textContent = 'AI is reading your CV...';
+      setProgress(40, 'AI analysing your CV...', 'Sending to Gemini AI for intelligent extraction');
       const cvParserUrl = 'https://script.google.com/macros/s/AKfycbzwNOfZZn4Yr9umDIGpco5ftOftZPHFa8nS8vhuKg-RGwBG-jnPAdCVl8cLzAR4IMR-/exec';
       const aiRes = await fetch(cvParserUrl, {
         method: 'POST',
@@ -2961,6 +2999,7 @@ async function parseResume(file) {
         body: JSON.stringify({ action: 'parseCV', cvText: text.substring(0, 8000) }),
         redirect: 'follow'
       });
+      setProgress(70, 'AI analysing your CV...', 'Processing AI response');
       const aiData = await aiRes.json();
       if (aiData.success && aiData.parsed) {
         parsed = aiData.parsed;
@@ -2975,6 +3014,9 @@ async function parseResume(file) {
       parsed = extractFieldsFromText(text);
     }
 
+    setProgress(85, 'Populating your details...', 'Auto-filling form fields');
+    await new Promise(r => setTimeout(r, 150));
+
     let filled = 0;
     const fill = (id, val) => {
       if (!val) return;
@@ -2988,6 +3030,32 @@ async function parseResume(file) {
     fill('appPhone', parsed.phone);
     fill('appLocation', parsed.location);
     fill('appLinkedIn', parsed.linkedin);
+
+    // Auto-select experience dropdown from parsed data
+    if (parsed.experienceYears || parsed.currentTitle) {
+      const expEl = document.getElementById('appExperience');
+      if (expEl && !expEl.value) {
+        let yrs = 0;
+        if (parsed.experienceYears) {
+          const m = String(parsed.experienceYears).match(/\d+/);
+          if (m) yrs = parseInt(m[0]);
+        }
+        // If no explicit years, estimate from job history
+        if (!yrs && parsed.currentTitle) yrs = 3;
+        if (yrs > 0) {
+          let optVal = '';
+          if (yrs < 1) optVal = 'Less than 1 year';
+          else if (yrs <= 2) optVal = '1 \u2013 2 years';
+          else if (yrs <= 5) optVal = '3 \u2013 5 years';
+          else if (yrs <= 10) optVal = '6 \u2013 10 years';
+          else if (yrs <= 15) optVal = '10 \u2013 15 years';
+          else optVal = '15+ years';
+          for (let i = 0; i < expEl.options.length; i++) {
+            if (expEl.options[i].text === optVal) { expEl.selectedIndex = i; filled++; break; }
+          }
+        }
+      }
+    }
 
     // Auto-check comm preference boxes and prefill their fields
     if (parsed.phone) {
@@ -3009,6 +3077,8 @@ async function parseResume(file) {
       populateSkills(parsed.skills);
     }
 
+    setProgress(100, 'Complete', 'All done');
+    await new Promise(r => setTimeout(r, 400));
     statusEl.style.display = 'none';
 
     const skillCount = parsed.skills ? parsed.skills.length : 0;
