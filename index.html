@@ -871,10 +871,10 @@
 
 
   /* ── Voice Mode (inside chat widget) ── */
-  .chat-window.voice-mode { background: #0f172a; }
+  .chat-window.voice-mode { background: #ffffff; }
   .chat-window.voice-mode .chat-header {
-    background: linear-gradient(135deg, #1e293b, #0f172a);
-    border-bottom: 1px solid rgba(255,255,255,.06);
+    background: #ffffff;
+    border-bottom: 1px solid #e8eaed;
   }
   .chat-window.voice-mode .chat-messages { display: none; }
   .chat-window.voice-mode .chat-input-area { display: none; }
@@ -886,32 +886,32 @@
   /* Voice toggle button in chat header */
   .chat-voice-toggle {
     width: 32px; height: 32px; border-radius: 50%;
-    background: rgba(255,255,255,.15); border: none;
-    color: #fff; cursor: pointer; display: flex;
+    background: rgba(26,115,232,.08); border: none;
+    color: #5f6368; cursor: pointer; display: flex;
     align-items: center; justify-content: center;
     transition: all .2s; flex-shrink: 0; margin-left: auto;
   }
-  .chat-voice-toggle:hover { background: rgba(255,255,255,.25); }
+  .chat-voice-toggle:hover { background: rgba(26,115,232,.15); }
   .chat-voice-toggle.active {
-    background: rgba(96,165,250,.3); color: #93c5fd;
+    background: rgba(26,115,232,.15); color: #1a73e8;
   }
 
   /* Back to chat button (shown in voice mode) */
   .voice-back-btn {
     width: 32px; height: 32px; border-radius: 50%;
-    background: rgba(255,255,255,.1); border: none;
-    color: rgba(255,255,255,.7); cursor: pointer; display: flex;
+    background: rgba(0,0,0,.05); border: none;
+    color: #5f6368; cursor: pointer; display: flex;
     align-items: center; justify-content: center;
     transition: all .2s; flex-shrink: 0; margin-left: auto;
   }
-  .voice-back-btn:hover { background: rgba(255,255,255,.2); color: #fff; }
+  .voice-back-btn:hover { background: rgba(0,0,0,.1); color: #202124; }
 
   /* Voice context badge */
   .voice-context-badge {
-    font-size: .72rem; color: rgba(255,255,255,.5); font-weight: 500;
+    font-size: .72rem; color: #5f6368; font-weight: 500;
     display: flex; align-items: center; gap: 6px;
     padding: 3px 10px; border-radius: 12px;
-    background: rgba(255,255,255,.06);
+    background: #f1f3f4;
     max-width: 240px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
   }
 
@@ -1024,13 +1024,13 @@
 
   /* Status */
   .voice-status-text {
-    color: rgba(255,255,255,.5); font-size: .82rem; font-weight: 500;
+    color: #5f6368; font-size: .82rem; font-weight: 500;
     margin-top: 10px; text-align: center; transition: all .3s; min-height: 22px;
   }
-  .voice-orb-wrapper.listening ~ .voice-status-text { color: rgba(147,197,253,.9); }
-  .voice-orb-wrapper.speaking ~ .voice-status-text { color: rgba(167,139,250,.9); }
+  .voice-orb-wrapper.listening ~ .voice-status-text { color: #1a73e8; }
+  .voice-orb-wrapper.speaking ~ .voice-status-text { color: #7c3aed; }
   .voice-status-live {
-    font-size: .8rem; color: rgba(255,255,255,.4); margin-top: 4px;
+    font-size: .8rem; color: #80868b; margin-top: 4px;
     min-height: 18px; text-align: center; max-width: 280px;
     overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
   }
@@ -1040,25 +1040,25 @@
     flex: 1; overflow-y: auto; padding: 0 16px 6px;
     display: flex; flex-direction: column; gap: 10px;
     max-height: 140px;
-    scrollbar-width: thin; scrollbar-color: rgba(255,255,255,.1) transparent;
+    scrollbar-width: thin; scrollbar-color: rgba(0,0,0,.1) transparent;
   }
   .voice-transcript::-webkit-scrollbar { width: 3px; }
-  .voice-transcript::-webkit-scrollbar-thumb { background: rgba(255,255,255,.1); border-radius: 3px; }
+  .voice-transcript::-webkit-scrollbar-thumb { background: rgba(0,0,0,.1); border-radius: 3px; }
   .vt-msg { animation: vtIn .3s ease; }
   @keyframes vtIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
   .vt-label {
     font-size: .65rem; font-weight: 600; text-transform: uppercase; letter-spacing: .7px;
-    margin-bottom: 3px; color: rgba(255,255,255,.3);
+    margin-bottom: 3px; color: #80868b;
   }
-  .vt-label.user { color: rgba(96,165,250,.6); text-align: right; }
+  .vt-label.user { color: #1a73e8; text-align: right; }
   .vt-bubble {
     padding: 8px 14px; border-radius: 12px; font-size: .82rem; line-height: 1.55;
-    background: rgba(255,255,255,.06); color: rgba(255,255,255,.8);
-    border: 1px solid rgba(255,255,255,.04);
+    background: #f1f3f4; color: #202124;
+    border: 1px solid #e8eaed;
   }
   .vt-bubble.user {
-    background: rgba(37,99,235,.15); color: rgba(147,197,253,.95);
-    border-color: rgba(37,99,235,.2); text-align: right;
+    background: #e8f0fe; color: #174ea6;
+    border-color: #c6dafc; text-align: right;
   }
 
   /* Hints */
@@ -1068,36 +1068,36 @@
   }
   .voice-hint-pill {
     padding: 6px 12px; border-radius: 16px;
-    background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.08);
-    color: rgba(255,255,255,.45); font-size: .72rem; cursor: pointer;
+    background: #f8f9fa; border: 1px solid #dadce0;
+    color: #3c4043; font-size: .72rem; cursor: pointer;
     transition: all .2s; font-family: inherit;
   }
   .voice-hint-pill:hover {
-    background: rgba(37,99,235,.15); border-color: rgba(37,99,235,.3);
-    color: rgba(147,197,253,.9);
+    background: #e8f0fe; border-color: #c6dafc;
+    color: #1a73e8;
   }
 
   /* Voice text input (inside chat widget) */
   .voice-text-input-wrap {
     display: flex; gap: 6px; padding: 10px 16px 12px;
-    border-top: 1px solid rgba(255,255,255,.04);
+    border-top: 1px solid #e8eaed;
   }
   .voice-text-input {
     flex: 1; padding: 8px 12px; border-radius: 8px;
-    background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.1);
-    color: rgba(255,255,255,.8); font-size: .82rem; font-family: inherit;
+    background: #f8f9fa; border: 1px solid #dadce0;
+    color: #202124; font-size: .82rem; font-family: inherit;
     outline: none; transition: all .2s;
   }
-  .voice-text-input::placeholder { color: rgba(255,255,255,.3); }
-  .voice-text-input:focus { background: rgba(255,255,255,.1); border-color: rgba(96,165,250,.3); }
+  .voice-text-input::placeholder { color: #9aa0a6; }
+  .voice-text-input:focus { background: #fff; border-color: #1a73e8; }
   .voice-text-send {
     width: 34px; height: 34px; padding: 0; border-radius: 8px;
-    background: rgba(96,165,250,.15); border: 1px solid rgba(96,165,250,.2);
-    color: rgba(96,165,250,.8); cursor: pointer;
+    background: #e8f0fe; border: 1px solid #c6dafc;
+    color: #1a73e8; cursor: pointer;
     display: flex; align-items: center; justify-content: center;
     transition: all .2s; flex-shrink: 0;
   }
-  .voice-text-send:hover { background: rgba(96,165,250,.25); color: #93c5fd; }
+  .voice-text-send:hover { background: #d2e3fc; color: #1967d2; }
 
   /* Voice footer */
   .voice-footer {
@@ -1915,6 +1915,7 @@
     </div>
     <div class="modal-footer">
       <button class="btn btn-outline" onclick="closeModal('jobDetailModal')">Close</button>
+      <button class="btn btn-outline" onclick="closeModal('jobDetailModal'); launchVoiceAgent()" style="display:flex;align-items:center;gap:6px"><span class="material-icons-outlined" style="font-size:18px">mic</span> Speak with Andrew</button>
       <button class="btn btn-blue" onclick="closeModal('jobDetailModal'); openApplyModal()">Apply for This Role</button>
     </div>
   </div>
@@ -2572,7 +2573,7 @@ function renderJobs(jobs) {
           <div class="job-tags">${tagsHtml}</div>
         </div>
         <div style="display:flex;gap:8px;align-items:center;flex-shrink:0">
-          <button class="job-voice-btn" onclick="event.stopPropagation(); openVoiceAgent(${jobIndex})" title="Ask about this role">&#127908; Ask a Question</button>
+          <button class="job-voice-btn" onclick="event.stopPropagation(); launchVoiceAgent()" title="Speak with Andrew" style="display:flex;align-items:center;gap:4px"><span class="material-icons-outlined" style="font-size:16px">mic</span> Speak with Andrew</button>
           <button class="job-apply" onclick="event.stopPropagation(); currentJob = allJobs[${jobIndex}]; openApplyModal()">Apply Now</button>
         </div>
       </div>`;
@@ -4548,7 +4549,7 @@ function exitVoiceMode() {
 function openVoiceAgent(jobIdx) {
   enterVoiceMode(jobIdx);
 }
-function closeVoiceAgent() {
+function closeChatVoiceAgent() {
   exitVoiceMode();
 }
 
