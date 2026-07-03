@@ -1916,7 +1916,7 @@
     </div>
     <div class="modal-footer">
       <button class="btn btn-outline" onclick="closeModal('jobDetailModal')">Close</button>
-      <button class="btn btn-outline" onclick="closeModal('jobDetailModal'); launchVoiceAgent()" style="display:flex;align-items:center;gap:6px"><span class="material-icons-outlined" style="font-size:18px">mic</span> Speak with Andrew</button>
+      <button class="btn btn-outline" onclick="closeModal('jobDetailModal'); launchVoiceAgent()" style="display:flex;align-items:center;gap:6px"><span class="material-icons-outlined" style="font-size:18px">mic</span> Have your questions answered</button>
       <button class="btn btn-blue" onclick="closeModal('jobDetailModal'); openApplyModal()">Apply for This Role</button>
     </div>
   </div>
@@ -2574,7 +2574,7 @@ function renderJobs(jobs) {
           <div class="job-tags">${tagsHtml}</div>
         </div>
         <div style="display:flex;gap:8px;align-items:center;flex-shrink:0">
-          <button class="job-voice-btn" onclick="event.stopPropagation(); launchVoiceAgent()" title="Speak with Andrew" style="display:flex;align-items:center;gap:4px"><span class="material-icons-outlined" style="font-size:16px">mic</span> Speak with Andrew</button>
+          <button class="job-voice-btn" onclick="event.stopPropagation(); launchVoiceAgent()" title="Have your questions answered" style="display:flex;align-items:center;gap:4px"><span class="material-icons-outlined" style="font-size:16px">mic</span> Have your questions answered</button>
           <button class="job-apply" onclick="event.stopPropagation(); currentJob = allJobs[${jobIndex}]; openApplyModal()">Apply Now</button>
         </div>
       </div>`;
