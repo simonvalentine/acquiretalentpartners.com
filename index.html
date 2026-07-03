@@ -4934,8 +4934,8 @@ function processVoiceQuery(query) {
 
 
 <style>
-.voice-overlay{display:none;position:fixed;inset:0;z-index:10000;background:#ffffff;flex-direction:column;align-items:center;justify-content:center}
-.voice-overlay.active{display:flex}
+.voice-overlay{display:none;position:fixed;top:0;right:0;bottom:0;width:33.333vw;min-width:400px;z-index:10000;background:#ffffff;border-left:1px solid #dadce0;box-shadow:-12px 0 32px rgba(0,0,0,.1);flex-direction:column;align-items:center;justify-content:center}
+.voice-overlay.active{display:flex}@media (max-width:768px){.voice-overlay{width:100vw;min-width:0}}
 .voice-overlay elevenlabs-convai{position:static!important;width:100%!important;height:auto!important}
 .voice-overlay-close{position:absolute;top:24px;right:24px;width:48px;height:48px;border-radius:50%;background:#f8f9fa;border:1px solid #dadce0;color:#5f6368;font-size:20px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .3s;z-index:10}
 .voice-overlay-close:hover{background:#e8eaed;transform:scale(1.1)}
@@ -4945,7 +4945,7 @@ function processVoiceQuery(query) {
 .voice-overlay-center{display:flex;flex-direction:column;align-items:center;gap:32px}
 .voice-overlay-title{color:#202124;font-size:1.6rem;font-weight:600;letter-spacing:-.5px;text-align:center}
 .voice-overlay-subtitle{color:#5f6368;font-size:.95rem;margin-top:-20px;text-align:center}
-.voice-overlay-widget{width:320px;height:320px;display:flex;align-items:center;justify-content:center;position:relative}
+.voice-overlay-widget{width:260px;height:260px;display:flex;align-items:center;justify-content:center;position:relative}
 .voice-overlay-rings{position:absolute;inset:-40px;pointer-events:none}
 .voice-overlay-rings .ring{position:absolute;inset:0;border-radius:50%;border:1px solid rgba(26,115,232,.12);animation:ring-pulse 4s ease-in-out infinite}
 .voice-overlay-rings .ring:nth-child(2){inset:-20px;animation-delay:1s;border-color:rgba(26,115,232,.08)}
@@ -4975,7 +4975,7 @@ function processVoiceQuery(query) {
   <div class="voice-overlay-footer">Powered by Acquire Talent Partners AI</div>
 </div>
 <script>
-function launchVoiceAgent(){var o=document.getElementById('voiceAgentOverlay'),c=document.getElementById('voiceWidgetContainer');var e=c.querySelector('elevenlabs-convai');if(e)e.remove();var w=document.createElement('elevenlabs-convai');w.setAttribute('agent-id','agent_6501kr914wdmfxkvtq4k4kf4pfk6');c.appendChild(w);o.style.display='flex';o.classList.add('active');var ch=document.getElementById('chatWindow');if(ch)ch.classList.remove('open');var attempts=0;var autoStart=setInterval(function(){attempts++;if(attempts>60){clearInterval(autoStart);return;}var el=document.querySelector('elevenlabs-convai');if(!el||!el.shadowRoot)return;var btns=el.shadowRoot.querySelectorAll('button');for(var j=0;j<btns.length;j++){var txt=btns[j].textContent.trim();if(txt.indexOf('Start')>-1){btns[j].click();clearInterval(autoStart);return;}}},200);}
+function launchVoiceAgent(){var o=document.getElementById('voiceAgentOverlay'),c=document.getElementById('voiceWidgetContainer');var e=c.querySelector('elevenlabs-convai');if(e)e.remove();var w=document.createElement('elevenlabs-convai');w.setAttribute('agent-id','agent_6501kr914wdmfxkvtq4k4kf4pfk6');c.appendChild(w);o.style.display='flex';void o.offsetWidth;o.classList.add('active');var ch=document.getElementById('chatWindow');if(ch)ch.classList.remove('open');var attempts=0;var autoStart=setInterval(function(){attempts++;if(attempts>60){clearInterval(autoStart);return;}var el=document.querySelector('elevenlabs-convai');if(!el||!el.shadowRoot)return;var btns=el.shadowRoot.querySelectorAll('button');for(var j=0;j<btns.length;j++){var txt=btns[j].textContent.trim();if(txt.indexOf('Start')>-1){btns[j].click();clearInterval(autoStart);return;}}},200);}
 function closeVoiceAgent(){var o=document.getElementById('voiceAgentOverlay');o.classList.remove('active');setTimeout(function(){o.style.display='none';var c=document.getElementById('voiceWidgetContainer');var w=c.querySelector('elevenlabs-convai');if(w)w.remove()},400)}
 document.addEventListener('keydown',function(e){if(e.key==='Escape'&&document.getElementById('voiceAgentOverlay').classList.contains('active'))closeVoiceAgent()});
 </script>
